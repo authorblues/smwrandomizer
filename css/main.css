@@ -1,22 +1,5 @@
+#original-rom { display: none; }
 
-
-/* ==========================================================================
-   Author's custom styles
-   ========================================================================== */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#original-rom-result { margin-right: 5px; }
+#original-rom-result.glyphicon-ok         { color: green; }
+#original-rom-result.glyphicon-remove { color: red;   }

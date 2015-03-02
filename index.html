@@ -23,12 +23,22 @@
 	</head>
 	<body>
 		<div id="page">
-			<label>SMW headered rom: <input type="file" id="original-rom"></label>
+			<input type="file" id="original-rom" accept=".smc,.sfc">
+			<button id="select-original-rom" class="btn btn-default">
+				<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
+				Select Original ROM
+			</button> 
+			
+			<button id="generate-randomized-rom" class="btn btn-default">
+				Generate ROM
+			</button>
 		</div>
+		
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
 
 		<script src="js/vendor/bootstrap.min.js"></script>
+		<script src="js/vendor/FileSaver.min.js"></script>
 		<script src="js/main.js"></script>
 		<script src="js/randomizer.js"></script>
 	</body>
