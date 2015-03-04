@@ -22,16 +22,72 @@
 		<script src="js/vendor/modernizr-2.8.3.min.js"></script>
 	</head>
 	<body>
-		<div id="page">
-			<input type="file" id="original-rom" accept=".smc,.sfc">
-			<button id="select-original-rom" class="btn btn-default">
-				<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
-				Select Original ROM
-			</button> 
+		<!-- Main jumbotron for a primary marketing message or call to action -->
+		<div class="container">
+			<h2>Super Mario World Randomizer</h2>
+			<p>by authorblues + kaizoman666</p>
+		</div>
+
+		<div class="container">
+			<!-- Example row of columns -->
+			<div class="row">
 			
-			<button id="generate-randomized-rom" class="btn btn-default">
-				Generate ROM
-			</button>
+				<div class="col-md-6">
+					<form>
+						<input type="file" id="original-rom" accept=".smc,.sfc">
+						<button id="select-original-rom" class="btn btn-default">
+							<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
+							Select Original ROM
+						</button>
+						
+						<h3>Randomize Stages</h3>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_sameworld"> 
+								Keep Same World (Randomize only within world)
+							</label>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_sametype"> 
+								Keep Same Type (Ghost, Water, Normal)
+							</label>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_95exit"> 
+								95 Exit Mode (Don't move </i>Donut Ghost House</i>)
+							</label>
+						</div>
+						
+						<h3>Overworld Level Names</h3>
+						<div class="radio">
+							<label>
+								<input type="radio" name="levelnames" value="same_stage" checked> 
+								Match Stage
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="levelnames" value="same_overworld"> 
+								Match Overworld
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="levelnames" value="random"> 
+								Fully Random
+							</label>
+						</div>
+					</form>
+				</div>
+				<div class="col-md-6">
+					<button id="generate-randomized-rom" class="btn btn-default">
+						Generate ROM
+					</button>
+				</div>
+			</form>
+			</div>
 		</div>
 		
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>

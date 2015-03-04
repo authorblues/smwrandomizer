@@ -25,13 +25,19 @@ $('#original-rom').change(function(e)
 		{ checkRomResult(x === ORIGINAL_MD5, e.target.files[0]); });
 });
 
+$('form').submit(function(e)
+{
+	e.preventDefault();
+	return false;
+});
+
 function checkRomResult(valid, file)
 {
 	$('#original-rom-result').removeClass('glyphicon-question-sign');
 	$('#original-rom-result').toggleClass('glyphicon-ok', valid);
 	$('#original-rom-result').toggleClass('glyphicon-remove', !valid);
 	
-	/*if (valid)*/ ORIGINAL_ROM = file;
+	if (valid) ORIGINAL_ROM = file;
 }
 
 Array.prototype.shuffle = function(random)
