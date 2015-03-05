@@ -98,6 +98,8 @@ var smw_stages = [
 
 var SEC_EXIT_OFFSET_LO = 0x2F800;
 var SEC_EXIT_OFFSET_HI = 0x2FE00;
+var SEC_EXIT_OFFSET_X1 = 0x2FA00;
+var SEC_EXIT_OFFSET_X2 = 0x2FC00;
 
 function randomizeROM(buffer, seed)
 {
@@ -130,7 +132,6 @@ function randomizeROM(buffer, seed)
 	
 	for (var i = 0; i < stages.length; ++i)
 		performCopy(stages[i], rom);
-	fixSecondaryExits(stages, rom);
 	
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
@@ -138,7 +139,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	//saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
+	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
 }
 
 function shuffle(stages, random)
@@ -150,7 +151,6 @@ function shuffle(stages, random)
 
 function performCopy(stage, rom)
 {
-	//console.log(stage.copyfrom.name + ' --> ' + stage.name);
 	for (var j = 0; j < level_offsets.length; ++j)
 	{
 		var o = level_offsets[j], start = o.offset + o.bytes * stage.id;
@@ -175,6 +175,10 @@ function performCopy(stage, rom)
 	
 	if (stage.copyfrom.id == 0x13) rom[0x04A0C] = stage.translevel; // dsh translevel
 	if (stage.copyfrom.id == 0x24) rom[0x2DAE5] = stage.translevel; // ci2 translevel
+	
+	// if we move a stage between 0x100 banks, we need to move sublevels
+	// screen exits as well might need to be fixed, even if we don't change banks
+	fixSublevels(stage, rom);
 }
 
 function getSecondaryExitTarget(xid, rom)
@@ -183,6 +187,7 @@ function getSecondaryExitTarget(xid, rom)
 	return rom[SEC_EXIT_OFFSET_LO + xid] | (xid & 0x100);
 }
 
+// @deprecated
 function fixSecondaryExits(stages, rom)
 {
 	var id, mapping = {};
@@ -195,7 +200,7 @@ function fixSecondaryExits(stages, rom)
 		if (!(id = mapping[curr])) continue;
 		
 		// fix secondary exit target since the stage was moved
-		rom[SEC_EXIT_OFFSET_LO + i] = id & 0xFF;
+		rom[SEC_EXIT_OFFSET_LO + i]  = id & 0xFF;
 		rom[SEC_EXIT_OFFSET_HI + i] &= 0xF7;
 		rom[SEC_EXIT_OFFSET_HI + i] |= (id & 0x100) >> 5;
 	}
@@ -243,7 +248,10 @@ function backupData(stages, rom)
 			stage.data[o.name] = rom.slice(start, start + o.bytes);
 		}
 		
-		console.log(stage.name, $.map(getRelatedSublevels(stage.id, rom), function(x){ return '0x' + x.toString(16); }).toString());
+		// get a list of sublevels
+		stage.sublevels = getRelatedSublevels(stage.id, rom);
+		stage.allexits = Array.prototype.concat.apply([], 
+			$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
 	}
 }
 
@@ -275,9 +283,6 @@ function same_bucket(a, b)
 	// a different number of exits, different bucket
 	if (a.exits !== b.exits) return false;
 	
-	// FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME 
-	if ((a.id & 0x100) !== (b.id & 0x100)) return false;
-	
 	// can't swap castle with non-castle -- TODO
 	if (Math.sign(a.castle) !== Math.sign(b.castle)) return false;
 	
@@ -291,6 +296,100 @@ function same_bucket(a, b)
 	if ($('#randomize_sameworld').is(':checked') && a.world !== b.world) return false;
 	
 	return true;
+}
+
+// ASSUMES the layer1 pointer has already been copied to this stage
+function fixSublevels(stage, rom)
+{
+	var sublevels = stage.copyfrom.sublevels.slice(0);
+	sublevels[0] = stage.id;
+
+	var remap = {}; remap[stage.copyfrom.id] = stage.id;
+	for (var i = 1; i < sublevels.length; ++i)
+	{
+		var id = sublevels[i];
+		if ((id & 0x100) !== (stage.id & 0x100))
+		{
+			var newid = remap[id] = findOpenSublevel(stage.id & 0x100, rom);
+			moveSublevel(newid, id, rom);
+		}
+	}
+	
+	// fix all screen exits
+	for (var i = 0; i < stage.copyfrom.allexits.length; ++i)
+	{
+		var x = stage.copyfrom.allexits[i], target = getSublevelFromExit(x, rom);
+		if (target in remap)
+		{
+			var newtarget = remap[target];
+			if (!x.issecx) rom[x.addr+3] = newtarget;
+			else
+			{
+				var secid = x.target;
+				var newsecid = findOpenSecondaryExit(stage.id & 0x100, rom);
+				rom[x.addr+3] = newsecid & 0xFF;
+				
+				// copy all secondary exit tables
+				rom[SEC_EXIT_OFFSET_LO + newsecid] = rom[SEC_EXIT_OFFSET_LO + secid];
+				rom[SEC_EXIT_OFFSET_HI + newsecid] = rom[SEC_EXIT_OFFSET_HI + secid];
+				rom[SEC_EXIT_OFFSET_X1 + newsecid] = rom[SEC_EXIT_OFFSET_X1 + secid];
+				rom[SEC_EXIT_OFFSET_X2 + newsecid] = rom[SEC_EXIT_OFFSET_X2 + secid];
+				
+				// fix secondary exit target
+				rom[SEC_EXIT_OFFSET_LO + newsecid]  = newtarget & 0xFF;
+				rom[SEC_EXIT_OFFSET_HI + newsecid] &= 0xF7;
+				rom[SEC_EXIT_OFFSET_HI + newsecid] |= (newtarget & 0x100) >> 5;
+				
+				// clear old secondary exit target
+				rom[SEC_EXIT_OFFSET_LO + secid]  = 0x00;
+				rom[SEC_EXIT_OFFSET_HI + secid] &= 0xF7;
+			}
+		}
+	}
+}
+
+function moveSublevel(to, fm, rom)
+{
+	// copy all of the level pointers
+	for (var i = 0; i < level_offsets.length; ++i)
+	{
+		var o = level_offsets[i];
+		
+		var fmx = o.offset + fm * o.bytes;
+		var tox = o.offset + to * o.bytes;
+		
+		rom.set(rom.slice(fmx, fmx + o.bytes), tox);
+	}
+	
+	// copy the TEST level into the now-freed sublevel slot
+	rom.set([0x00, 0x80, 0x06], LAYER1_OFFSET + 3 * fm);
+}
+
+function findOpenSublevel(bank, rom)
+{
+	bank &= 0x100;
+	for (var i = 0x01; i <= 0xFF; ++i)
+	{
+		var x = bank | i, os = LAYER1_OFFSET + 3 * x;
+		var p = rom.slice(os, os + 3);
+		
+		// check for TEST level pointer
+		if (p[0] == 0x00 && p[1] == 0x80 && p[2] == 0x06) return x;
+	}
+	
+	// please god, this should never happen!
+	throw new Error('No free sublevels in bank ' + bank.toHex(3));
+}
+
+function findOpenSecondaryExit(bank, rom)
+{
+	bank &= 0x100;
+	for (var i = 0x01; i <= 0xFF; ++i)
+		if (rom[SEC_EXIT_OFFSET_LO + (bank | i)] == 0x00)
+			return (bank | i);
+	
+	// please god, this should never happen!
+	throw new Error('No free secondary exits in bank ' + bank.toHex(3));
 }
 
 function getScreenExits(id, rom)
@@ -314,11 +413,11 @@ function getScreenExits(id, rom)
 				if (rom[addr] === 0xFF) break;
 				
 				// screen exit info from the four bytes
-				var x = { offset: addr };
+				var x = { from: id, addr: addr };
 				x.screen =   (rom[addr  ] & 0x1F);
-				x.water  = !!(rom[addr+1] & 0x80);
-				x.issecx = !!(rom[addr+1] & 0x20);
-				x.target =    rom[addr+3];
+				x.water  = !!(rom[addr+1] & 0x08);
+				x.issecx = !!(rom[addr+1] & 0x02);
+				x.target =    rom[addr+3] | (id & 0x100);
 				
 				exits.push(x);
 			}
@@ -327,6 +426,12 @@ function getScreenExits(id, rom)
 	}
 	
 	return exits;
+}
+
+function getSublevelFromExit(exit, rom)
+{
+	if (!exit.issecx) return exit.target;
+	return getSecondaryExitTarget(exit.target, rom);
 }
 
 function getRelatedSublevels(baseid, rom)
@@ -342,8 +447,7 @@ function getRelatedSublevels(baseid, rom)
 		
 		for (var i = 0; i < exits.length; ++i)
 		{
-			var x = exits[i], next = x.target | (baseid & 0x100);
-			if (x.issecx) next = getSecondaryExitTarget(tt = next, rom);
+			var x = exits[i], next = getSublevelFromExit(x, rom);
 			if (ids.indexOf(next) == -1) todo.push(next);
 		}
 	}
