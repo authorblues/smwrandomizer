@@ -25,7 +25,7 @@
 		<!-- Main jumbotron for a primary marketing message or call to action -->
 		<div class="container">
 			<h2>Super Mario World Randomizer</h2>
-			<p>by authorblues + kaizoman666</p>
+			<p>by authorblues + kaizoman666 + dotsarecoolp</p>
 		</div>
 
 		<div class="container">
@@ -37,7 +37,7 @@
 						<input type="file" id="original-rom" accept=".smc,.sfc">
 						<button id="select-original-rom" class="btn btn-default">
 							<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
-							Select Original ROM
+							Select Original 512k unheadered NTSC-U ROM
 						</button>
 						
 						<h3>Randomize Stages</h3>
@@ -75,16 +75,70 @@
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="levelnames" value="random"> 
-								Fully Random
+								<input type="radio" name="levelnames" value="random_stage"> 
+								Random Stage
 							</label>
 						</div>
 					</form>
 				</div>
 				<div class="col-md-6">
-					<button id="generate-randomized-rom" class="btn btn-default">
-						Generate ROM
-					</button>
+					<div class="input-group">
+						<div class="input-group-addon">
+							<span>Last Seed: <span id="used-seed" class="mono">????????</span></span>
+						</div>
+						<span class="input-group-btn">
+							<button id="generate-randomized-rom" class="btn btn-default" type="button">
+								Generate ROM
+							</button> 
+						</span>
+					</div>
+					
+					<!--form class="form-inline">
+						<h3>Randomizer Seed</h3>
+						<div class="checkbox">
+							<input type="checkbox" id="use-custom-seed">
+						</div>
+						<div class="form-group">
+							<input type="text" class="form-control mono" maxlength="6" 
+								placeholder="Custom Seed" id="custom-seed">
+						</div>
+					</form-->
+						
+					<form>
+						<h3>Powerups</h3>
+						<div class="radio">
+							<label>
+								<input type="radio" name="powerups" value="default" checked> 
+								Default Powerups
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="powerups" value="random" disabled> 
+								Randomize Powerups
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="powerups" value="nocape" disabled> 
+								No Cape
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="powerups" value="smallonly" disabled> 
+								Small Only
+							</label>
+						</div>
+						
+						<h3>Other</h3>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_exits"> 
+								Randomize Powerups (Swap Normal/Secret Randomly)
+							</label>
+						</div>
+					</form>
 				</div>
 			</form>
 			</div>

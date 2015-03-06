@@ -25,56 +25,56 @@ var smw_stages = [
 	{"name": "yi2", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x106}, 
 	{"name": "yi3", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x103}, 
 	{"name": "yi4", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x102}, 
-	{"name": "dp1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x15}, 
-	{"name": "dp2", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x9}, 
-	{"name": "dp3", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x5}, 
-	{"name": "dp4", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x6}, 
-	{"name": "ds1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0xA}, 
+	{"name": "dp1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x015}, 
+	{"name": "dp2", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x009}, 
+	{"name": "dp3", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x005}, 
+	{"name": "dp4", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x006}, 
+	{"name": "ds1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x00A}, 
 	{"name": "ds2", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10B}, 
 	{"name": "vd1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11A}, 
 	{"name": "vd2", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x118}, 
 	{"name": "vd3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10A}, 
 	{"name": "vd4", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x119}, 
 	{"name": "vs1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x109}, 
-	{"name": "vs2", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x1}, 
-	{"name": "vs3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x2}, 
-	{"name": "cba", "world": 4, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0xF}, 
-	{"name": "soda", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x11}, 
-	{"name": "cookie", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10}, 
-	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0xC}, 
-	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0xD}, 
+	{"name": "vs2", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x001}, 
+	{"name": "vs3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x002}, 
+	{"name": "cba", "world": 4, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00F}, 
+	{"name": "soda", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x011}, 
+	{"name": "cookie", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x010}, 
+	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00C}, 
+	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00D}, 
 	{"name": "foi1", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11E}, 
 	{"name": "foi2", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x120}, 
 	{"name": "foi3", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x123}, 
 	{"name": "foi4", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11F}, 
 	{"name": "fsecret", "world": 5, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x122}, 
-	{"name": "ci1", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x22}, 
-	{"name": "ci2", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x24}, 
-	{"name": "ci3", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x23}, 
-	{"name": "ci4", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x1D}, 
-	{"name": "ci5", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x1C}, 
+	{"name": "ci1", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x022}, 
+	{"name": "ci2", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x024}, 
+	{"name": "ci3", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x023}, 
+	{"name": "ci4", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x01D}, 
+	{"name": "ci5", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10C}, 
 	{"name": "csecret", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x117}, 
 	{"name": "vob1", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x116}, 
 	{"name": "vob2", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x115}, 
 	{"name": "vob3", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x113}, 
 	{"name": "vob4", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10F}, 
 	{"name": "c1", "world": 1, "exits": 1, "castle": 1, "palace": 0, "ghost": 0, "water": 0, "id": 0x101}, 
-	{"name": "c2", "world": 2, "exits": 1, "castle": 2, "palace": 0, "ghost": 0, "water": 0, "id": 0x7}, 
+	{"name": "c2", "world": 2, "exits": 1, "castle": 2, "palace": 0, "ghost": 0, "water": 0, "id": 0x007}, 
 	{"name": "c3", "world": 3, "exits": 1, "castle": 3, "palace": 0, "ghost": 0, "water": 0, "id": 0x11C}, 
-	{"name": "c4", "world": 4, "exits": 1, "castle": 4, "palace": 0, "ghost": 0, "water": 0, "id": 0xE}, 
-	{"name": "c5", "world": 5, "exits": 1, "castle": 5, "palace": 0, "ghost": 0, "water": 0, "id": 0x20}, 
-	{"name": "c6", "world": 6, "exits": 1, "castle": 6, "palace": 0, "ghost": 0, "water": 0, "id": 0x1A}, 
+	{"name": "c4", "world": 4, "exits": 1, "castle": 4, "palace": 0, "ghost": 0, "water": 0, "id": 0x00E}, 
+	{"name": "c5", "world": 5, "exits": 1, "castle": 5, "palace": 0, "ghost": 0, "water": 0, "id": 0x020}, 
+	{"name": "c6", "world": 6, "exits": 1, "castle": 6, "palace": 0, "ghost": 0, "water": 0, "id": 0x01A}, 
 	{"name": "c7", "world": 7, "exits": 1, "castle": 7, "palace": 0, "ghost": 0, "water": 0, "id": 0x110}, 
-	{"name": "vfort", "world": 3, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 1, "id": 0xB}, 
-	{"name": "ffort", "world": 5, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x1F}, 
-	{"name": "cfort", "world": 6, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x1B}, 
+	{"name": "vfort", "world": 3, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 1, "id": 0x00B}, 
+	{"name": "ffort", "world": 5, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01F}, 
+	{"name": "cfort", "world": 6, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01B}, 
 	{"name": "bfort", "world": 7, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x111}, 
-	{"name": "dgh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x4}, 
-	{"name": "dsh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x13}, 
+	{"name": "dgh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x004}, 
+	{"name": "dsh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x013}, 
 	{"name": "vgh", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x107}, 
 	{"name": "fgh", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x11D}, 
-	{"name": "cgh", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x21}, 
-	{"name": "sgs", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 1, "id": 0x18}, 
+	{"name": "cgh", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x021}, 
+	{"name": "sgs", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 1, "id": 0x018}, 
 	{"name": "bgh", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x114}, 
 	{"name": "sw1", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x134}, 
 	{"name": "sw2", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x130}, 
@@ -89,11 +89,11 @@ var smw_stages = [
 	{"name": "sp6", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x127}, 
 	{"name": "sp7", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x126}, 
 	{"name": "sp8", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x125}, 
-	{"name": "yswitch", "world": 1, "exits": 0, "castle": 0, "palace": 1, "ghost": 0, "water": 0, "id": 0x14}, 
-	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x8}, 
+	{"name": "yswitch", "world": 1, "exits": 0, "castle": 0, "palace": 1, "ghost": 0, "water": 0, "id": 0x014}, 
+	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x008}, 
 	{"name": "rswitch", "world": 3, "exits": 0, "castle": 0, "palace": 3, "ghost": 0, "water": 0, "id": 0x11B}, 
 	{"name": "bswitch", "world": 5, "exits": 0, "castle": 0, "palace": 2, "ghost": 0, "water": 0, "id": 0x121}, 
-//	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x3}, 
+//	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003}, 
 ];
 
 var SEC_EXIT_OFFSET_LO = 0x2F800;
@@ -113,6 +113,11 @@ function randomizeROM(buffer, seed)
 	}
 	
 	var random = new Random(seed);
+	
+	$('#used-seed').text(random.seed.toHex(8, ''));
+	$('#custom-seed').val('');
+	$('#use-custom-seed').removeAttr('checked');
+	
 	var rom = new Uint8Array(buffer);
 	backupData(stages, rom);
 	
@@ -127,11 +132,17 @@ function randomizeROM(buffer, seed)
 	for (var i = 0; i < stages.length; ++i)
 		stagelookup[stages[i].copyfrom.name] = stages[i];
 	
-	if ($('input[name="levelnames"]:checked').val() == 'random')
+	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
 		shuffleLevelNames(stages, random);
 	
 	for (var i = 0; i < stages.length; ++i)
+	{
 		performCopy(stages[i], rom);
+		
+		// randomly swap the normal/secret exits
+		if ($('#randomize_exits').is(':checked') && random.nextFloat() > 0.5)
+			swapExits(stages[i], rom);
+	}
 	
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
@@ -139,7 +150,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
+	//saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
 }
 
 function shuffle(stages, random)
@@ -173,8 +184,16 @@ function performCopy(stage, rom)
 	if (stage.copyfrom.palace > 0)
 		rom[0x2A590 + stage.copyfrom.palace - 1] = stage.translevel;
 	
-	if (stage.copyfrom.id == 0x13) rom[0x04A0C] = stage.translevel; // dsh translevel
-	if (stage.copyfrom.id == 0x24) rom[0x2DAE5] = stage.translevel; // ci2 translevel
+	if (stage.copyfrom.id == 0x013) rom[0x04A0C] = stage.translevel; // dsh translevel
+	if (stage.copyfrom.id == 0x024) rom[0x2DAE5] = stage.translevel; // ci2 translevel
+	
+	// if the stage we are copying from is dgh, we should fix all the associated exits
+	// since dgh has its exits unintuitively reversed
+	if (stage.copyfrom.id == 0x004)
+	{
+		swapExits(stage.copyfrom, rom);
+		swapExits(stage, rom);
+	}
 	
 	// if we move a stage between 0x100 banks, we need to move sublevels
 	// screen exits as well might need to be fixed, even if we don't change banks
@@ -214,10 +233,10 @@ function fixBlockPaths(lookup, rom)
 	// swap some values if roy and larry end up in the wrong order
 	if (c7.translevel < c5.translevel)
 	{
-		var EF = rom.slice(0x195EF, 0x195EF + 52);
-		var A4 = rom.slice(0x195A4, 0x195A4 + 74);
+		var EF = rom.slice(0x193EF, 0x193EF + 52);
+		var A4 = rom.slice(0x193A4, 0x193A4 + 74);
 		
-		rom.set(EF, 0x195A4);
+		rom.set(EF, 0x193A4);
 		rom.set(A4, 0x193D8);
 		rom.set([0xD8, 0x93], 0x19306);
 		rom.set([0xA4, 0x95], 0x1930B);
@@ -252,6 +271,21 @@ function backupData(stages, rom)
 		stage.sublevels = getRelatedSublevels(stage.id, rom);
 		stage.allexits = Array.prototype.concat.apply([], 
 			$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
+		
+		// ci2 - need to add the exits from the additional tables
+		if (stage.id === 0x024)
+		{
+			// coins - room 2
+			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06E9FB, rom));
+			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EAB0, rom));
+			
+			// time - room 3
+			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EB72, rom));
+			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EBBE, rom));
+		
+			// yoshi coins - room 4
+			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EC7E, rom));
+		}
 	}
 }
 
@@ -348,6 +382,62 @@ function fixSublevels(stage, rom)
 	}
 }
 
+function swapExits(stage, rom)
+{
+	if (stage.exits !== 2) return;
+	
+	// swap the exit directions (nnss----)
+	var dirs = rom[0x25678 + stage.translevel];
+	var dhi = dirs & 0xC0, dlo = dirs & 0x30;
+	rom[0x25678 + stage.translevel] = 
+		(dirs & 0x0F) | (dhi >> 2) | (dlo << 2);
+	
+	// LAYER 1 ------------------------------
+	
+	// "flash" data
+	var r1flasha = rom.slice(0x2585D + ndxa * 2, 0x2585D + ndxa * 2 + 2);
+	var r1flashb = rom.slice(0x2585D + ndxb * 2, 0x2585D + ndxb * 2 + 2);
+	
+	rom.set(r1flasha, 0x2585D + ndxb * 2);
+	rom.set(r1flashb, 0x2585D + ndxa * 2);
+	
+	// reveal data
+	var r1reveala = rom.slice(0x2593D + ndxa * 2, 0x2593D + ndxa * 2 + 2);
+	var r1revealb = rom.slice(0x2593D + ndxb * 2, 0x2593D + ndxb * 2 + 2);
+	
+	rom.set(r1reveala, 0x2593D + ndxb * 2);
+	rom.set(r1revealb, 0x2593D + ndxa * 2);
+	
+	// LAYER 2 ------------------------------
+	
+	// secret exit triggers event+1
+	var ndxa = rom[0x2D608 + stage.translevel];
+	var ndxb = ndxa + 1, ndxc = ndxa + 2;
+	
+	// get offsets into the event data table
+	var offseta = rom[0x26359 + ndxa * 2] | (rom[0x26359 + ndxa * 2 + 1] << 8);
+	var offsetb = rom[0x26359 + ndxb * 2] | (rom[0x26359 + ndxb * 2 + 1] << 8);
+	var offsetc = rom[0x26359 + ndxc * 2] | (rom[0x26359 + ndxc * 2 + 1] << 8);
+	
+	// get the size of each event
+	var asz = offsetb - offseta;
+	var bsz = offsetc - offsetb;
+	
+	// copy the event data to temporary storage
+	var eventa = rom.slice(0x25D8D + offseta * 4, 0x25D8D + offsetb * 4);
+	var eventb = rom.slice(0x25D8D + offsetb * 4, 0x25D8D + offsetc * 4);
+	
+	// update the new offset for where event+1 should go
+	offsetb = offseta + bsz;
+	
+	// copy the event data back into the event table
+	rom.set(eventb, 0x25D8D + offseta * 4);
+	rom.set(eventa, 0x25D8D + offsetb * 4);
+	
+	// update the offset for event+1 back into the table
+	rom.set([offsetb & 0xFF, (offsetb >> 8) & 0xFF], 0x26359 + ndxb * 2);
+}
+
 function moveSublevel(to, fm, rom)
 {
 	// copy all of the level pointers
@@ -368,7 +458,9 @@ function moveSublevel(to, fm, rom)
 function findOpenSublevel(bank, rom)
 {
 	bank &= 0x100;
-	for (var i = 0x01; i <= 0xFF; ++i)
+	
+	var start = [0x025, 0x13C][bank >> 16];
+	for (var i = start; i <= 0xFF; ++i)
 	{
 		var x = bank | i, os = LAYER1_OFFSET + 3 * x;
 		var p = rom.slice(os, os + 3);
@@ -394,11 +486,16 @@ function findOpenSecondaryExit(bank, rom)
 
 function getScreenExits(id, rom)
 {
-	var exits = [], start = LAYER1_OFFSET + 3 * id;
+	var start = LAYER1_OFFSET + 3 * id;
 	var p = rom.slice(start, start + 3);
 	var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+	return getScreenExitsByAddr(snes, rom, id);
+}
+
+function getScreenExitsByAddr(snes, rom, id)
+{
+	var exits = [];
 	var addr = snesAddressToOffset(snes) + 5;
-	
 	for (;; addr += 3)
 	{
 		// 0xFF sentinel represents end of level data

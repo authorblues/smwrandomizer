@@ -59,7 +59,7 @@ Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 }
 
 function Random(seed)
-{ this.seed = seed || +new Date(); }
+{ this.seed = Math.floor(seed || (Math.random() * 0x7FFFFFFF)) & 0x7FFFFFFF; }
 
 Random.prototype.nextFloat = function()
 { var x = Math.sin(this.seed++) * 10000; return x - Math.floor(x); }
@@ -74,3 +74,14 @@ Random.prototype.nextGaussian = function()
 
 Random.prototype.nextInt = function(z)
 { return (this.nextFloat() * z)|0; }
+
+Number.prototype.toHex = function(n, p)
+{
+	var hex = this.toString(16);
+	while (hex.length < n) hex = '0' + hex;
+	return (p != null ? p : '$') + hex;
+};
+
+Array.prototype.toDebugString = function(){ return '[' + this.toString() + ']'; };
+
+Array.prototype.toHexArray = function(n){ return $.map(this, function(x){ return x.toHex(n); }).toDebugString(); };
