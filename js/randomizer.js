@@ -108,15 +108,16 @@ function randomizeROM(buffer, seed)
 	{
 		// remove dgh and topsecret from rotation
 		for (var i = stages.length - 1; i >= 0; --i)
-			if ([0x3, 0x4].indexOf(stages[i].id) != -1)
+			if ([0x003, 0x004].indexOf(stages[i].id) != -1)
 				stages.splice(i, 1);
 	}
 	
 	var random = new Random(seed);
+	var vseed = random.seed.toHex(8, '');
 	
-	$('#used-seed').text(random.seed.toHex(8, ''));
 	$('#custom-seed').val('');
 	$('#use-custom-seed').removeAttr('checked');
+	$('#used-seed').text(vseed);
 	
 	var rom = new Uint8Array(buffer);
 	backupData(stages, rom);
@@ -150,7 +151,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
+	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
 
 function shuffle(stages, random)
