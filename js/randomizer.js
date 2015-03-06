@@ -150,7 +150,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	//saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
+	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-randomizer.sfc');
 }
 
 function shuffle(stages, random)
