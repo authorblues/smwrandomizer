@@ -387,6 +387,10 @@ function swapExits(stage, rom)
 {
 	if (stage.exits !== 2) return;
 	
+	// secret exit triggers event+1
+	var ndxa = rom[0x2D608 + stage.translevel];
+	var ndxb = ndxa + 1, ndxc = ndxa + 2;
+	
 	// swap the exit directions (nnss----)
 	var dirs = rom[0x25678 + stage.translevel];
 	var dhi = dirs & 0xC0, dlo = dirs & 0x30;
@@ -410,10 +414,6 @@ function swapExits(stage, rom)
 	rom.set(r1revealb, 0x2593D + ndxa * 2);
 	
 	// LAYER 2 ------------------------------
-	
-	// secret exit triggers event+1
-	var ndxa = rom[0x2D608 + stage.translevel];
-	var ndxb = ndxa + 1, ndxc = ndxa + 2;
 	
 	// get offsets into the event data table
 	var offseta = rom[0x26359 + ndxa * 2] | (rom[0x26359 + ndxa * 2 + 1] << 8);
