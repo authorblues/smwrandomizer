@@ -96,6 +96,9 @@ var smw_stages = [
 //	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003}, 
 ];
 
+// koopa kid boss room sublevels, indexed by castle #
+var koopa_kids = [0x1F6, 0x0E5, 0x1F2, 0x0D9, 0x0CC, 0x0D3, 0x1EB];
+
 var SEC_EXIT_OFFSET_LO = 0x2F800;
 var SEC_EXIT_OFFSET_HI = 0x2FE00;
 var SEC_EXIT_OFFSET_X1 = 0x2FA00;
@@ -133,12 +136,10 @@ function randomizeROM(buffer, seed)
 	for (var i = 0; i < stages.length; ++i)
 		stagelookup[stages[i].copyfrom.name] = stages[i];
 	
-	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
-		shuffleLevelNames(stages, random);
-	
+	var globalremapping = {};
 	for (var i = 0; i < stages.length; ++i)
 	{
-		performCopy(stages[i], rom);
+		performCopy(stages[i], globalremapping, rom);
 		
 		// randomly swap the normal/secret exits
 		if ($('#randomize_exits').is(':checked') && random.nextFloat() > 0.5)
@@ -148,8 +149,14 @@ function randomizeROM(buffer, seed)
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
 	
+	if ($('#randomize_koopakids').is(':checked'))
+		randomizeKoopaKids(globalremapping, random, rom);
+	
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
+	
+	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
+		shuffleLevelNames(stages, random);
 
 	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
@@ -161,8 +168,9 @@ function shuffle(stages, random)
 		stages[i].copyfrom = rndstages[i];
 }
 
-function performCopy(stage, rom)
+function performCopy(stage, map, rom)
 {
+	map[stage.copyfrom.id] = stage.id;
 	for (var j = 0; j < level_offsets.length; ++j)
 	{
 		var o = level_offsets[j], start = o.offset + o.bytes * stage.id;
@@ -198,7 +206,7 @@ function performCopy(stage, rom)
 	
 	// if we move a stage between 0x100 banks, we need to move sublevels
 	// screen exits as well might need to be fixed, even if we don't change banks
-	fixSublevels(stage, rom);
+	fixSublevels(stage, map, rom);
 }
 
 function getSecondaryExitTarget(xid, rom)
@@ -334,12 +342,11 @@ function same_bucket(a, b)
 }
 
 // ASSUMES the layer1 pointer has already been copied to this stage
-function fixSublevels(stage, rom)
+function fixSublevels(stage, remap, rom)
 {
 	var sublevels = stage.copyfrom.sublevels.slice(0);
 	sublevels[0] = stage.id;
 
-	var remap = {}; remap[stage.copyfrom.id] = stage.id;
 	for (var i = 1; i < sublevels.length; ++i)
 	{
 		var id = sublevels[i];
@@ -568,4 +575,32 @@ function shuffleLevelNames(stages, random)
 {
 	var ptrs = $.map(stages, function(x){ return x.data['nameptr']; }).shuffle(random);
 	for (var i = 0; i < ptrs.length; ++i) stages[i].data['nameptr'] = ptrs[i];
+}
+
+function randomizeKoopaKids(map, random, rom)
+{
+	var bossrooms = [];
+	for (var i = 0; i < koopa_kids.length; ++i)
+	{
+		// find the actual sublevel holding this boss fight
+		var oldbr = koopa_kids[i];
+		var newbr = (oldbr in map) ? map[oldbr] : oldbr;
+		
+		// save this information
+		bossrooms.push({ cfm: i+1, sublevel: newbr });
+	}
+		
+	bossrooms.shuffle(random);
+	for (var i = 0; i < bossrooms.length; ++i)
+		bossrooms[i].cto = i+1;
+		
+	var hold0 = findOpenSublevel(0x000, rom);
+	moveSublevel(hold0, bossrooms[0].sublevel, rom);
+	
+	for (var i = 1; i < bossrooms.length; ++i)
+		moveSublevel(bossrooms[i-1].sublevel, bossrooms[i].sublevel, rom);
+	moveSublevel(bossrooms[bossrooms.length-1].sublevel, hold0, rom);
+		
+	if ($('input[name="levelnames"]:checked').val() == 'match_stage')
+		; // TODO: fix castle names
 }
