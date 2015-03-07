@@ -188,9 +188,9 @@ function performCopy(stage, rom)
 	if (stage.copyfrom.id == 0x013) rom[0x04A0C] = stage.translevel; // dsh translevel
 	if (stage.copyfrom.id == 0x024) rom[0x2DAE5] = stage.translevel; // ci2 translevel
 	
-	// if the stage we are copying from is dgh, we should fix all the associated exits
-	// since dgh has its exits unintuitively reversed
-	if (stage.copyfrom.id == 0x004)
+	// if the stage we are copying from is default "backwards", we should fix all the
+	// associated exits since they have their exits unintuitively reversed
+	if ([0x004, 0x11D].indexOf(stage.copyfrom.id) != -1)
 	{
 		swapExits(stage.copyfrom, rom);
 		swapExits(stage, rom);
@@ -413,6 +413,11 @@ function swapExits(stage, rom)
 	rom.set(r1reveala, 0x2593D + ndxb * 2);
 	rom.set(r1revealb, 0x2593D + ndxa * 2);
 	
+	// update offscreen event map
+	for (var i = 0, xor = ndxa ^ ndxb; i < 44; ++i) 
+		if ([ndxa, ndxb].indexOf(rom[0x268E4 + i]) != -1)
+			rom[0x268E4 + i] ^= xor;
+	
 	// LAYER 2 ------------------------------
 	
 	// get offsets into the event data table
@@ -493,7 +498,7 @@ function getScreenExits(id, rom)
 	return getScreenExitsByAddr(snes, rom, id);
 }
 
-function getScreenExitsByAddr(snes, rom, id)
+function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 {
 	var exits = [];
 	var addr = snesAddressToOffset(snes) + 5;
