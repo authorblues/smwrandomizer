@@ -18,13 +18,11 @@ function removeCape(rom)
 		if (rom[0x07ADF+i] == 0x77) rom[0x07ADF+i] = 0x75;
 		
 	// remove all fixed capes in every sublevel
-	/*for (var id = 0; id < 0x200; ++id)
+	for (var id = 0; id < 0x200; ++id)
 	{
 		var sprites = getSpritesBySublevel(id, rom);
-		for (var i = 0; i < sprites.length; ++i)
-			if (sprites[i].spriteid == 0x77)
-				rom.set([0xF3, 0xFF, 0x00], sprites[i].addr);
-	}*/
+		deleteSprites([0x77], sprites, rom);
+	}
 }
 
 function removeAllPowerups(rom)
@@ -47,13 +45,11 @@ function removeAllPowerups(rom)
 			rom[0x07ADF+i] = 0x21;
 		
 	// remove all fixed powerups in every sublevel
-	/*for (var id = 0; id < 0x200; ++id)
+	for (var id = 0; id < 0x200; ++id)
 	{
 		var sprites = getSpritesBySublevel(id, rom);
-		for (var i = 0; i < sprites.length; ++i)
-			if (powerups.contains(sprites[i].spriteid))
-				rom.set([0xF3, 0xFF, 0x00], sprites[i].addr);
-	}*/
+		deleteSprites(powerups, sprites, rom);
+	}
 			
 	// remove invisible mushrooms (STZ $14C8,x : RTS)
 	rom.set([0x9E, 0xC8, 0x14, 0x60], 0x1C30F);

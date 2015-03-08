@@ -265,7 +265,7 @@ function fixBlockPaths(lookup, rom)
 	if (c7.translevel < c5.translevel)
 	{
 		var EF = rom.slice(0x193EF, 0x193EF + 52);
-		var A4 = rom.slice(0x193A4, 0x193A4 + 74);
+		var A4 = rom.slice(0x193A4, 0x193A4 + 75);
 		
 		rom.set(EF, 0x193A4);
 		rom.set(A4, 0x193D8);
@@ -273,6 +273,12 @@ function fixBlockPaths(lookup, rom)
 		rom.set([0xA4, 0x93], 0x1930C);
 	}
 	
+	/*
+	org $0392F8
+		LDA $13BF
+		NOP #3
+		CMP #$xx
+	*/
 	rom.set([0xAD, 0xBF, 0x13, 0xEA, 0xEA, 0xEA, 0xC9, hitrans], 0x192F8);
 }
 
@@ -627,6 +633,27 @@ function getSpritesBySublevel(id, rom)
 	}
 	
 	return sprites;
+}
+
+function deleteSprites(todelete, sprites, rom)
+{
+	if (!sprites.length) return;
+	
+	var len = sprites.length, base = sprites[0].addr;
+	for (var i = len - 1; i >= 0; --i)
+		if (todelete.contains(sprites[i].spriteid))
+		{
+			for (var j = i + 1; j < len; ++j)
+			{
+				var addr = base + j * 3;
+				rom.set(rom.slice(addr, addr + 3), addr - 3);
+				sprites[j].addr -= 3; // not needed, but correct
+			}
+			--len;
+		}
+		
+	// end of list marker
+	rom[base + len * 3] = 0xFF;
 }
 
 function snesAddressToOffset(addr)
