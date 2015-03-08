@@ -64,9 +64,8 @@ function removeYoshi(rom)
 	for (var i = 0; i < 36; ++i)
 		if (rom[0x07080+i] == 0x18) rom[0x07080+i] = 0x0A;
 		
-	// baby yoshi will never grow
-	rom.set([0x80, 0x45], 0x0A2AD);
-	rom[0x0A2FC] = 0x80;
+	// when baby yoshi grows, he loses all interaction with everything
+	rom[0x0A2C1] = 0x02;
 	
 	// fix the title screen demo so mario doesn't die >.<
 	for (var i = 10; i < 34; ++i)
