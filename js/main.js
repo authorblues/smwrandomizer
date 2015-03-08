@@ -51,6 +51,9 @@ Array.prototype.shuffle = function(random)
 	return this;
 }
 
+Array.prototype.contains = function(x)
+{ return this.indexOf(x) != -1; }
+
 Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 {
 	var src = this.subarray(start, end);

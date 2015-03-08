@@ -2,11 +2,14 @@
 var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
 
 var LAYER1_OFFSET;
+var LAYER2_OFFSET;
+var SPRITE_OFFSET;
+
 var level_offsets = [
 	// layer data
 	{"name": "layer1", "bytes": 3, "offset": LAYER1_OFFSET = 0x2E000},
-	{"name": "layer2", "bytes": 3, "offset": 0x2E600},
-	{"name": "sprite", "bytes": 2, "offset": 0x2EC00},
+	{"name": "layer2", "bytes": 3, "offset": LAYER2_OFFSET = 0x2E600},
+	{"name": "sprite", "bytes": 2, "offset": SPRITE_OFFSET = 0x2EC00},
 	
 	// secondary header data
 	{"name": "header1", "bytes": 1, "offset": 0x2F000},
@@ -111,7 +114,7 @@ function randomizeROM(buffer, seed)
 	{
 		// remove dgh and topsecret from rotation
 		for (var i = stages.length - 1; i >= 0; --i)
-			if ([0x003, 0x004].indexOf(stages[i].id) != -1)
+			if ([0x003, 0x004].contains(stages[i].id))
 				stages.splice(i, 1);
 	}
 	
@@ -135,6 +138,15 @@ function randomizeROM(buffer, seed)
 	var stagelookup = {};
 	for (var i = 0; i < stages.length; ++i)
 		stagelookup[stages[i].copyfrom.name] = stages[i];
+		
+	// how should powerups be affected
+	switch ($('input[name="powerups"]:checked').val())
+	{
+		case 'nocape': removeCape(rom); break;
+		case 'smallonly': removeAllPowerups(rom); break;
+	}
+	
+	if ($('#noyoshi').is(':checked')) removeYoshi(rom);
 	
 	var globalremapping = {};
 	for (var i = 0; i < stages.length; ++i)
@@ -148,6 +160,9 @@ function randomizeROM(buffer, seed)
 	
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
+	
+	// fix message box messages
+	fixMessageBoxes(stages, rom);
 	
 	if ($('#randomize_koopakids').is(':checked'))
 		randomizeKoopaKids(globalremapping, random, rom);
@@ -180,8 +195,8 @@ function performCopy(stage, map, rom)
 	var skiprename = $('input[name="levelnames"]:checked').val() == 'same_overworld';
 	for (var j = 0; j < trans_offsets.length; ++j)
 	{
-		if (skiprename && o.name == 'nameptr') continue;
 		var o = trans_offsets[j], start = o.offset + o.bytes * stage.translevel;
+		if (skiprename && o.name == 'nameptr') continue;
 		rom.set(stage.copyfrom.data[o.name], start);
 	}
 	
@@ -196,9 +211,16 @@ function performCopy(stage, map, rom)
 	if (stage.copyfrom.id == 0x013) rom[0x04A0C] = stage.translevel; // dsh translevel
 	if (stage.copyfrom.id == 0x024) rom[0x2DAE5] = stage.translevel; // ci2 translevel
 	
+	// moles appear slower in yi2
+	if (stage.copyfrom.id == 0x106)
+	{
+		rom.set([0xAC, 0xBF, 0x13, 0xEA], 0x0E2F6);
+		rom[0x0E2FD] = stage.translevel;
+	}
+	
 	// if the stage we are copying from is default "backwards", we should fix all the
 	// associated exits since they have their exits unintuitively reversed
-	if ([0x004, 0x11D].indexOf(stage.copyfrom.id) != -1)
+	if ([0x004, 0x11D].contains(stage.copyfrom.id))
 	{
 		swapExits(stage.copyfrom, rom);
 		swapExits(stage, rom);
@@ -252,6 +274,20 @@ function fixBlockPaths(lookup, rom)
 	}
 	
 	rom.set([0xAD, 0xBF, 0x13, 0xEA, 0xEA, 0xEA, 0xC9, hitrans], 0x192F8);
+}
+
+function fixMessageBoxes(stages, rom)
+{
+	// mapping for where translevels moved
+	for (var transmap = {}, i = 0; i < stages.length; ++i)
+		transmap[stages[i].copyfrom.translevel] = stages[i].translevel;
+	
+	// 23 bytes in table at 0x2A590
+	for (var i = 0; i < 23; ++i)
+	{
+		var val = rom[0x2A590+i], t = val & 0x7F;
+		if (t in transmap) rom[0x2A590+i] = transmap[t] | (val & 0x80);
+	}
 }
 
 function backupData(stages, rom)
@@ -358,6 +394,7 @@ function fixSublevels(stage, remap, rom)
 	}
 	
 	// fix all screen exits
+	var secid, secexitcleanup = [];
 	for (var i = 0; i < stage.copyfrom.allexits.length; ++i)
 	{
 		var x = stage.copyfrom.allexits[i], target = getSublevelFromExit(x, rom);
@@ -367,7 +404,7 @@ function fixSublevels(stage, remap, rom)
 			if (!x.issecx) rom[x.addr+3] = newtarget;
 			else
 			{
-				var secid = x.target;
+				secexitcleanup.push(secid = x.target);
 				var newsecid = findOpenSecondaryExit(stage.id & 0x100, rom);
 				rom[x.addr+3] = newsecid & 0xFF;
 				
@@ -381,12 +418,16 @@ function fixSublevels(stage, remap, rom)
 				rom[SEC_EXIT_OFFSET_LO + newsecid]  = newtarget & 0xFF;
 				rom[SEC_EXIT_OFFSET_HI + newsecid] &= 0xF7;
 				rom[SEC_EXIT_OFFSET_HI + newsecid] |= (newtarget & 0x100) >> 5;
-				
-				// clear old secondary exit target
-				rom[SEC_EXIT_OFFSET_LO + secid]  = 0x00;
-				rom[SEC_EXIT_OFFSET_HI + secid] &= 0xF7;
 			}
 		}
+	}
+	
+	for (var i = 0; i < secexitcleanup.length; ++i)
+	{
+		// clear old secondary exit target
+		var secid = secexitcleanup[i];
+		rom[SEC_EXIT_OFFSET_LO + secid]  = 0x00;
+		rom[SEC_EXIT_OFFSET_HI + secid] &= 0xF7;
 	}
 }
 
@@ -422,7 +463,7 @@ function swapExits(stage, rom)
 	
 	// update offscreen event map
 	for (var i = 0, xor = ndxa ^ ndxb; i < 44; ++i) 
-		if ([ndxa, ndxb].indexOf(rom[0x268E4 + i]) != -1)
+		if ([ndxa, ndxb].contains(rom[0x268E4 + i]))
 			rom[0x268E4 + i] ^= xor;
 	
 	// LAYER 2 ------------------------------
@@ -550,7 +591,7 @@ function getRelatedSublevels(baseid, rom)
 	while (todo.length)
 	{
 		var id = todo.shift();
-		if (ids.indexOf(id) != -1) continue;
+		if (ids.contains(id)) continue;
 		
 		ids.push(id);
 		var exits = getScreenExits(id, rom);
@@ -558,11 +599,34 @@ function getRelatedSublevels(baseid, rom)
 		for (var i = 0; i < exits.length; ++i)
 		{
 			var x = exits[i], next = getSublevelFromExit(x, rom);
-			if (ids.indexOf(next) == -1) todo.push(next);
+			if (!ids.contains(next)) todo.push(next);
 		}
 	}
 	
 	return ids;
+}
+
+function getSpritesBySublevel(id, rom)
+{
+	var start = SPRITE_OFFSET + 2 * id;
+	var p = rom.slice(start, start + 3);
+	
+	var snes = 0x070000 | (p[1] << 8) | p[0];
+	var addr = snesAddressToOffset(snes) + 1;
+	var sprites = [];
+	
+	for (;; addr += 3)
+	{
+		// 0xFF sentinel represents end of level data
+		if (rom[addr] === 0xFF) break;
+		
+		var s = { stage: id, addr: addr };
+		s.spriteid = rom[addr+2];
+		
+		sprites.push(s);
+	}
+	
+	return sprites;
 }
 
 function snesAddressToOffset(addr)
