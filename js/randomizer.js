@@ -120,6 +120,7 @@ function randomizeROM(buffer, seed)
 	
 	var random = new Random(seed);
 	var vseed = random.seed.toHex(8, '');
+	var globalremapping = {};
 	
 	$('#custom-seed').val('');
 	$('#use-custom-seed').removeAttr('checked');
@@ -139,16 +140,26 @@ function randomizeROM(buffer, seed)
 	for (var i = 0; i < stages.length; ++i)
 		stagelookup[stages[i].copyfrom.name] = stages[i];
 		
+	// randomize bowser's castle
+	switch ($('input[name="bowser"]:checked').val())
+	{
+		case 'random': randomizeBowserEntrances(random, globalremapping, rom); break;
+		case 'gauntlet': generateGauntlet(random, rom); break;
+	}
+	
+	if ($('#randomize_bowserdoors').is(':checked'))
+		randomizeBowser8Doors(random, rom);
+		
 	// how should powerups be affected
 	switch ($('input[name="powerups"]:checked').val())
 	{
+		case 'random': randomizePowerups(random, rom); break;
 		case 'nocape': removeCape(rom); break;
 		case 'smallonly': removeAllPowerups(rom); break;
 	}
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom);
 	
-	var globalremapping = {};
 	for (var i = 0; i < stages.length; ++i)
 	{
 		performCopy(stages[i], globalremapping, rom);
@@ -296,48 +307,50 @@ function fixMessageBoxes(stages, rom)
 	}
 }
 
+function backupStage(stage, rom)
+{
+	stage.data = {};
+	
+	for (var j = 0; j < level_offsets.length; ++j)
+	{
+		var o = level_offsets[j], start = o.offset + o.bytes * stage.id;
+		stage.data[o.name] = rom.slice(start, start + o.bytes);
+	}
+	
+	// translevel should fit in a single byte
+	stage.translevel = getTranslevel(stage.id);
+	
+	for (var j = 0; j < trans_offsets.length; ++j)
+	{
+		var o = trans_offsets[j], start = o.offset + o.bytes * stage.translevel;
+		stage.data[o.name] = rom.slice(start, start + o.bytes);
+	}
+	
+	// get a list of sublevels
+	stage.sublevels = getRelatedSublevels(stage.id, rom);
+	stage.allexits = Array.prototype.concat.apply([], 
+		$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
+	
+	// ci2 - need to add the exits from the additional tables
+	if (stage.id === 0x024)
+	{
+		// coins - room 2
+		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06E9FB, rom));
+		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EAB0, rom));
+		
+		// time - room 3
+		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EB72, rom));
+		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EBBE, rom));
+	
+		// yoshi coins - room 4
+		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EC7E, rom));
+	}
+}
+
 function backupData(stages, rom)
 {
 	for (var i = 0; i < stages.length; ++i)
-	{
-		var stage = stages[i];
-		stage.data = {};
-		
-		for (var j = 0; j < level_offsets.length; ++j)
-		{
-			var o = level_offsets[j], start = o.offset + o.bytes * stage.id;
-			stage.data[o.name] = rom.slice(start, start + o.bytes);
-		}
-		
-		// translevel should fit in a single byte
-		stage.translevel = getTranslevel(stage.id);
-		
-		for (var j = 0; j < trans_offsets.length; ++j)
-		{
-			var o = trans_offsets[j], start = o.offset + o.bytes * stage.translevel;
-			stage.data[o.name] = rom.slice(start, start + o.bytes);
-		}
-		
-		// get a list of sublevels
-		stage.sublevels = getRelatedSublevels(stage.id, rom);
-		stage.allexits = Array.prototype.concat.apply([], 
-			$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
-		
-		// ci2 - need to add the exits from the additional tables
-		if (stage.id === 0x024)
-		{
-			// coins - room 2
-			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06E9FB, rom));
-			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EAB0, rom));
-			
-			// time - room 3
-			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EB72, rom));
-			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EBBE, rom));
-		
-			// yoshi coins - room 4
-			Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EC7E, rom));
-		}
-	}
+		backupStage(stages[i], rom);
 }
 
 function getTranslevel(id)
@@ -498,7 +511,7 @@ function swapExits(stage, rom)
 	rom.set([offsetb & 0xFF, (offsetb >> 8) & 0xFF], 0x26359 + ndxb * 2);
 }
 
-function moveSublevel(to, fm, rom)
+function copySublevel(to, fm, rom)
 {
 	// copy all of the level pointers
 	for (var i = 0; i < level_offsets.length; ++i)
@@ -510,6 +523,12 @@ function moveSublevel(to, fm, rom)
 		
 		rom.set(rom.slice(fmx, fmx + o.bytes), tox);
 	}
+}
+
+function moveSublevel(to, fm, rom)
+{
+	// copy the sublevel data first
+	copySublevel(to, fm, rom);
 	
 	// copy the TEST level into the now-freed sublevel slot
 	rom.set([0x00, 0x80, 0x06], LAYER1_OFFSET + 3 * fm);

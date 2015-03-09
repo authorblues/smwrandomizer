@@ -31,6 +31,11 @@ $('form').submit(function(e)
 	return false;
 });
 
+$('#authorblues').click(function(e)
+{
+	$('.secret-feature').removeClass('hidden');
+});
+
 function checkRomResult(valid, file)
 {
 	$('#original-rom-result').removeClass('glyphicon-question-sign');

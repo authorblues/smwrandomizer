@@ -1,3 +1,50 @@
+function randomizePowerups(random, rom)
+{
+	var powerups = [ 0x74, 0x75, 0x77 ];
+	var blockmap =
+	{
+		0x28: [0x28, 0x29],
+		0x29: [0x28, 0x29],
+		
+		0x30: [0x30, 0x31],
+		0x31: [0x30, 0x31],
+	};
+	
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var sprites = getSpritesBySublevel(id, rom);
+		for (var i = 0; i < sprites.length; ++i)
+		{
+			// if we find a bare powerup, replace it with a random powerup
+			if (powerups.contains(sprites[i].spriteid))
+				rom[sprites[i].addr+2] = powerups[random.nextInt(powerups.length)];
+		}
+	
+		// FIND AND REPLACE ?/TURN BLOCKS
+		
+		var start = LAYER1_OFFSET + 3 * id;
+		var p = rom.slice(start, start + 3);
+		var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+		
+		var addr = snesAddressToOffset(snes) + 5;
+		for (;; addr += 3)
+		{
+			// 0xFF sentinel represents end of level data
+			if (rom[addr] === 0xFF) break;
+			
+			// pattern looks like the start of the screen exits list
+			if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+			
+			// pattern looks like an extended sprite that is a block we want to change
+			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] in blockmap)
+			{
+				var valid = blockmap[rom[addr+2]], prev = rom[addr+2];
+				var newp = rom[addr+2] = valid[random.nextInt(valid.length)];
+			}
+		}
+	}
+}
+
 function removeCape(rom)
 {
 	// change feather blockcodes to flower blockcodes

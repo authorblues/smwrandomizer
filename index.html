@@ -25,7 +25,7 @@
 		<!-- Main jumbotron for a primary marketing message or call to action -->
 		<div class="container">
 			<h2>Super Mario World Randomizer</h2>
-			<p>by authorblues + kaizoman666 + dotsarecoolp</p>
+			<p>by <span id="authorblues">authorblues</span> + kaizoman666 + dotsarecoolp</p>
 		</div>
 
 		<div class="container">
@@ -79,6 +79,32 @@
 								Random Stage
 							</label>
 						</div>
+						
+						<h3>Bowser's Castle</h3>
+						<div class="radio">
+							<label>
+								<input type="radio" name="bowser" value="default" checked> 
+								Default
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="bowser" value="random"> 
+								Randomize Front/Back Door
+							</label>
+						</div>
+						<div class="radio hidden secret-feature">
+							<label>
+								<input type="radio" name="bowser" value="gauntlet"> 
+								The Gauntlet&#8482;
+							</label>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_bowserdoors"> 
+								Randomize Bowser's 1-8 Doors
+							</label>
+						</div>
 					</form>
 				</div>
 				<div class="col-md-6">
@@ -114,7 +140,7 @@
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="powerups" value="random" disabled> 
+								<input type="radio" name="powerups" value="random"> 
 								Randomize Powerups
 							</label>
 						</div>
@@ -165,5 +191,6 @@
 		
 		<script src="js/randomizer.js"></script>
 		<script src="js/randomizer.powerup.js"></script>
+		<script src="js/randomizer.bowser.js"></script>
 	</body>
 </html>
