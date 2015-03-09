@@ -215,10 +215,6 @@ function performCopy(stage, map, rom)
 	if (stage.copyfrom.castle > 0)
 		rom[0x049A7 + stage.copyfrom.castle - 1] = stage.translevel;
 	
-	// switch palace translevels
-	if (stage.copyfrom.palace > 0)
-		rom[0x2A590 + stage.copyfrom.palace - 1] = stage.translevel;
-	
 	if (stage.copyfrom.id == 0x013) rom[0x04A0C] = stage.translevel; // dsh translevel
 	if (stage.copyfrom.id == 0x024) rom[0x2DAE5] = stage.translevel; // ci2 translevel
 	
