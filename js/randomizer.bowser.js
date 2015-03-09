@@ -38,10 +38,10 @@ function randomizeBowser8Doors(random, rom)
 	for (var i = 1; i < rooms.length; ++i)
 	{
 		moveSublevel(rooms[i-1].sublevel, rooms[i].sublevel, rom);
-		rom[rooms[i-1].out.addr+3] = rooms[i].target & 0xFF;
+		rom[rooms[i-1].out.addr+3] = rooms[i].out.target & 0xFF;
 	}
 	moveSublevel(rooms[rooms.length-1].sublevel, hold0, rom);
-	rom[rooms[rooms.length-1].out.addr+3] = rooms[0].target & 0xFF;
+	rom[rooms[rooms.length-1].out.addr+3] = rooms[0].out.target & 0xFF;
 }
 
 function generateGauntlet(random, rom)
