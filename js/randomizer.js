@@ -275,12 +275,7 @@ function fixBlockPaths(lookup, rom)
 	// swap some values if roy and larry end up in the wrong order
 	if (c7.translevel < c5.translevel)
 	{
-		var EF = rom.slice(0x193EF, 0x193EF + 52);
-		var A4 = rom.slice(0x193A4, 0x193A4 + 75);
-		
-		rom.set(EF, 0x193A4);
-		rom.set(A4, 0x193D8);
-		rom.set([0xD8, 0x93], 0x19307);
+		rom.set([0xEF, 0x93], 0x19307);
 		rom.set([0xA4, 0x93], 0x1930C);
 	}
 	
