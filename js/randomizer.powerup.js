@@ -43,6 +43,12 @@ function randomizePowerups(random, rom)
 			}
 		}
 	}
+	
+	// yoshi can poop any powerup he wants to, don't judge him
+	rom[0x0F0F6] = powerups[random.nextInt(powerups.length)];
+	
+	// randomize the powerup peach throws
+	rom[0x1A8EE] = powerups[random.nextInt(powerups.length)];
 }
 
 function removeCape(rom)
@@ -103,6 +109,12 @@ function removeAllPowerups(rom)
 	
 	// midpoint shouldn't make you large
 	rom[0x072E2] = 0x80;
+	
+	// yoshi berries (never produce mushroom)
+	rom[0x0F0F0] = 0x80;
+	
+	// remove the powerup peach throws
+	rom[0x1A8EE] = 0x3E;
 }
 
 function removeYoshi(rom)

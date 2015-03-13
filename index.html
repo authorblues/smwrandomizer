@@ -29,7 +29,6 @@
 		</div>
 
 		<div class="container">
-			<!-- Example row of columns -->
 			<div class="row">
 			
 				<div class="col-md-6">
@@ -41,6 +40,12 @@
 						</button>
 						
 						<h3>Randomize Stages</h3>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="randomize_stages" checked> 
+								Randomly Swap Stages (Sorta the point, ya know?)
+							</label>
+						</div>
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" id="randomize_sameworld"> 
@@ -99,6 +104,12 @@
 								The Gauntlet&#8482;
 							</label>
 						</div>
+						<div class="radio hidden secret-feature">
+							<label>
+								<input type="radio" name="bowser" value="minigauntlet"> 
+								Mini-Gauntlet (3-5 rooms)
+							</label>
+						</div>
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" id="randomize_bowserdoors"> 
@@ -119,16 +130,10 @@
 						</span>
 					</div>
 					
-					<!--form class="form-inline">
-						<h3>Randomizer Seed</h3>
-						<div class="checkbox">
-							<input type="checkbox" id="use-custom-seed">
-						</div>
-						<div class="form-group">
-							<input type="text" class="form-control mono" maxlength="6" 
-								placeholder="Custom Seed" id="custom-seed">
-						</div>
-					</form-->
+					<div class="form-group">
+						<input type="text" class="form-control mono" maxlength="8" 
+							placeholder="Type Custom Seed Here" id="custom-seed">
+					</div>
 						
 					<form>
 						<h3>Powerups</h3>
@@ -178,7 +183,6 @@
 						</div>
 					</form>
 				</div>
-			</form>
 			</div>
 		</div>
 		

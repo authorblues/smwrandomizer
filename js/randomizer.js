@@ -123,7 +123,6 @@ function randomizeROM(buffer, seed)
 	var globalremapping = {};
 	
 	$('#custom-seed').val('');
-	$('#use-custom-seed').removeAttr('checked');
 	$('#used-seed').text(vseed);
 	
 	var rom = new Uint8Array(buffer);
@@ -144,7 +143,8 @@ function randomizeROM(buffer, seed)
 	switch ($('input[name="bowser"]:checked').val())
 	{
 		case 'random': randomizeBowserEntrances(random, globalremapping, rom); break;
-		case 'gauntlet': generateGauntlet(random, rom); break;
+		case 'gauntlet': generateGauntlet(random, 8, rom); break;
+		case 'minigauntlet': generateGauntlet(random, random.nextIntRange(3,6), rom); break;
 	}
 	
 	if ($('#randomize_bowserdoors').is(':checked'))
@@ -159,6 +159,10 @@ function randomizeROM(buffer, seed)
 	}
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom);
+	
+	// swap all the level name pointers RIGHT before we perform the copy
+	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
+		shuffleLevelNames(stages, random);
 	
 	for (var i = 0; i < stages.length; ++i)
 	{
@@ -180,16 +184,14 @@ function randomizeROM(buffer, seed)
 	
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
-	
-	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
-		shuffleLevelNames(stages, random);
 
 	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
 
 function shuffle(stages, random)
 {
-	var rndstages = stages.slice(0).shuffle(random);
+	var rndstages = stages.slice(0);
+	if ($('#randomize_stages').is(':checked')) rndstages.shuffle(random);
 	for (var i = 0; i < stages.length; ++i)
 		stages[i].copyfrom = rndstages[i];
 }

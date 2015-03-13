@@ -44,10 +44,12 @@ function randomizeBowser8Doors(random, rom)
 	rom[rooms[rooms.length-1].out.addr+3] = rooms[0].out.target & 0xFF;
 }
 
-function generateGauntlet(random, rom)
+function generateGauntlet(random, len, rom)
 {
+	if (len > bowser8doors.length) len = bowser8doors.length;
+	
 	// get a list of rooms
-	var rooms = bowser8doors.slice(0).shuffle(random), numrooms = rooms.length;
+	var rooms = bowser8doors.slice(bowser8doors.length - len).shuffle(random), numrooms = rooms.length;
 	rooms.push(BOWSER_DARKROOM_ID);
 	
 	// copy the first room into both castle entrances

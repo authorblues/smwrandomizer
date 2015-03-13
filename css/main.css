@@ -5,3 +5,11 @@
 #original-rom-result.glyphicon-remove { color: red;   }
 
 .mono { font-family: monospace; }
+
+#generate-randomized-rom { width: 100%; }
+
+#custom-seed 
+{
+	margin-top: 20px;
+	text-align: center;
+}
