@@ -4,8 +4,11 @@ $('#generate-randomized-rom').click(function(e)
 {
 	if (!ORIGINAL_ROM) return;
 	
+	// maybe this will be a NaN?
+	var seed = parseInt($('#custom-seed').val(), 16);
+	
 	var reader = new FileReader();
-	reader.onloadend = function(){ randomizeROM(reader.result); };
+	reader.onloadend = function(){ randomizeROM(reader.result, seed); };
 	reader.readAsArrayBuffer(ORIGINAL_ROM);
 });
 
@@ -67,7 +70,7 @@ Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 }
 
 function Random(seed)
-{ this.seed = Math.floor(seed || (Math.random() * 0x7FFFFFFF)) & 0x7FFFFFFF; }
+{ this.seed = Math.floor(seed || (Math.random() * 0xFFFFFFFF)) % 0xFFFFFFFF; }
 
 Random.prototype.nextFloat = function()
 { var x = Math.sin(this.seed++) * 10000; return x - Math.floor(x); }
@@ -82,6 +85,9 @@ Random.prototype.nextGaussian = function()
 
 Random.prototype.nextInt = function(z)
 { return (this.nextFloat() * z)|0; }
+
+Random.prototype.nextIntRange = function(a, b)
+{ return a + this.nextInt(b - a); }
 
 Number.prototype.toHex = function(n, p)
 {
