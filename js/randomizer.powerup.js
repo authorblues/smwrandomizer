@@ -125,6 +125,7 @@ function removeYoshi(rom)
 		
 	// when baby yoshi grows, he loses all interaction with everything
 	rom[0x0A2C1] = 0x02;
+	rom[0x1C067] = 0x02;
 	
 	// fix the title screen demo so mario doesn't die >.<
 	for (var i = 10; i < 34; ++i)
