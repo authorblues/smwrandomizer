@@ -728,11 +728,16 @@ function charToTitleNum(chr)
 	return -1;
 }
 
+function centerPad(str, len)
+{
+	while (str.length < len)
+		str = ((str.length & 1) ? (" " + str) : (str + " "));
+	return str;
+}
+
 function writeToTitle(title, color, rom)
 {
-	title = title.toUpperCase().split('');
-	while (title.length < 19) title = (title & 1 ? (title + " ") : (" " + title));
-	
+	title = centerPad(title.toUpperCase(), 19).split('');
 	for (var i = 0; i < 19; ++i)
 	{
 		var num = charToTitleNum(title[i]);
