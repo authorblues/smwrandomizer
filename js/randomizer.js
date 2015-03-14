@@ -185,6 +185,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
+	writeToTitle("SEED: " + vseed, 0x2, rom);
 	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
 
@@ -706,4 +707,38 @@ function randomizeKoopaKids(map, random, rom)
 		
 	if ($('input[name="levelnames"]:checked').val() == 'match_stage')
 		; // TODO: fix castle names
+}
+
+function charToTitleNum(chr)
+{
+	var chars =
+	{
+		'@': 0x76, // clock
+		'$': 0x2E, // coin
+		"'": 0x85,
+		'"': 0x86,
+		':': 0x78,
+		' ': 0xFC,
+	};
+	
+	var basechars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.,*-!".split('');
+	for (var i = 0; i < basechars.length; ++i) chars[basechars[i]] = i;
+	
+	if (chr in chars) return chars[chr];
+	return -1;
+}
+
+function writeToTitle(title, color, rom)
+{
+	title = title.toUpperCase().split('');
+	while (title.length < 19) title = (title & 1 ? (title + " ") : (" " + title));
+	
+	for (var i = 0; i < 19; ++i)
+	{
+		var num = charToTitleNum(title[i]);
+		
+		rom[0x2B6D7 + i * 2 + 0]  = num & 0xFF;
+		rom[0x2B6D7 + i * 2 + 1] &= 0xE0;
+		rom[0x2B6D7 + i * 2 + 1] |= (color << 2) | ((num >> 8) & 0x3);
+	}
 }
