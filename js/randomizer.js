@@ -1,3 +1,5 @@
+var VERSION_STRING = 'v0.4';
+
 // this is the md5 of the only rom that we will accept
 var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
 
@@ -185,7 +187,7 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	writeToTitle("SEED: " + vseed, 0x2, rom);
+	writeToTitle(VERSION_STRING + " @" + vseed, 0x2, rom);
 	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
 
