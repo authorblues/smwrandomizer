@@ -17,7 +17,11 @@ function randomizePowerups(random, rom)
 		{
 			// if we find a bare powerup, replace it with a random powerup
 			if (powerups.contains(sprites[i].spriteid))
-				rom[sprites[i].addr+2] = powerups[random.nextInt(powerups.length)];
+				rom[sprites[i].addr+2] = random.from(powerups);
+			
+			// if we find a flying [?], adjust X value (to change its contents)
+			if ([0x83, 0x84].contains(sprites[i].spriteid) && random.nextInt(2))
+				rom[sprites[i].addr+1] ^= 0x30;
 		}
 	
 		// FIND AND REPLACE ?/TURN BLOCKS
@@ -39,16 +43,16 @@ function randomizePowerups(random, rom)
 			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] in blockmap)
 			{
 				var valid = blockmap[rom[addr+2]], prev = rom[addr+2];
-				var newp = rom[addr+2] = valid[random.nextInt(valid.length)];
+				var newp = rom[addr+2] = random.from(valid);
 			}
 		}
 	}
 	
 	// yoshi can poop any powerup he wants to, don't judge him
-	rom[0x0F0F6] = powerups[random.nextInt(powerups.length)];
+	rom[0x0F0F6] = random.from(powerups);
 	
-	// randomize the powerup peach throws
-	rom[0x1A8EE] = powerups[random.nextInt(powerups.length)];
+	// randomize the powerup Peach throws
+	rom[0x1A8EE] = random.from(powerups);
 }
 
 function removeCape(rom)
@@ -76,6 +80,9 @@ function removeCape(rom)
 		var sprites = getSpritesBySublevel(id, rom);
 		deleteSprites([0x77], sprites, rom);
 	}
+	
+	// change contents of flying [?]s
+	rom.set([0x06, 0x02, 0x02, 0x05, 0x06, 0x01, 0x01, 0x05], 0x0AE88);
 }
 
 function removeAllPowerups(rom)
@@ -103,7 +110,10 @@ function removeAllPowerups(rom)
 		var sprites = getSpritesBySublevel(id, rom);
 		deleteSprites(powerups, sprites, rom);
 	}
-			
+	
+	// change contents of flying [?]s
+	rom.set([0x06, 0x06, 0x06, 0x05, 0x06, 0x06, 0x06, 0x05], 0x0AE88);
+	
 	// remove invisible mushrooms (STZ $14C8,x : RTS)
 	rom.set([0x9E, 0xC8, 0x14, 0x60], 0x1C30F);
 	

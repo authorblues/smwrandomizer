@@ -39,6 +39,17 @@ $('#authorblues').click(function(e)
 	$('.secret-feature').removeClass('hidden');
 });
 
+$('#custom-seed').bind("keypress paste", function(e)
+{
+	var self = $(this);
+	setTimeout(function()
+	{
+		var removed = self.val().replace(/[^a-fA-F0-9]+/g, '');
+		self.val(removed.substr(0, 8));
+	}, 
+	1);
+});
+
 function checkRomResult(valid, file)
 {
 	$('#original-rom-result').removeClass('glyphicon-question-sign');
@@ -89,6 +100,9 @@ Random.prototype.nextInt = function(z)
 Random.prototype.nextIntRange = function(a, b)
 { return a + this.nextInt(b - a); }
 
+Random.prototype.from = function(arr)
+{ return arr[this.nextInt(arr.length)]; }
+
 Number.prototype.toHex = function(n, p)
 {
 	var hex = this.toString(16);
@@ -96,6 +110,8 @@ Number.prototype.toHex = function(n, p)
 	return (p != null ? p : '$') + hex;
 };
 
-Array.prototype.toDebugString = function(){ return '[' + this.toString() + ']'; };
+Array.prototype.toDebugString = function()
+{ return '[' + this.toString() + ']'; };
 
-Array.prototype.toHexArray = function(n){ return $.map(this, function(x){ return x.toHex(n); }).toDebugString(); };
+Array.prototype.toHexArray = function(n)
+{ return $.map(this, function(x){ return x.toHex(n); }).toDebugString(); };

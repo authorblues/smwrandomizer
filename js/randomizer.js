@@ -663,6 +663,9 @@ function deleteSprites(todelete, sprites, rom)
 				var addr = base + j * 3;
 				rom.set(rom.slice(addr, addr + 3), addr - 3);
 				sprites[j].addr -= 3; // not needed, but correct
+				
+				// remove the sprite object from the list
+				sprites.splice(i, 1);
 			}
 			--len;
 		}
@@ -727,7 +730,7 @@ function charToTitleNum(chr)
 	for (var i = 0; i < basechars.length; ++i) chars[basechars[i]] = i;
 	
 	if (chr in chars) return chars[chr];
-	return -1;
+	return 0xFC;
 }
 
 function centerPad(str, len)
