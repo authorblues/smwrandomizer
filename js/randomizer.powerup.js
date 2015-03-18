@@ -1,8 +1,7 @@
-function randomizePowerups(random, rom)
+function randomizePowerups(random, rom, stages)
 {
 	var powerups = [ 0x74, 0x75, 0x77 ];
-	var blockmap =
-	{
+	var blockmap = {
 		0x28: [0x28, 0x29],
 		0x29: [0x28, 0x29],
 		
@@ -39,11 +38,11 @@ function randomizePowerups(random, rom)
 			// pattern looks like the start of the screen exits list
 			if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
 			
-			// pattern looks like an extended sprite that is a block we want to change
+			// pattern looks like a block we want to change
 			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] in blockmap)
 			{
-				var valid = blockmap[rom[addr+2]], prev = rom[addr+2];
-				var newp = rom[addr+2] = random.from(valid);
+				var valid = blockmap[rom[addr+2]];
+				rom[addr+2] = random.from(valid);
 			}
 		}
 	}
@@ -55,7 +54,7 @@ function randomizePowerups(random, rom)
 	rom[0x1A8EE] = random.from(powerups);
 }
 
-function removeCape(rom)
+function removeCape(rom, stages)
 {
 	// change feather blockcodes to flower blockcodes
 	var blockcodes = { 0x08: 0x04, 0x09: 0x05 };
@@ -85,7 +84,7 @@ function removeCape(rom)
 	rom.set([0x06, 0x02, 0x02, 0x05, 0x06, 0x01, 0x01, 0x05], 0x0AE88);
 }
 
-function removeAllPowerups(rom)
+function removeAllPowerups(rom, stages)
 {
 	var powerups = [ 0x74, 0x75, 0x77 ];
 	removeCape(rom);
@@ -127,7 +126,7 @@ function removeAllPowerups(rom)
 	rom[0x1A8EE] = 0x3E;
 }
 
-function removeYoshi(rom)
+function removeYoshi(rom, stages)
 {
 	// change yoshi blocks to 1-up blocks
 	for (var i = 0; i < 36; ++i)
@@ -141,4 +140,49 @@ function removeYoshi(rom)
 	for (var i = 10; i < 34; ++i)
 		rom[0x01C1F + i * 2] = 0x00;
 	rom[0x01C1F + 34] = 0xFF;
+}
+
+function hasCape(baseid, rom)
+{
+	var sublevels = getRelatedSublevels(baseid, rom);
+	for (var i = 0; i < sublevels.length; ++i)
+	{
+		var sprites = getSpritesBySublevel(sublevels[i], rom);
+		for (var j = 0; j < sprites.length; ++j)
+		{
+			if (sprites[j].spriteid == 0x77) return true;
+			if ([0x83, 0x84].contains(sprites[j].spriteid))
+			{
+				var x = (rom[sprites[j].addr+1] >> 4) % 4;
+				if (rom[0x0AE88+x] == 0x77 || rom[0x0AE8C+x] == 0x77) return true;
+			}
+		}
+		
+		var start = LAYER1_OFFSET + 3 * sublevels[i];
+		var p = rom.slice(start, start + 3);
+		var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+		
+		var addr = snesAddressToOffset(snes) + 5;
+		for (;; addr += 3)
+		{
+			// 0xFF sentinel represents end of level data
+			if (rom[addr] === 0xFF) break;
+			
+			// pattern looks like the start of the screen exits list
+			if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+			
+			// pattern looks like a turn/? block containing a cape
+			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 
+				&& [0x29, 0x31].contains(rom[addr+2])) return true;
+			
+			// pattern looks like a turn/? block containing a cape
+			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] == 0x23) return true;
+			
+			// pattern looks like a green switch block (and green switch blocks produce feathers still)
+			if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 
+				&& rom[addr+2] == 0x87 && [0x08, 0x09].contains(rom[0x070A2])) return true;
+		}
+	}
+	
+	return false;
 }

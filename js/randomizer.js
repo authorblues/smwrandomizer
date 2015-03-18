@@ -25,80 +25,83 @@ var trans_offsets = [
 	{"name": "nameptr", "bytes": 2, "offset": 0x220FC},
 ];
 
+var NORMAL = 0,
+    SECRET = 1;
+
 var smw_stages = [
-	{"name": "yi1", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x105}, 
-	{"name": "yi2", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x106}, 
-	{"name": "yi3", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x103}, 
-	{"name": "yi4", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x102}, 
-	{"name": "dp1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x015}, 
-	{"name": "dp2", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x009}, 
-	{"name": "dp3", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x005}, 
-	{"name": "dp4", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x006}, 
-	{"name": "ds1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x00A}, 
-	{"name": "ds2", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10B}, 
-	{"name": "vd1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11A}, 
-	{"name": "vd2", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x118}, 
-	{"name": "vd3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10A}, 
-	{"name": "vd4", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x119}, 
-	{"name": "vs1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x109}, 
-	{"name": "vs2", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x001}, 
-	{"name": "vs3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x002}, 
-	{"name": "cba", "world": 4, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00F}, 
-	{"name": "soda", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x011}, 
-	{"name": "cookie", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x010}, 
-	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00C}, 
-	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00D}, 
-	{"name": "foi1", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11E}, 
-	{"name": "foi2", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x120}, 
-	{"name": "foi3", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x123}, 
-	{"name": "foi4", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11F}, 
-	{"name": "fsecret", "world": 5, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x122}, 
-	{"name": "ci1", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x022}, 
-	{"name": "ci2", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x024}, 
-	{"name": "ci3", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x023}, 
-	{"name": "ci4", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x01D}, 
-	{"name": "ci5", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x01C}, 
-	{"name": "csecret", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x117}, 
-	{"name": "vob1", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x116}, 
-	{"name": "vob2", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x115}, 
-	{"name": "vob3", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x113}, 
-	{"name": "vob4", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10F}, 
-	{"name": "c1", "world": 1, "exits": 1, "castle": 1, "palace": 0, "ghost": 0, "water": 0, "id": 0x101}, 
-	{"name": "c2", "world": 2, "exits": 1, "castle": 2, "palace": 0, "ghost": 0, "water": 0, "id": 0x007}, 
-	{"name": "c3", "world": 3, "exits": 1, "castle": 3, "palace": 0, "ghost": 0, "water": 0, "id": 0x11C}, 
-	{"name": "c4", "world": 4, "exits": 1, "castle": 4, "palace": 0, "ghost": 0, "water": 0, "id": 0x00E}, 
-	{"name": "c5", "world": 5, "exits": 1, "castle": 5, "palace": 0, "ghost": 0, "water": 0, "id": 0x020}, 
-	{"name": "c6", "world": 6, "exits": 1, "castle": 6, "palace": 0, "ghost": 0, "water": 0, "id": 0x01A}, 
-	{"name": "c7", "world": 7, "exits": 1, "castle": 7, "palace": 0, "ghost": 0, "water": 0, "id": 0x110}, 
-	{"name": "vfort", "world": 3, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 1, "id": 0x00B}, 
-	{"name": "ffort", "world": 5, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01F}, 
-	{"name": "cfort", "world": 6, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01B}, 
-	{"name": "bfort", "world": 7, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x111}, 
-	{"name": "dgh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x004}, 
-	{"name": "dsh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x013}, 
-	{"name": "vgh", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x107}, 
-	{"name": "fgh", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x11D}, 
-	{"name": "cgh", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x021}, 
-	{"name": "sgs", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 1, "id": 0x018}, 
-	{"name": "bgh", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x114}, 
-	{"name": "sw1", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x134}, 
-	{"name": "sw2", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x130}, 
-	{"name": "sw3", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x132}, 
-	{"name": "sw4", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x135}, 
-	{"name": "sw5", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x136}, 
-	{"name": "sp1", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12A}, 
-	{"name": "sp2", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12B}, 
-	{"name": "sp3", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12C}, 
-	{"name": "sp4", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12D}, 
-	{"name": "sp5", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x128}, 
-	{"name": "sp6", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x127}, 
-	{"name": "sp7", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x126}, 
-	{"name": "sp8", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x125}, 
-	{"name": "yswitch", "world": 1, "exits": 0, "castle": 0, "palace": 1, "ghost": 0, "water": 0, "id": 0x014}, 
-	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x008}, 
-	{"name": "rswitch", "world": 3, "exits": 0, "castle": 0, "palace": 3, "ghost": 0, "water": 0, "id": 0x11B}, 
-	{"name": "bswitch", "world": 5, "exits": 0, "castle": 0, "palace": 2, "ghost": 0, "water": 0, "id": 0x121}, 
-//	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003}, 
+	{"name": "yi1", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x105, "out": ["yswitch"]}, 
+	{"name": "yi2", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x106, "out": ["yi3"]}, 
+	{"name": "yi3", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x103, "out": ["yi4"]}, 
+	{"name": "yi4", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x102, "out": ["c1"]}, 
+	{"name": "dp1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x015, "out": ["dp2", "ds1"]}, 
+	{"name": "dp2", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x009, "out": ["dgh", "gswitch"]}, 
+	{"name": "dp3", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x005, "out": ["dp4"]}, 
+	{"name": "dp4", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x006, "out": ["c2"]}, 
+	{"name": "ds1", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x00A, "out": ["dgh", "dsh"]}, 
+	{"name": "ds2", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10B, "out": ["dp3"]}, 
+	{"name": "vd1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11A, "out": ["vd2", "vs1"]}, 
+	{"name": "vd2", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x118, "out": ["vgh", "rswitch"]}, 
+	{"name": "vd3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10A, "out": ["vd4"]}, 
+	{"name": "vd4", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x119, "out": ["c3"]}, 
+	{"name": "vs1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x109, "out": ["vs2", "sw2"]}, 
+	{"name": "vs2", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x001, "out": ["vs3"]}, 
+	{"name": "vs3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x002, "out": ["vfort"]}, 
+	{"name": "cba", "world": 4, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00F, "out": ["cookie", "soda"]}, 
+	{"name": "soda", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x011, "out": ["sw3"]}, 
+	{"name": "cookie", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x010, "out": ["c4"]}, 
+	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00C, "out": ["bb2"]}, 
+	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00D, "out": ["c4"]}, 
+	{"name": "foi1", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11E, "out": ["foi2", "fgh"]}, 
+	{"name": "foi2", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x120, "out": ["foi3", "bswitch"]}, 
+	{"name": "foi3", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x123, "out": ["fgh", "c5"]}, 
+	{"name": "foi4", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11F, "out": ["foi2", "fsecret"]}, 
+	{"name": "fsecret", "world": 5, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x122, "out": ["ffort"]}, 
+	{"name": "ci1", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x022, "out": ["cgh"]}, 
+	{"name": "ci2", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x024, "out": ["ci3", "csecret"]}, 
+	{"name": "ci3", "world": 6, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x023, "out": ["ci3", "cfort"]}, 
+	{"name": "ci4", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x01D, "out": ["ci5"]}, 
+	{"name": "ci5", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x01C, "out": ["c6"]}, 
+	{"name": "csecret", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x117, "out": ["c6"]}, 
+	{"name": "vob1", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x116, "out": ["vob2"]}, 
+	{"name": "vob2", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x115, "out": ["bgh", "bfort"]}, 
+	{"name": "vob3", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x113, "out": ["vob4"]}, 
+	{"name": "vob4", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10F, "out": ["sw5"]}, 
+	{"name": "c1", "world": 1, "exits": 1, "castle": 1, "palace": 0, "ghost": 0, "water": 0, "id": 0x101, "out": ["dp1"]}, 
+	{"name": "c2", "world": 2, "exits": 1, "castle": 2, "palace": 0, "ghost": 0, "water": 0, "id": 0x007, "out": ["vd1"]}, 
+	{"name": "c3", "world": 3, "exits": 1, "castle": 3, "palace": 0, "ghost": 0, "water": 0, "id": 0x11C, "out": ["cba"]}, 
+	{"name": "c4", "world": 4, "exits": 1, "castle": 4, "palace": 0, "ghost": 0, "water": 0, "id": 0x00E, "out": ["foi1"]}, 
+	{"name": "c5", "world": 5, "exits": 1, "castle": 5, "palace": 0, "ghost": 0, "water": 0, "id": 0x020, "out": ["ci1"]}, 
+	{"name": "c6", "world": 6, "exits": 1, "castle": 6, "palace": 0, "ghost": 0, "water": 0, "id": 0x01A, "out": ["sgs"]}, 
+	{"name": "c7", "world": 7, "exits": 1, "castle": 7, "palace": 0, "ghost": 0, "water": 0, "id": 0x110, "out": ["BOWSER"]}, 
+	{"name": "vfort", "world": 3, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 1, "id": 0x00B, "out": ["bb1"]}, 
+	{"name": "ffort", "world": 5, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01F, "out": ["sw4"]}, 
+	{"name": "cfort", "world": 6, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x01B, "out": ["ci4"]}, 
+	{"name": "bfort", "world": 7, "exits": 1, "castle": -1, "palace": 0, "ghost": 0, "water": 0, "id": 0x111, "out": ["BOWSER"]}, 
+	{"name": "dgh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x004, "out": ["topsecret", "dp3"]}, 
+	{"name": "dsh", "world": 2, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x013, "out": ["ds2", "sw1"]}, 
+	{"name": "vgh", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x107, "out": ["vd3"]}, 
+	{"name": "fgh", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x11D, "out": ["foi1", "foi4"]}, 
+	{"name": "cgh", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x021, "out": ["ci2"]}, 
+	{"name": "sgs", "world": 6, "exits": 1, "castle": 0, "palace": 0, "ghost": 1, "water": 1, "id": 0x018, "out": ["vob1"]}, 
+	{"name": "bgh", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 1, "water": 0, "id": 0x114, "out": ["vob3", "c7"]}, 
+	{"name": "sw1", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x134, "out": ["sw1", "sw2"]}, 
+	{"name": "sw2", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x130, "out": ["sw2", "sw3"]}, 
+	{"name": "sw3", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x132, "out": ["sw3", "sw4"]}, 
+	{"name": "sw4", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x135, "out": ["sw4", "sw5"]}, 
+	{"name": "sw5", "world": 8, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x136, "out": ["sw1", "sp1"]}, 
+	{"name": "sp1", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12A, "out": ["sp2"]}, 
+	{"name": "sp2", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12B, "out": ["sp3"]}, 
+	{"name": "sp3", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12C, "out": ["sp4"]}, 
+	{"name": "sp4", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x12D, "out": ["sp5"]}, 
+	{"name": "sp5", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x128, "out": ["sp6"]}, 
+	{"name": "sp6", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x127, "out": ["sp7"]}, 
+	{"name": "sp7", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x126, "out": ["sp8"]}, 
+	{"name": "sp8", "world": 9, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x125, "out": ["yi2"]}, 
+	{"name": "yswitch", "world": 1, "exits": 0, "castle": 0, "palace": 1, "ghost": 0, "water": 0, "id": 0x014, "out": []}, 
+	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x008, "out": []}, 
+	{"name": "rswitch", "world": 3, "exits": 0, "castle": 0, "palace": 3, "ghost": 0, "water": 0, "id": 0x11B, "out": []}, 
+	{"name": "bswitch", "world": 5, "exits": 0, "castle": 0, "palace": 2, "ghost": 0, "water": 0, "id": 0x121, "out": []}, 
+//	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003, "out": []}, 
 ];
 
 // koopa kid boss room sublevels, indexed by castle #
@@ -155,12 +158,12 @@ function randomizeROM(buffer, seed)
 	// how should powerups be affected
 	switch ($('input[name="powerups"]:checked').val())
 	{
-		case 'random': randomizePowerups(random, rom); break;
-		case 'nocape': removeCape(rom); break;
-		case 'smallonly': removeAllPowerups(rom); break;
+		case 'random': randomizePowerups(random, rom, stages); break;
+		case 'nocape': removeCape(rom, stages); break;
+		case 'smallonly': removeAllPowerups(rom, stages); break;
 	}
 	
-	if ($('#noyoshi').is(':checked')) removeYoshi(rom);
+	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
 	// swap all the level name pointers RIGHT before we perform the copy
 	if ($('input[name="levelnames"]:checked').val() == 'random_stage')
@@ -187,8 +190,14 @@ function randomizeROM(buffer, seed)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
+	// write version number and the randomizer seed to the rom
 	writeToTitle(VERSION_STRING + " @" + vseed, 0x2, rom);
-	saveAs(new Blob([buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
+	
+	// fix the checksum (not necessary, but good to do!)
+	fixChecksum(rom);
+	
+	// force the download for the user
+	saveAs(new Blob([rom.buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');
 }
 
 function shuffle(stages, random)
@@ -449,6 +458,11 @@ function fixSublevels(stage, remap, rom)
 function swapExits(stage, rom)
 {
 	if (stage.exits !== 2) return;
+	
+	// swap output stages
+	var outa     = stage.out[0];
+	stage.out[0] = stage.out[1];
+	stage.out[1] = outa;
 	
 	// secret exit triggers event+1
 	var ndxa = rom[0x2D608 + stage.translevel];
@@ -750,4 +764,92 @@ function writeToTitle(title, color, rom)
 		rom[0x2B6D7 + i * 2 + 1] &= 0xE0;
 		rom[0x2B6D7 + i * 2 + 1] |= (color << 2) | ((num >> 8) & 0x3);
 	}
+}
+
+function expandROM(rom)
+{
+	// upgrade to next rom size
+	var size = rom[0x7FD7] += 1;
+	var newrom = new Uint8Array(0x400 * (1 << size));
+	
+	newrom.set(rom, 0);
+	return newrom;
+}
+
+function fixChecksum(rom)
+{
+	var checksum = 0;
+	for (var i = 0; i < rom.length; ++i)
+	{
+		checksum += rom[i];
+		checksum &= 0xFFFF;
+	}
+	
+	// checksum
+	rom[0x7FDE] = (checksum     ) & 0xFF;
+	rom[0x7FDF] = (checksum >> 8) & 0xFF;
+	
+	// checksum ^ 0xFFFF
+	rom[0x7FDC] = (rom[0x7FDE] & 0xFF) ^ 0xFF;
+	rom[0x7FDD] = (rom[0x7FDF] & 0xFF) ^ 0xFF;
+}
+
+var Category =
+{
+	ANY:         { goals: ['BOWSER'] },
+	NOSTARWORLD: { goals: ['BOWSER'], exclude: ['sw1', 'sw2', 'sw3', 'sw4', 'sw5'] },
+	ALLCASTLES:  { goals: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'BOWSER'] },
+	BEATSPECIAL: { goals: ['sp8'] },
+	ALLSWITCHES: { goals: ['yswitch', 'gswitch', 'rswitch', 'bswitch'] },
+	ALLGHOST:    { goals: ['dgh', 'dsh', 'vgh', 'fgh', 'cgh', 'sgs', 'bgh'] },
+};
+
+function validate(stages, goals, exclude)
+{
+	for (var i = 0, smap = {}; i < stages.length; ++i)
+		smap[stages[i].name] = stages[i];
+	var goalsleft = goals.slice(0);
+	
+	// work queue and existing graph nodes
+	// outgoing edges can be found in nodes[x].stage.out
+	var queue = ['yi1', 'yi2'];
+	var nodes = {
+		'yi1': { distance: 0, stage: smap['yi1'] },
+		'yi2': { distance: 0, stage: smap['yi2'] },
+	};
+	
+	while (queue.length)
+	{
+		var x = queue.shift(), node = nodes[x], g;
+		var vname = smap[x] && smap[x].copyfrom ? smap[x].copyfrom.name : x;
+		
+		// if this stage is one of our goals, remove it from the list
+		if ((g = goalsleft.indexOf(vname)) != -1) goalsleft.splice(g, 1);
+		
+		// skip if this "stage" lacks the metadata needed to act as a viable node
+		if (!smap[x] || !smap[x].copyfrom || !node || !node.stage) continue;
+		
+		for (var out, i = 0; i < node.stage.out.length; ++i)
+		{
+			// this exit has been removed, perhaps due to powerup restrictions
+			if (!(out = node.stage.out[i])) continue;
+			
+			// already been processed, with the lowest possible distance
+			if (out in nodes) continue;
+			
+			// this stage is not allowed in this rom, so we remove it
+			if (exclude.contains(out)) continue;
+			
+			// add the stage to the work queue...
+			queue.push(out);
+			
+			// ...and add metadata for it
+			var k = nodes[out] = {};
+			k.stage = (out in smap) ? smap[out] : null;
+			k.distance = node.distance + 1;
+		}
+	}
+	
+	// if no goals remain
+	return !goalsleft.length;
 }

@@ -32,6 +32,14 @@ function randomizeBowser8Doors(random, rom)
 	
 	rooms.shuffle(random);
 	
+	var exits1 = getScreenExits(0x10D, rom);
+	for (var i = 0; i < exits1.length; ++i)
+		rom[exits1[i].addr+3] = rooms[i].sublevel & 0xFF;
+	
+	var exits2 = getScreenExits(0x1D0, rom);
+	for (var i = 0; i < exits2.length; ++i)
+		rom[exits2[i].addr+3] = rooms[i+4].sublevel & 0xFF;
+	
 	var hold0 = findOpenSublevel(0x100, rom);
 	moveSublevel(hold0, rooms[0].sublevel, rom);
 	
