@@ -663,11 +663,10 @@ function deleteSprites(todelete, sprites, rom)
 				var addr = base + j * 3;
 				rom.set(rom.slice(addr, addr + 3), addr - 3);
 				sprites[j].addr -= 3; // not needed, but correct
-				
-				// remove the sprite object from the list
-				sprites.splice(i, 1);
 			}
-			--len;
+				
+			// remove the sprite object from the list
+			sprites.splice(i, 1); --len;
 		}
 		
 	// end of list marker
