@@ -161,7 +161,6 @@ function randomizeLevelNames(random, rom)
 			while (str.length < TITLE_STRINGS[i][0].length) str += ' ';
 		}
 		
-		console.log('using string "' + str + '"');
 		for (var j = 0; j < str.length; ++j, ++ndx)
 			rom[ndx] = TITLE_CHARSET[str[j]];
 		rom[ndx-1] |= 0x80;
