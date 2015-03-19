@@ -166,11 +166,10 @@ function randomizeROM(buffer, seed)
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
 	// update level names if randomized
-	if ($('input[name="levelnames"]:checked').val() == 'random_name')
-		randomizeLevelNames(random, rom);
+	if ($('#customnames').is(':checked')) randomizeLevelNames(random, rom);
 	
 	// swap all the level name pointers RIGHT before we perform the copy
-	if (['random_stage', 'random_name'].contains($('input[name="levelnames"]:checked').val()))
+	if ('random_stage' == $('input[name="levelnames"]:checked').val())
 		shuffleLevelNames(stages, random);
 	
 	for (var i = 0; i < stages.length; ++i)
