@@ -26,8 +26,7 @@ function randomizePowerups(random, rom, stages)
 		// FIND AND REPLACE ?/TURN BLOCKS
 		
 		var start = LAYER1_OFFSET + 3 * id;
-		var p = rom.slice(start, start + 3);
-		var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+		var snes = getPointer(start, 3, rom);
 		
 		var addr = snesAddressToOffset(snes) + 5;
 		for (;; addr += 3)
@@ -46,6 +45,9 @@ function randomizePowerups(random, rom, stages)
 			}
 		}
 	}
+	
+	// speed up roulette sprite (remove 0xEAs to slow down)
+	rom.set([0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA], 0x0C327);
 	
 	// yoshi can poop any powerup he wants to, don't judge him
 	rom[0x0F0F6] = random.from(powerups);
@@ -136,10 +138,7 @@ function removeYoshi(rom, stages)
 	rom[0x0A2C1] = 0x02;
 	rom[0x1C067] = 0x02;
 	
-	// fix the title screen demo so mario doesn't die >.<
-	for (var i = 10; i < 34; ++i)
-		rom[0x01C1F + i * 2] = 0x00;
-	rom[0x01C1F + 34] = 0xFF;
+	fixDemo(rom);
 }
 
 function hasCape(baseid, rom)
@@ -159,8 +158,7 @@ function hasCape(baseid, rom)
 		}
 		
 		var start = LAYER1_OFFSET + 3 * sublevels[i];
-		var p = rom.slice(start, start + 3);
-		var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+		var snes = getPointer(start, 3, rom);
 		
 		var addr = snesAddressToOffset(snes) + 5;
 		for (;; addr += 3)

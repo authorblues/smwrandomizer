@@ -165,6 +165,9 @@ function randomizeROM(buffer, seed)
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
+	// randomize all of the slippery/water flags
+	randomizeFlags(random, stages, rom);
+	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random, rom);
 	
@@ -579,8 +582,7 @@ function findOpenSecondaryExit(bank, rom)
 function getScreenExits(id, rom)
 {
 	var start = LAYER1_OFFSET + 3 * id;
-	var p = rom.slice(start, start + 3);
-	var snes = (p[2] << 16) | (p[1] << 8) | p[0];
+	var snes = getPointer(start, 3, rom);
 	return getScreenExitsByAddr(snes, rom, id);
 }
 
@@ -647,9 +649,8 @@ function getRelatedSublevels(baseid, rom)
 function getSpritesBySublevel(id, rom)
 {
 	var start = SPRITE_OFFSET + 2 * id;
-	var p = rom.slice(start, start + 3);
+	var snes = 0x070000 | getPointer(start, 2, rom);
 	
-	var snes = 0x070000 | (p[1] << 8) | p[0];
 	var addr = snesAddressToOffset(snes) + 1;
 	var sprites = [];
 	
@@ -690,6 +691,13 @@ function deleteSprites(todelete, sprites, rom)
 	rom[base + len * 3] = 0xFF;
 }
 
+function getPointer(off, len, rom)
+{
+	for (var i = 0, x = 0; i < len; ++i)
+		x |= (rom[off+i] << (i*8));
+	return x;
+}
+
 function snesAddressToOffset(addr)
 {
 	// bank (high byte) * 0x8000 + addr (low 2 bytes) - 0x8000
@@ -728,6 +736,98 @@ function randomizeKoopaKids(map, random, rom)
 		
 	if ($('input[name="levelnames"]:checked').val() == 'match_stage')
 		; // TODO: fix castle names
+}
+
+function hasStaticWater(id, rom)
+{
+	var start = LAYER1_OFFSET + 3 * id;
+	var snes = getPointer(start, 3, rom);
+	
+	var addr = snesAddressToOffset(snes) + 5;
+	for (;; addr += 3)
+	{
+		// 0xFF sentinel represents end of level data
+		if (rom[addr] === 0xFF) break;
+		
+		// pattern looks like the start of the screen exits list
+		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+		
+		// get object id, if it's water, return true
+		var objectid = ((rom[addr] & 0x60) >> 1) | ((rom[addr+1] & 0xF0) >> 4);
+		if ([0x18, 0x19].contains(objectid)) return true;
+	}
+}
+
+// end the demo after 10 inputs. this is a safe place to stop both for
+// the no-yoshi intro and for slippery/water intros
+function fixDemo(rom)
+{	
+	// fix the title screen demo so mario doesn't die >.<
+	for (var i = 10; i < 34; ++i)
+		rom[0x01C1F + i * 2] = 0x00;
+	rom[0x01C1F + 34] = 0xFF;
+}
+
+var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x0C7 ];
+
+// randomizes slippery/water/tide flags
+function randomizeFlags(random, stages, rom)
+{
+	rom.set(
+	[
+		0xA5, 0x0E, 0x8D, 0x0B, 0x01, 0x0A, 0x18, 0x65, 0x0E, 0xA8, 
+		0xB9, 0x00, 0xE0, 0x85, 0x65, 0xB9, 0x01, 0xE0, 0x85, 0x66, 
+		0xB9, 0x00, 0xE6, 0x85, 0x68, 0xB9, 0x01, 0xE6, 0x85, 0x69, 
+		0x80, 0x07
+	], 
+	0x2D8B9);
+	
+	rom.set([ 0x20, 0xF5, 0xF9, 0xC9, 0x00, 0xF0, 0x04, 0xC9, 0x05, 0xD0, 0x36 ], 0x026D5);
+	rom.set([ 0xEA, 0xEA ], 0x02734);
+	
+	rom.set(
+	[
+		0xC2, 0x10, 0xAE, 0x0B, 0x01, 0xBF, 0xE0, 0xFD, 0x03, 0x29, 
+		0xF0, 0x85, 0x86, 0xBF, 0xE0, 0xFD, 0x03, 0x29, 0x01, 0x85, 
+		0x85, 0xE2, 0x10, 0xAD, 0x2A, 0x19, 0x60
+	],
+	0x079F5);
+
+	var FLAGBASE = 0x1FDE0;
+	
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var start = LAYER1_OFFSET + 3 * id;
+		var snes = getPointer(start, 3, rom);
+		var addr = snesAddressToOffset(snes);
+		
+		var numscreens = rom[addr] & 0x1F;
+		var entr = (rom[0x2F200+id] >> 3) & 0x7;
+		
+		// get default flag setting for the sublevel
+		var flag = (entr == 5 ? 0x80 : 0) | (entr == 7 ? 0x01 : 0);
+		
+		// base water on how many screens the stage has
+		if (0 == random.nextInt(Math.max(numscreens, 4))
+			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked')) flag ^= 0x01;
+		
+		// force certain stages to not have water
+		if (NO_WATER_STAGES.contains(id)) flag &= 0xF0;
+		
+		if ($('#slippery').is(':checked'))
+		{
+			// 12.5% of stages will have slippery flag swapped
+			if (0 == random.nextInt(8)) flag ^= 0x80;
+			
+			// if the stage is slippery, 33% of the time, changed to "half-slippery"
+			if ((flag & 0x80) && 0 == random.nextInt(3)) flag ^= 0x90;
+			
+			// fix intro if slippery
+			if (id == 0xC7 && (flag & 0xF0)) fixDemo(rom);
+		}
+		
+		rom[FLAGBASE+id] = flag;
+	}
 }
 
 function charToTitleNum(chr)
