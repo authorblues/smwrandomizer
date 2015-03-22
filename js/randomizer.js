@@ -165,9 +165,6 @@ function randomizeROM(buffer, seed)
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
-	// randomize all of the slippery/water flags
-	randomizeFlags(random, stages, rom);
-	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random, rom);
 	
@@ -183,6 +180,9 @@ function randomizeROM(buffer, seed)
 		if ($('#randomize_exits').is(':checked') && random.nextFloat() > 0.5)
 			swapExits(stages[i], rom);
 	}
+	
+	// randomize all of the slippery/water flags
+	randomizeFlags(random, stages, rom);
 	
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
