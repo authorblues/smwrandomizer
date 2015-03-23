@@ -6,10 +6,18 @@
 
 .mono { font-family: monospace; }
 
-#generate-randomized-rom { width: 100%; }
+#select-original-rom,
+#generate-randomized-rom 
+{
+	width: 100%;
+}
+
+.top-spaced
+{
+	margin-top: 20px;
+}
 
 #custom-seed 
 {
-	margin-top: 20px;
 	text-align: center;
 }

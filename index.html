@@ -39,6 +39,23 @@
 							Select Original 512k unheadered NTSC-U ROM
 						</button>
 						
+						<div class="input-group top-spaced">
+							<div class="input-group-addon">
+								<span>Randomizer Preset</span>
+							</div>
+							<select class="form-control" id="preset">
+								<option value="0">&lt;Custom&gt;</option>
+								<option value="1">Gnarly (Easiest)</option>
+								<option value="2">Tubular</option>
+								<option value="3">Way Cool</option>
+								<option value="4">Awesome (Average)</option>
+								<option value="5">Groovy</option>
+								<option value="6">Mondo</option>
+								<option value="7">Outrageous (Hardest)</option>
+								<option value="8">Funky (Hardcore!)</option>
+							</select>
+						</div>
+						
 						<h3>Randomize Stages</h3>
 						<div class="checkbox">
 							<label>
@@ -48,19 +65,19 @@
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_sameworld"> 
+								<input type="checkbox" id="randomize_sameworld" class="presetoption"> 
 								Keep Same World (Randomize only within world)
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_sametype"> 
+								<input type="checkbox" id="randomize_sametype" class="presetoption"> 
 								Keep Same Type (Ghost, Water, Normal)
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_95exit"> 
+								<input type="checkbox" id="randomize_95exit" class="presetoption"> 
 								95 Exit Mode (Don't move </i>Donut Ghost House</i>)
 							</label>
 						</div>
@@ -68,25 +85,25 @@
 						<h3>Overworld Level Names</h3>
 						<div class="radio">
 							<label>
-								<input type="radio" name="levelnames" value="same_stage" checked> 
+								<input type="radio" name="levelnames" value="same_stage" id="levelnames_samestage" class="presetoption" checked> 
 								Match Stage
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="levelnames" value="same_overworld"> 
+								<input type="radio" name="levelnames" value="same_overworld" id="levelnames_overworld" class="presetoption"> 
 								Match Overworld
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="levelnames" value="random_stage"> 
+								<input type="radio" name="levelnames" value="random_stage" id="levelnames_randomstage" class="presetoption"> 
 								Random Stage
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="customnames"> 
+								<input type="checkbox" id="customnames" class="presetoption"> 
 								Custom Random Names
 							</label>
 						</div>
@@ -94,31 +111,31 @@
 						<h3>Bowser's Castle</h3>
 						<div class="radio">
 							<label>
-								<input type="radio" name="bowser" value="default" checked> 
+								<input type="radio" name="bowser" class="presetoption" id="bowser_default" value="default" checked> 
 								Default
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="bowser" value="random"> 
+								<input type="radio" name="bowser" class="presetoption" id="bowser_swapdoors" value="random"> 
 								Randomize Front/Back Door
 							</label>
 						</div>
 						<div class="radio hidden secret-feature">
 							<label>
-								<input type="radio" name="bowser" value="gauntlet"> 
+								<input type="radio" name="bowser" class="presetoption" id="bowser_gauntlet" value="gauntlet"> 
 								The Gauntlet&#8482;
 							</label>
 						</div>
 						<div class="radio hidden secret-feature">
 							<label>
-								<input type="radio" name="bowser" value="minigauntlet"> 
+								<input type="radio" name="bowser" class="presetoption" id="bowser_minigauntlet" value="minigauntlet"> 
 								Mini-Gauntlet (3-5 rooms)
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_bowserdoors"> 
+								<input type="checkbox" id="randomize_bowserdoors" class="presetoption"> 
 								Randomize Bowser's 1-8 Doors
 							</label>
 						</div>
@@ -137,7 +154,7 @@
 					</div>
 					
 					<div class="form-group">
-						<input type="text" class="form-control mono" 
+						<input type="text" class="form-control mono top-spaced" 
 							placeholder="Type Custom Seed Here" id="custom-seed">
 					</div>
 						
@@ -145,31 +162,31 @@
 						<h3>Powerups</h3>
 						<div class="radio">
 							<label>
-								<input type="radio" name="powerups" value="default" checked> 
+								<input type="radio" name="powerups" value="default" id="powerup_default" class="presetoption" checked> 
 								Default Powerups
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="powerups" value="random"> 
+								<input type="radio" name="powerups" value="random" id="powerup_randomize" class="presetoption"> 
 								Randomize Powerups
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="powerups" value="nocape"> 
+								<input type="radio" name="powerups" value="nocape" id="powerup_nocape" class="presetoption"> 
 								No Cape
 							</label>
 						</div>
 						<div class="radio">
 							<label>
-								<input type="radio" name="powerups" value="smallonly"> 
+								<input type="radio" name="powerups" value="smallonly" id="powerup_smallonly" class="presetoption"> 
 								Small Only
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="noyoshi"> 
+								<input type="checkbox" id="noyoshi" class="presetoption"> 
 								No Yoshi
 							</label>
 						</div>
@@ -177,19 +194,19 @@
 						<h3>Sublevel Physics</h3>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="slippery"> 
+								<input type="checkbox" id="slippery" class="presetoption"> 
 								Randomize Slippery/Ice Physics
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="addwater"> 
+								<input type="checkbox" id="addwater" class="presetoption"> 
 								Randomly Add Water to Stages
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="delwater"> 
+								<input type="checkbox" id="delwater" class="presetoption"> 
 								Randomly Remove Water from Stages (Can Be Difficult!)
 							</label>
 						</div>
@@ -197,13 +214,13 @@
 						<h3>Other</h3>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_exits"> 
+								<input type="checkbox" id="randomize_exits" class="presetoption"> 
 								Randomize Exits (Swap Normal/Secret Randomly)
 							</label>
 						</div>
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="randomize_koopakids"> 
+								<input type="checkbox" id="randomize_koopakids" class="presetoption"> 
 								Randomize Koopa Kids
 							</label>
 						</div>
@@ -220,6 +237,7 @@
 		<script src="js/main.js"></script>
 		
 		<script src="js/randomizer.js"></script>
+		<script src="js/randomizer.preset.js"></script>
 		<script src="js/randomizer.powerup.js"></script>
 		<script src="js/randomizer.bowser.js"></script>
 		<script src="js/randomizer.levelnames.js"></script>
