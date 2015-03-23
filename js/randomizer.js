@@ -6,6 +6,7 @@ var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
 var LAYER1_OFFSET;
 var LAYER2_OFFSET;
 var SPRITE_OFFSET;
+var FLAGBASE;
 
 var level_offsets = [
 	// layer data
@@ -18,6 +19,9 @@ var level_offsets = [
 	{"name": "header2", "bytes": 1, "offset": 0x2F200},
 	{"name": "header3", "bytes": 1, "offset": 0x2F400},
 	{"name": "header4", "bytes": 1, "offset": 0x2F600},
+	
+	// custom data
+	{"name": "lvflags", "bytes": 1, "offset": FLAGBASE = 0x1FDE0},
 ];
 
 var trans_offsets = [
@@ -165,6 +169,9 @@ function randomizeROM(buffer, seed)
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
+	// randomize all of the slippery/water flags
+	randomizeFlags(random, stages, rom);
+	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random, rom);
 	
@@ -180,9 +187,6 @@ function randomizeROM(buffer, seed)
 		if ($('#randomize_exits').is(':checked') && random.nextFloat() > 0.5)
 			swapExits(stages[i], rom);
 	}
-	
-	// randomize all of the slippery/water flags
-	randomizeFlags(random, stages, rom);
 	
 	// fix Roy/Larry castle block paths
 	fixBlockPaths(stagelookup, rom);
@@ -792,8 +796,6 @@ function randomizeFlags(random, stages, rom)
 		0x85, 0xE2, 0x10, 0xAD, 0x2A, 0x19, 0x60
 	],
 	0x079F5);
-
-	var FLAGBASE = 0x1FDE0;
 	
 	for (var id = 0; id < 0x200; ++id)
 	{
