@@ -135,6 +135,12 @@ function randomizeROM(buffer, seed)
 	$('#used-seed').text(vseed);
 	
 	var rom = new Uint8Array(buffer);
+	
+	// randomize all of the slippery/water flags
+	randomizeFlags(random, stages, rom);
+	
+	// NOTE: MAKE SURE ANY TABLES BACKED UP BY THIS ROUTINE ARE GENERATED *BEFORE*
+	// THIS POINT. OTHERWISE, WE ARE BACKING UP UNINITIALIZED MEMORY!
 	backupData(stages, rom);
 	
 	// put all the stages into buckets (any stage in same bucket can be swapped)
@@ -168,9 +174,6 @@ function randomizeROM(buffer, seed)
 	}
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
-	
-	// randomize all of the slippery/water flags
-	randomizeFlags(random, stages, rom);
 	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random, rom);
@@ -772,7 +775,7 @@ function fixDemo(rom)
 	rom[0x01C1F + 34] = 0xFF;
 }
 
-var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x0C7 ];
+var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7 ];
 
 // randomizes slippery/water/tide flags
 function randomizeFlags(random, stages, rom)
@@ -805,6 +808,7 @@ function randomizeFlags(random, stages, rom)
 		
 		var numscreens = rom[addr] & 0x1F;
 		var entr = (rom[0x2F200+id] >> 3) & 0x7;
+		var tide = (rom[0x2F200+id] >> 6) & 0x3;
 		
 		// get default flag setting for the sublevel
 		var flag = (entr == 5 ? 0x80 : 0) | (entr == 7 ? 0x01 : 0);
@@ -814,7 +818,8 @@ function randomizeFlags(random, stages, rom)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked')) flag ^= 0x01;
 		
 		// force certain stages to not have water
-		if (NO_WATER_STAGES.contains(id)) flag &= 0xF0;
+		var hastide = [0x1, 0x2].contains(tide);
+		if (NO_WATER_STAGES.contains(id) || hastide) flag &= 0xF0;
 		
 		if ($('#slippery').is(':checked'))
 		{

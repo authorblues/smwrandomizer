@@ -3,6 +3,8 @@ $('#preset').change(function()
 	var preset = +$(this).val();
 	if (preset > 0) $('.presetoption').prop('checked', false);
 	
+	if (preset == 0) return;
+	
 	$('#randomize_stages').prop('checked', true);
 	$('#randomize_sameworld').prop('checked', preset < 2);
 	$('#randomize_sametype').prop('checked', preset < 3);
