@@ -1,6 +1,6 @@
-// thanks to MrCheese for helping with this
+// thanks to MrCheese for helping with rewriting the stage name lookup table
 
-var TITLE_CHARSET =
+var TEXT_MAPPING =
 {
 	"A": 0x00,
 	"B": 0x01,
@@ -91,7 +91,7 @@ var TITLE_CHARSET =
 var TITLE_STRINGS =
 [
 	["YOSHI'S ", "MARIO'S ", "LUIGI'S ", "DEATHLY ", "LEMMY'S ", "LARRY'S ", "WENDY'S ", "KOOPA'S "],
-	["STAR ", "BEST ", "HYPE ", "COOL ", "ANTI ", "MOON ", "REAL ", "NICE "],
+	["STAR ", "HYPE ", "MOON "],
 	"#1 IGGY'S ",
 	"#2 MORTON'S ",
 	"#3 LEMMY'S ",
@@ -102,50 +102,50 @@ var TITLE_STRINGS =
 	["DONUT ", "PIZZA ", "DEATH ", "KOOPA ", "FUDGE ", "PLUTO ", "KAIZO ", "SKULL ", "MARIO ", "SUSHI ", "BAGEL ", "BREAD "],
 	"GREEN ",
 	["TOP SECRET AREA ", "TAKE A BREAK ", "WHY THE RUSH? ", "LEVEL OF SHAME ", "KEEP YOUR CAPES "],
-	["VANILLA ", "HARDEST ", "DIAMOND ", "CALZONE ", "EMERALD ", "BUTTERY ", "DOLPHIN "],
+	["VANILLA ", "DIAMOND ", "CALZONE ", "EMERALD ", "BUTTERY ", "DOLPHIN "],
 	"\uE038\uE039\uE03A\uE03B\uE03C ", // YELLOW
 	"RED ",
 	"BLUE ",
-	["BUTTER BRIDGE ", "CHEESE BRIDGE ", "APPLE ISTHMUS ", "TACO THURSDAY ", "AUTO-SCROLLER "],
-	["CHEESE BRIDGE ", "BUTTER BRIDGE ", "PASTA PLATEAU ", "ASIAGO CHEESE ", "BOUNCING SAWS "],
-	["SODA LAKE ", "POP OCEAN ", "POP BATHS ", "DEEP POOL ", "INK SWAMP "],
-	["COOKIE MOUNTAIN ", "GREEN HILL ZONE ", "CHEESE PIZZA ", "CHOCOLATE CHIP ", "TACO BELL ", "WALUIGI LAND ", "PRINCESS VALLEY ", "DINO-RHINO LAND "],
+	["BUTTER BRIDGE ", "CHEESE BRIDGE ", "APPLE ISTHMUS ", "ASIAGO CHEESE "],
+	["CHEESE BRIDGE ", "BUTTER BRIDGE ", "PASTA PLATEAU ", "BOUNCING SAWS "],
+	["SODA LAKE ", "POP OCEAN ", "INK SWAMP "],
+	["COOKIE MOUNTAIN ", "GREEN HILL ZONE ", "WALUIGI LAND ", "PRINCESS VALLEY ", "DINO-RHINO LAND "],
 	["FOREST ", "CANOPY ", "JUNGLE "],
-	["CHOCOLATE ", "CHEEZCAKE ", "PEPPERONI ", "DELICIOUS ", "EGG SALAD "],
-	["CHOCO-GHOST HOUSE ", "HAUNTED MANSION ", "HOUSE OF HORROR ", "HOUSE OF TERROR ", "SCARY BUT TASTY "],
-	["SUNKEN GHOST SHIP ", "THE TITANIC ", "2SPOOKY4ME ", "GHOSTS OF YOSHI ", "SMB3 AIRSHIP "],
-	["VALLEY ", "BOWSER ", "SUMMIT ", "RIVERS ", "THREAT ", "WOUNDS ", "GALAXY "],
-	["BACK DOOR ", "NO ENTRY ", "GO AWAY ", "LEAVE NOW ", "PISS OFF! ", "BEWARE! ", "SHORTCUT "],
-	["FRONT DOOR ", "FIRE EXIT ", "OPEN MOUTH ", "GET READY ", "BOWSER ", "FINAL BOSS ", "ALMOST WON "],
+	["CHOCOLATE ", "CHEEZCAKE ", "PEPPERONI "],
+	["CHOCO-GHOST HOUSE ", "HAUNTED MANSION ", "HOUSE OF HORROR ", "HOUSE OF TERROR "],
+	["SUNKEN GHOST SHIP ", "GHOSTS OF YOSHI ", "SMB3 AIRSHIP "],
+	["VALLEY ", "SUMMIT ", "RIVERS ", "THREAT ", "WOUNDS ", "GALAXY "],
+	["BACK DOOR ", "NO ENTRY ", "GO AWAY ", "LEAVE NOW ", "PISS OFF! ", "BEWARE! "],
+	["FRONT DOOR ", "GET READY ", "FINAL BOSS "],
 	["GNARLY ", "WACKY ", "CRAZY ", "KOOKY ", "NUTTY "],
-	["TUBULAR ", "FUCKYOU ", "(-.-) ", "GETREKT ", "GETGOOD ", "YOULOSE ", "RIP URN "],
-	["WAY COOL ", "NOT COOL ", "GLORIOUS ", "STYLISH ", "SUAVE "],
-	["HOUSE ", "ABODE ", "PLACE ", "CONDO ", "TOWER ", "HOLE"],
-	["ISLAND ", "MIRAGE ", "TUNNEL ", "CAVERN ", "BRIDGE ", "GROUND ", "YOGURT ", "CRAYON ", "GALAXY ", "SECTOR "],
-	["SWITCH PALACE ", "PLAY PLACE ", "PARTY HOUSE ", "BUTTON HOUSE ", "YUMP AREA ", "YUMP HYPE "],
-	["CASTLE ", "TEMPLE ", "DOMAIN ", "SPIRE "],
+	["TUBULAR ", "FUCKYOU ", "(-.-) ", "GETREKT "],
+	["WAY COOL ", "GLORIOUS ", "STYLISH ", "SUAVE "],
+	["HOUSE ", "ABODE ", "CONDO ", "TOWER "],
+	["ISLAND ", "MIRAGE ", "TUNNEL ", "CAVERN ", "BRIDGE ", "GALAXY "],
+	"SWITCH PALACE ",
+	["CASTLE ", "TEMPLE ", "DOMAIN "],
 	["PLAINS ", "TUNDRA ", "MEADOW ", "CAVERN ", "BRIDGE "],
-	["GHOST HOUSE ", "BOO'S HAUNT ", "GRAVEYARD ", "HEADSTONES "],
-	["SECRET ", "TEMPLE ", "SACRED ", "ENIGMA "],
-	["DOME ", "ZONE ", "HELL ", "ROOF ", "TIME "],
-	["FORTRESS ", "DUNGEON ", "DUNGEONS ", "PANTHEON ", "CAPITAL ", "CENTRE ", "CENTER ", "MARKET "],
+	["GHOST HOUSE ", "BOO'S HAUNT ", "GRAVEYARD "],
+	["SECRET ", "TEMPLE "],
+	["DOME ", "ZONE ", "HELL "],
+	["FORTRESS ", "DUNGEON ", "DUNGEONS ", "PANTHEON ", "CAPITAL ", "CENTRE ", "CENTER "],
 	["OF\uE032\uE033\uE034\uE035\uE036\uE037ON ", "OF DISDAIN ", "OF VISIONS ", "HAPPY TIME "], // OF ILLUSION
 	["OF BOWSER ", "OF KOOPAS ", "OF SORROW ", "OF CLOUDS ", "OF SPIKES "],
 	["ROAD ", "WARP ", "PATH ", "ZONE ", "LINE "],
-	["WORLD ", "LEVEL ", "EARTH "],
+	"WORLD ",
 	["AWESOME ", "SPOOKY ", "STRANGE ", "AMAZING ", "MYSTERY ", "ENGLAND ", "TWITCHY ", "RADICAL "],
 	["1", "0"],
 	["2", "?"],
 	["3", "X"],
 	["4", "6"],
 	["5", "7"],
-	["PALACE", "TEMPLE", "SHRINE", "HOUSE"],
-	["AREA", "ZONE", "SPOT", "HILL", "DUDE"],
-	["GROOVY", "CRAZY", "DEATH!", "B)", "CANADA"],
+	["PALACE", "TEMPLE", "SHRINE"],
+	["AREA", "ZONE", "SPOT", "HILL"],
+	["GROOVY", "CRAZY", "DEATH!", "CANADA"],
 	["MONDO", "KINKY", "Kappa", "GG!", "????", "OMG!"],
-	["OUTRAGEOUS", "UNNATURAL", "MENTAL", "MADNESS", "TRY NOCAPE", "BibleThump", "NO CASUALS", "YOLO SWAG!", "FABULOUS"],
-	["FUNKY", "GREAT", "WOW", "WEIRD", "HELLA", "BINGO"],
-	["HOUSE", "ABODE", "PLACE", "CONDO", "TOWER", "HOLE"],
+	["OUTRAGEOUS", "UNNATURAL", "MENTAL", "MADNESS", "TRY NOCAPE", "BibleThump", "FABULOUS"],
+	["FUNKY", "GREAT", "WEIRD", "BINGO"],
+	["HOUSE", "ABODE", "CONDO", "TOWER"],
 	" ",
 ];
 
@@ -162,7 +162,19 @@ function randomizeLevelNames(random, rom)
 		}
 		
 		for (var j = 0; j < str.length; ++j, ++ndx)
-			rom[ndx] = TITLE_CHARSET[str[j]];
+			rom[ndx] = TEXT_MAPPING[str[j]];
+		rom[ndx-1] |= 0x80;
+	}
+}
+
+function updateIntroText(lines, rom)
+{
+	var ndx = 0x2A5D9;
+	for (var i = 0; i < 8; ++i)
+	{
+		var line = i < lines.length ? lines[i] : "";
+		for (var j = 0; j < 18; ++j, ++ndx)
+			rom[ndx] = TEXT_MAPPING[j < line.length ? line[j] : " "];
 		rom[ndx-1] |= 0x80;
 	}
 }

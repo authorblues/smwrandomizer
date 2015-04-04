@@ -27,21 +27,16 @@ function randomizeBowser8Doors(random, rom)
 		var exits = getScreenExits(id, rom);
 		
 		// save this information
-		rooms.push({ out: exits[0], sublevel: id });
+		rooms.push({ out: exits[0], sublevel: id, data: backupSublevel(id, rom) });
 	}
 	
 	rooms.shuffle(random);
 	
-	var hold0 = findOpenSublevel(0x100, rom);
-	moveSublevel(hold0, rooms[0].sublevel, rom);
-	
-	for (var i = 1; i < rooms.length; ++i)
+	for (var i = 0; i < rooms.length; ++i)
 	{
-		moveSublevel(rooms[i-1].sublevel, rooms[i].sublevel, rom);
-		rom[rooms[i-1].out.addr+3] = rooms[i].out.target & 0xFF;
+		rom[rooms[i].out.addr+3] = [ 0x1D0, 0x1BD ][(i/4)|0] & 0xFF;
+		copyBackupToSublevel(bowser8doors[i], rooms[i].data, rom);
 	}
-	moveSublevel(rooms[rooms.length-1].sublevel, hold0, rom);
-	rom[rooms[rooms.length-1].out.addr+3] = rooms[0].out.target & 0xFF;
 }
 
 function generateGauntlet(random, len, rom)
@@ -56,7 +51,7 @@ function generateGauntlet(random, len, rom)
 	for (var i = 0; i < bowserentrances.length; ++i)
 		copySublevel(bowserentrances[i].id, rooms[0], rom);
 		
-	// chain together all 8 rooms \("v")/
+	// chain together all the rooms \("v")/
 	for (var i = 0; i < numrooms; ++i)
 	{
 		var exits = getScreenExits(rooms[i], rom);

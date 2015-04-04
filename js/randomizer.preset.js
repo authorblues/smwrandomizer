@@ -12,7 +12,7 @@ $('#preset').change(function()
 	$('#levelnames_samestage').prop('checked', true);
 	if (preset > 2) $('#levelnames_overworld').prop('checked', true);
 	if (preset > 3) $('#levelnames_randomstage').prop('checked', true);
-	$('#customnames').prop('checked', preset > 5);
+	$('#customnames').prop('checked', false);
 	
 	$('#bowser_default').prop('checked', true);
 	if (preset > 1) $('#bowser_swapdoors').prop('checked', true);
@@ -37,3 +37,22 @@ $('.presetoption').click(function()
 {
 	$('#preset').val(0);
 });
+
+var PRESET_NAMES =
+[
+	"Custom",
+	"Gnarly",
+	"Tubular",
+	"Way Cool",
+	"Awesome",
+	"Groovy",
+	"Mondo",
+	"Outrageous",
+	"Funky",
+];
+
+function getPresetName(n)
+{
+	if (n === undefined) n = $('#preset').val();
+	return PRESET_NAMES[n] || "Custom";
+}
