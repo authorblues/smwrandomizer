@@ -167,14 +167,73 @@ function randomizeLevelNames(random, rom)
 	}
 }
 
-function updateIntroText(lines, rom)
+function charToTitleNum(chr)
 {
-	var ndx = 0x2A5D9;
+	var chars =
+	{
+		'@': 0x76, // clock
+		'$': 0x2E, // coin
+		"'": 0x85,
+		'"': 0x86,
+		':': 0x78,
+		' ': 0xFC,
+	};
+	
+	var basechars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.,*-!".split('');
+	for (var i = 0; i < basechars.length; ++i) chars[basechars[i]] = i;
+	
+	if (chr in chars) return chars[chr];
+	return 0xFC;
+}
+
+function centerPad(str, len)
+{
+	while (str.length < len)
+		str = ((str.length & 1) ? (" " + str) : (str + " "));
+	return str;
+}
+
+function leftPad(str, len)
+{
+	while (str.length < len) str = str + " ";
+	return str;
+}
+
+function writeToTitle(title, color, rom)
+{
+	title = centerPad(title.toUpperCase(), 19).split('');
+	for (var i = 0; i < 19; ++i)
+	{
+		var num = charToTitleNum(title[i]);
+		
+		rom[0x2B6D7 + i * 2 + 0]  = num & 0xFF;
+		rom[0x2B6D7 + i * 2 + 1] &= 0xE0;
+		rom[0x2B6D7 + i * 2 + 1] |= (color << 2) | ((num >> 8) & 0x3);
+	}
+}
+
+function updateIntroText(vseed, rom)
+{
+	var lines = 
+	[
+		centerPad("SMW Randomizer", 18),
+		centerPad(VERSION_STRING, 18),
+		leftPad("", 18),
+		leftPad("Seed    " + vseed, 18),
+		leftPad("Preset  " + getPresetName(), 18),
+		"               ", // exactly 15 characters
+		centerPad("Good Luck", 18),
+		centerPad("and Enjoy!", 18),
+	];
+	
+	var ndx = 0x2A5D9, off = 0;
 	for (var i = 0; i < 8; ++i)
 	{
 		var line = i < lines.length ? lines[i] : "";
-		for (var j = 0; j < 18; ++j, ++ndx)
-			rom[ndx] = TEXT_MAPPING[j < line.length ? line[j] : " "];
-		rom[ndx-1] |= 0x80;
+		for (var j = 0; j < line.length; ++j, ++off)
+			rom[ndx+off] = TEXT_MAPPING[line[j]];
+		rom[ndx+off-1] |= 0x80;
 	}
+	
+	if (off != 141) throw new Error('Invalid length for intro text cutscene: ' + off);
 }

@@ -218,18 +218,7 @@ function randomizeROM(buffer, seed)
 	writeToTitle(VERSION_STRING + " @" + vseed, 0x2, rom);
 	
 	// write metadata to the intro cutscene
-	updateIntroText(
-	[
-		centerPad("SMW Randomizer", 18),
-		centerPad(VERSION_STRING, 18),
-		"",
-		"Seed    " + vseed,
-		"Preset  " + getPresetName(),
-		"",
-		centerPad("Good Luck", 18),
-		centerPad("and Enjoy!", 18),
-	],
-	rom);
+	updateIntroText(vseed, rom);
 	
 	// fix the checksum (not necessary, but good to do!)
 	fixChecksum(rom);
@@ -992,45 +981,6 @@ function randomizeFlags(random, stages, rom)
 		}
 		
 		rom[FLAGBASE+id] = flag;
-	}
-}
-
-function charToTitleNum(chr)
-{
-	var chars =
-	{
-		'@': 0x76, // clock
-		'$': 0x2E, // coin
-		"'": 0x85,
-		'"': 0x86,
-		':': 0x78,
-		' ': 0xFC,
-	};
-	
-	var basechars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.,*-!".split('');
-	for (var i = 0; i < basechars.length; ++i) chars[basechars[i]] = i;
-	
-	if (chr in chars) return chars[chr];
-	return 0xFC;
-}
-
-function centerPad(str, len)
-{
-	while (str.length < len)
-		str = ((str.length & 1) ? (" " + str) : (str + " "));
-	return str;
-}
-
-function writeToTitle(title, color, rom)
-{
-	title = centerPad(title.toUpperCase(), 19).split('');
-	for (var i = 0; i < 19; ++i)
-	{
-		var num = charToTitleNum(title[i]);
-		
-		rom[0x2B6D7 + i * 2 + 0]  = num & 0xFF;
-		rom[0x2B6D7 + i * 2 + 1] &= 0xE0;
-		rom[0x2B6D7 + i * 2 + 1] |= (color << 2) | ((num >> 8) & 0x3);
 	}
 }
 
