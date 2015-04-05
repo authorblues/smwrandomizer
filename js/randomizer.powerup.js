@@ -19,8 +19,9 @@ function randomizePowerups(random, rom, stages)
 				rom[sprites[i].addr+2] = random.from(powerups);
 			
 			// if we find a flying [?], adjust X value (to change its contents)
-			if ([0x83, 0x84].contains(sprites[i].spriteid) && random.nextInt(2))
-				rom[sprites[i].addr+1] ^= 0x30;
+			if ([0x83, 0x84].contains(sprites[i].spriteid) && 
+				[0x10, 0x20].contains(rom[sprites[i].addr+1] & 0x30) && random.nextInt(2))
+					rom[sprites[i].addr+1] ^= 0x30;
 		}
 	
 		// FIND AND REPLACE ?/TURN BLOCKS
