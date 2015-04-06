@@ -83,6 +83,9 @@ Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 function Random(seed)
 { this.seed = Math.floor(seed || (Math.random() * 0xFFFFFFFF)) % 0xFFFFFFFF; }
 
+Random.prototype.pull = function(n)
+{ this.seed += (n == undefined ? 1 : n); }
+
 Random.prototype.nextFloat = function()
 { var x = Math.sin(this.seed++) * 10000; return x - Math.floor(x); }
 
