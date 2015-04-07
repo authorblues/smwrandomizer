@@ -37,7 +37,7 @@ var NO_CASTLE   = 0,
     NORTH_PATH  = 2;
 
 var smw_stages = [
-	{"name": "yi1", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x105, "cpath": NORTH_PATH, "tile": [0x04, 0x28], "out": ["yswitch"]}, 
+	{"name": "yi1", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x105, "cpath": NO_CASTLE, "tile": [0x04, 0x28], "out": ["yswitch"]}, 
 	{"name": "yi2", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x106, "cpath": NORTH_PATH, "tile": [0x0A, 0x28], "out": ["yi3"]}, 
 	{"name": "yi3", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x103, "cpath": NORTH_CLEAR, "tile": [0x0A, 0x26], "out": ["yi4"]}, 
 	{"name": "yi4", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x102, "cpath": NO_CASTLE, "tile": [0x0C, 0x24], "out": ["c1"]}, 
