@@ -112,9 +112,3 @@ Number.prototype.toHex = function(n, p)
 	while (hex.length < n) hex = '0' + hex;
 	return (p != null ? p : '$') + hex;
 };
-
-Array.prototype.toDebugString = function()
-{ return '[' + this.toString() + ']'; };
-
-Array.prototype.toHexArray = function(n)
-{ return $.map(this, function(x){ return x.toHex(n); }).toDebugString(); };

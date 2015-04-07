@@ -29,6 +29,7 @@ $('#preset').change(function()
 	
 	$('#randomize_exits').prop('checked', preset > 2);
 	$('#randomize_koopakids').prop('checked', preset > 3);
+	$('#randomize_bossdiff').prop('checked', preset > 5);
 	$('#remove_autoscrollers').prop('checked', preset > 4);
 });
 

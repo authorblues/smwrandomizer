@@ -34,7 +34,7 @@ var NORMAL = 0,
 	
 var NO_CASTLE   = 0,
     NORTH_CLEAR = 1,
-	NORTH_PATH  = 2;
+    NORTH_PATH  = 2;
 
 var smw_stages = [
 	{"name": "yi1", "world": 1, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x105, "cpath": NORTH_PATH, "tile": [0x04, 0x28], "out": ["yswitch"]}, 
@@ -57,8 +57,8 @@ var smw_stages = [
 	{"name": "cba", "world": 4, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00F, "cpath": NORTH_CLEAR, "tile": [0x14, 0x05], "out": ["cookie", "soda"]}, 
 	{"name": "soda", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 2, "id": 0x011, "cpath": NO_CASTLE, "tile": [0x14, 0x08], "out": ["sw3"]}, 
 	{"name": "cookie", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x010, "cpath": NORTH_CLEAR, "tile": [0x17, 0x05], "out": ["c4"]}, 
-	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00C, "cpath": NORTH_CLEAR, "tile": [0x14, 0x03], "out": ["bb2"]}, 
-	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00D, "cpath": NORTH_CLEAR, "tile": [0x16, 0x03], "out": ["c4"]}, 
+	{"name": "bb1", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00C, "cpath": NO_CASTLE, "tile": [0x14, 0x03], "out": ["bb2"]}, 
+	{"name": "bb2", "world": 4, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x00D, "cpath": NO_CASTLE, "tile": [0x16, 0x03], "out": ["c4"]}, 
 	{"name": "foi1", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11E, "cpath": NORTH_PATH, "tile": [0x09, 0x37], "out": ["foi2", "fgh"]}, 
 	{"name": "foi2", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x120, "cpath": NO_CASTLE, "tile": [0x0B, 0x3A], "out": ["foi3", "bswitch"]}, 
 	{"name": "foi3", "world": 5, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x123, "cpath": NORTH_CLEAR, "tile": [0x09, 0x3C], "out": ["fgh", "c5"]}, 
@@ -74,7 +74,7 @@ var smw_stages = [
 	{"name": "vob2", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x115, "cpath": NORTH_PATH, "tile": [0x1A, 0x27], "out": ["bgh", "bfort"]}, 
 	{"name": "vob3", "world": 7, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x113, "cpath": NORTH_PATH, "tile": [0x15, 0x27], "out": ["vob4"]}, 
 	{"name": "vob4", "world": 7, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10F, "cpath": NORTH_PATH, "tile": [0x15, 0x25], "out": ["sw5"]}, 
-	{"name": "c1", "world": 1, "exits": 1, "castle": 1, "palace": 0, "ghost": 0, "water": 0, "id": 0x101, "cpath": NORTH_PATH, "tile": [0x0A, 0x22], "out": ["dp1"]}, 
+	{"name": "c1", "world": 1, "exits": 1, "castle": 1, "palace": 0, "ghost": 0, "water": 0, "id": 0x101, "cpath": NO_CASTLE, "tile": [0x0A, 0x22], "out": ["dp1"]}, 
 	{"name": "c2", "world": 2, "exits": 1, "castle": 2, "palace": 0, "ghost": 0, "water": 0, "id": 0x007, "cpath": NORTH_PATH, "tile": [0x0D, 0x0C], "out": ["vd1"]}, 
 	{"name": "c3", "world": 3, "exits": 1, "castle": 3, "palace": 0, "ghost": 0, "water": 0, "id": 0x11C, "cpath": NORTH_PATH, "tile": [0x0D, 0x32], "out": ["cba"]}, 
 	{"name": "c4", "world": 4, "exits": 1, "castle": 4, "palace": 0, "ghost": 0, "water": 0, "id": 0x00E, "cpath": NORTH_CLEAR, "tile": [0x1A, 0x03], "out": ["foi1"]}, 
@@ -117,6 +117,9 @@ function isPermanentTile(stage)
 	// some specific tiles MUST be permanent tiles, since the game does not trigger the reveal
 	var PERMANENT_TILES = [ 'sw1', 'sw2', 'sw3', 'sw4', 'sw5', 'sp1', 'yi1', 'yi2', 'foi1' ];
 	if (PERMANENT_TILES.contains(stage.name) || stage.castle > 0) return true;
+	
+	var REVEALED_TILES = [ 'ci1', 'ci2', 'ci5', 'bb1', 'bb2' ];
+	if (REVEALED_TILES.contains(stage.name)) return false;
 	
 	// if this is in FOI, try to grab unrevealed tiles
 	if (stage.tile[0] >= 0x00 && stage.tile[0] < 0x10 && 
@@ -228,6 +231,9 @@ function randomizeROM(buffer, seed)
 	
 	if ($('#randomize_koopakids').is(':checked'))
 		randomizeKoopaKids(globalremapping, random, rom);
+	
+	if ($('#randomize_bossdiff').is(':checked'))
+		randomizeBossDifficulty(random, rom);
 	
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
@@ -940,6 +946,29 @@ function shuffleLevelNames(stages, random)
 	for (var i = 0; i < ptrs.length; ++i) stages[i].data['nameptr'] = ptrs[i];
 }
 
+function randomizeBossDifficulty(random, rom)
+{
+	// health of ludwig+morton+roy
+	var jhp = random.nextIntRange(2,9);
+	rom[0x0CFCD] = jhp;
+	rom[0x0D3FF] = jhp + 9;
+	
+	// health of big boo
+	rom[0x181A2] = random.nextIntRange(2,7);
+	
+	// health of wendy+lemmy
+	rom[0x1CE1A] = random.nextIntRange(2,6);
+	
+	// health of bowser phase1, and phases2+3
+	var bhp = random.nextIntRange(1,6);
+	rom[0x1A10B] = bhp;
+	rom[0x1A683] = bhp;
+	
+	// distance iggy+larry slides when hit (jump, fireball)
+	rom[0x0FD00] = random.nextIntRange(0x08, 0x30);
+	rom[0x0FD46] = random.nextIntRange(0x08, 0x28);
+}
+
 function randomizeKoopaKids(map, random, rom)
 {
 	var bossrooms = [];
@@ -1022,6 +1051,11 @@ function randomizeFlags(random, stages, rom)
 		0x85, 0xE2, 0x10, 0xAD, 0x2A, 0x19, 0x60
 	],
 	0x079F5);
+	
+	// fix cutscenes - sorry Dani :)
+	// http://www.youtube.com/watch?v=n9LssVHB1VY
+	rom.set([0x20, 0x91, 0xB0], 0x01501);
+	rom.set([0x64, 0x85, 0x64, 0x86, 0xAD, 0xC6, 0x13, 0x60], 0x03091);
 	
 	for (var id = 0; id < 0x200; ++id)
 	{
