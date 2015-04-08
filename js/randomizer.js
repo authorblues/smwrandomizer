@@ -1013,6 +1013,10 @@ function randomizeBossDifficulty(random, rom)
 	// distance iggy+larry slides when hit (jump, fireball)
 	rom[0x0FD00] = random.nextIntRange(0x08, 0x30);
 	rom[0x0FD46] = random.nextIntRange(0x08, 0x28);
+	
+	// randomize reznor
+	if (0 == random.nextInt(3)) rom.set([0x38, 0xE9], 0x198C7);
+	rom[0x198C9] = random.nextIntRange(0x01, 0x04);
 }
 
 function randomizeKoopaKids(map, random, rom)
