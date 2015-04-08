@@ -126,7 +126,8 @@ function removeAllPowerups(rom, stages)
 	rom[0x0F0F0] = 0x80;
 	
 	// remove the powerup peach throws
-	rom[0x1A8EE] = 0x3E;
+	rom[0x1A8E9] = 0x00;
+	rom[0x1A8E4] = 0x00;
 }
 
 function removeYoshi(rom, stages)
