@@ -49,7 +49,7 @@ var smw_stages = [
 	{"name": "ds2", "world": 2, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10B, "cpath": NORTH_CLEAR, "tile": [0x11, 0x21], "out": ["dp3"]}, 
 	{"name": "vd1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x11A, "cpath": NORTH_CLEAR, "tile": [0x06, 0x32], "out": ["vd2", "vs1"]}, 
 	{"name": "vd2", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 1, "id": 0x118, "cpath": NO_CASTLE, "tile": [0x09, 0x30], "out": ["vgh", "rswitch"]}, 
-	{"name": "vd3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10A, "cpath": NORTH_PATH, "tile": [0x0D, 0x2E], "out": ["vd4"]}, 
+	{"name": "vd3", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10A, "cpath": NO_CASTLE, "tile": [0x0D, 0x2E], "out": ["vd4"]}, 
 	{"name": "vd4", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x119, "cpath": NORTH_PATH, "tile": [0x0D, 0x30], "out": ["c3"]}, 
 	{"name": "vs1", "world": 3, "exits": 2, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x109, "cpath": NO_CASTLE, "tile": [0x04, 0x2E], "out": ["vs2", "sw2"]}, 
 	{"name": "vs2", "world": 3, "exits": 1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x001, "cpath": NORTH_CLEAR, "tile": [0x0C, 0x03], "out": ["vs3"]}, 
@@ -116,7 +116,7 @@ function isPermanentTile(stage)
 {
 	// some specific tiles MUST be permanent tiles, since the game does not trigger the reveal
 	var PERMANENT_TILES = [ 'sw1', 'sw2', 'sw3', 'sw4', 'sw5', 'sp1', 'yi1', 'yi2', 'foi1' ];
-	if (PERMANENT_TILES.contains(stage.name) || stage.castle > 0) return true;
+	if (PERMANENT_TILES.contains(stage.name) || isCastle(stage) || isCastle(stage.copyfrom)) return true;
 	
 	var REVEALED_TILES = [ 'ci1', 'ci2', 'ci5', 'bb1', 'bb2' ];
 	if (REVEALED_TILES.contains(stage.name)) return false;
@@ -126,7 +126,7 @@ function isPermanentTile(stage)
 	    stage.tile[1] >= 0x35 && stage.tile[1] < 0x40) return false;
 	
 	// otherwise, only permanent if special tile
-	return stage.palace || stage.ghost || stage.castle;
+	return stage.copyfrom.ghost || stage.copyfrom.castle;
 }
 
 function isCastle(stage)
@@ -344,7 +344,7 @@ function performCopy(stage, map, rom)
 		if (stage.name in OFFSCREEN_EVENT_TILES)
 		{
 			var x = OFFSCREEN_EVENT_TILES[stage.name];
-			rom.set([ow, 0x00], 0x26994+x);
+			rom.set([getPermanentTile(ow), 0x00], 0x26994+x);
 			
 			// if we are looking at c1, fix the castle top as well
 			if (stage.name == 'c1' && !isCastle(stage.copyfrom))
@@ -495,7 +495,7 @@ function fixOverworldEvents(stages, rom)
 	[
 		0xF0, 0x02, 0xA9, 0x01, 0x5D, 0x5C, 0xF6, 0xD0, 0x2C, 0x9B, 0x8A, 0x85, 0x0A, 0x0A, 0x0A, 
 		0x18, 0x65, 0x0A, 0xAA, 0xC2, 0x20, 0xBD, 0x17, 0xF6, 0x18, 0x69, 0x10, 0x00, 0x20, 0xB9, 
-		0xFF, 0xE2, 0x30, 0xC9, 0x7B, 0xF0, 0x10, 0xBB, 0xA9, 0x34, 0xBC, 0x95, 0x0E, 0x30, 0x02, 
+		0xFF, 0xE2, 0x30, 0xC9, 0x7A, 0xF0, 0x10, 0xBB, 0xA9, 0x34, 0xBC, 0x95, 0x0E, 0x30, 0x02, 
 		0xA9, 0x44, 0xEB, 0xA9, 0x60, 0x20, 0x06, 0xFB
 	],
 	0x27D7F);
@@ -569,13 +569,21 @@ function getOverworldOffset(stage, castletop)
 
 function getPermanentTile(x)
 {
-	var lookup = { 0x7B: 0x7C, 0x7D: 0x7E, 0x7F: 0x80, 0x57: 0x5E, 0x7A: 0x63 };
+	var lookup =
+	{
+		0x7B: 0x7C, 0x7D: 0x7E, 0x76: 0x77, 0x78: 0x79, 
+		0x7F: 0x80, 0x58: 0x59, 0x57: 0x5E, 0x7A: 0x63
+	};
 	return x in lookup ? lookup[x] : (x >= 0x6E && x <= 0x75 ? (x - 8) : x);
 }
 
 function getRevealedTile(x)
 {
-	var lookup = { 0x7C: 0x7B, 0x7E: 0x7D, 0x80: 0x7F, 0x5E: 0x57, 0x63: 0x7A };
+	var lookup = 
+	{
+		0x7C: 0x7B, 0x7E: 0x7D, 0x77: 0x76, 0x79: 0x78, 
+		0x80: 0x7F, 0x59: 0x58, 0x5E: 0x57, 0x63: 0x7A
+	};
 	return x in lookup ? lookup[x] : (x >= 0x66 && x <= 0x6D ? (x + 8) : x);
 }
 

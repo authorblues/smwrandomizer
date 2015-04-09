@@ -7,7 +7,7 @@ $('#preset').change(function()
 	
 	$('#randomize_stages').prop('checked', true);
 	$('#randomize_sameworld').prop('checked', preset < 2);
-	$('#randomize_sametype').prop('checked', preset < 3);
+	$('#randomize_sametype').prop('checked', preset < 2);
 	
 	$('#levelnames_samestage').prop('checked', true);
 	if (preset > 2) $('#levelnames_overworld').prop('checked', true);
