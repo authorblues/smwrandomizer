@@ -154,7 +154,7 @@ function randomizeROM(buffer, seed)
 	}
 	
 	var random = new Random(seed);
-	var vseed = random.seed.toHex(8, '');
+	var vseed = random.seed.toHex(8);
 	var globalremapping = {};
 	
 	$('#custom-seed').val('');
@@ -239,7 +239,7 @@ function randomizeROM(buffer, seed)
 	rom[0x2DA1D] = 0x60;
 
 	// write version number and the randomizer seed to the rom
-	var checksum = getChecksum(rom).toHex(4, '');
+	var checksum = getChecksum(rom).toHex(4);
 	writeToTitle(VERSION_STRING + " @" + vseed + "-" + checksum, 0x2, rom);
 	
 	// write metadata to the intro cutscene
@@ -354,11 +354,10 @@ function performCopy(stage, map, rom)
 		if (stage.name in OFFSCREEN_EVENT_TILES)
 		{
 			var x = OFFSCREEN_EVENT_TILES[stage.name];
-			rom.set([getPermanentTile(ow), 0x00], 0x26994+x);
+			var tile = getPermanentTile(ow);
 			
-			// if we are looking at c1, fix the castle top as well
-			if (stage.name == 'c1' && !isCastle(stage.copyfrom))
-				rom.set([0x00, 0x00], 0x26994+0x08);
+			if (stage.name == 'c1' && stage.copyfrom.castle) tile = 0x81;
+			rom.set([tile, 0x00], 0x26994+x);
 		}
 	}
 }

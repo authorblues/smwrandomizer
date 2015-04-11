@@ -134,7 +134,7 @@ Number.prototype.toHex = function(n, p)
 {
 	var hex = this.toString(16);
 	while (hex.length < n) hex = '0' + hex;
-	return (p != null ? p : '$') + hex;
+	return (p != null ? p : '') + hex;
 }
 
 var TESTERS =
