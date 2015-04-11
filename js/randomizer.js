@@ -1,4 +1,4 @@
-var VERSION_STRING = 'v0.5';
+var VERSION_STRING = 'v1.0';
 
 // this is the md5 of the only rom that we will accept
 var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
@@ -246,6 +246,15 @@ function randomizeROM(buffer, seed)
 	
 	// fix the checksum (not necessary, but good to do!)
 	fixChecksum(rom);
+	
+	// update the location.hash
+	var preset = +$('#preset').val();
+	if (preset)
+	{
+		var newstate = '#!/' + vseed + '/' + $('#preset').val();
+		if (history.pushState) history.pushState(null, null, newstate);
+		else location.hash = newstate;
+	}
 	
 	// force the download for the user
 	saveAs(new Blob([rom.buffer], {type: "octet/stream"}), 'smw-' + vseed + '.sfc');

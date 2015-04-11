@@ -7,9 +7,21 @@ $('#generate-randomized-rom').click(function(e)
 	// maybe this will be a NaN?
 	var seed = parseInt($('#custom-seed').val(), 16);
 	
-	var reader = new FileReader();
-	reader.onloadend = function(){ randomizeROM(reader.result, seed); };
-	reader.readAsArrayBuffer(ORIGINAL_ROM);
+	if (ORIGINAL_ROM === true)
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', 'smw.sfc', true);
+		xhr.responseType = 'arraybuffer';
+		
+		xhr.onload = function(e){ randomizeROM(xhr.response, seed); }
+		xhr.send();
+	}
+	else
+	{
+		var reader = new FileReader();
+		reader.onloadend = function(e){ randomizeROM(reader.result, seed); };
+		reader.readAsArrayBuffer(ORIGINAL_ROM);
+	}
 });
 
 function getMD5(file, callback)
@@ -36,18 +48,17 @@ $('form').submit(function(e)
 
 $('#authorblues').click(function(e)
 {
-	$('.secret-feature').removeClass('hidden');
+	checkRomResult(true, true);
+	$('#select-original-rom').prop('disabled', true);
 });
+
+function cleanCustomSeed(seed)
+{ return seed.replace(/[^a-fA-F0-9]+/g, '').substr(0, 8); }
 
 $('#custom-seed').bind("keypress paste", function(e)
 {
 	var self = $(this);
-	setTimeout(function()
-	{
-		var removed = self.val().replace(/[^a-fA-F0-9]+/g, '');
-		self.val(removed.substr(0, 8));
-	}, 
-	1);
+	setTimeout(function(){ self.val(cleanCustomSeed(self.val())); }, 1);
 });
 
 function checkRomResult(valid, file)
@@ -59,19 +70,17 @@ function checkRomResult(valid, file)
 	if (valid) ORIGINAL_ROM = file;
 }
 
-Array.prototype.shuffle = function(random)
+function updateHash()
 {
-	for (var t, i = 1, j; i < this.length; ++i)
-	{
-		j = random.nextInt(i);
-		t = this[j]; this[j] = this[i]; this[i] = t;
-	}
-
-	return this;
+	if (!location.hash || location.hash.indexOf("#!/") !== 0) return;
+	var parts = location.hash.split('/').slice(1);
+	
+	if (parts.length > 0) $('#custom-seed').val(cleanCustomSeed(parts[0]));
+	$('#preset').val(parts.length > 1 ? +parts[1] : 2); updatePreset();
 }
 
-Array.prototype.contains = function(x)
-{ return this.indexOf(x) != -1; }
+window.onhashchange = updateHash;
+updateHash();
 
 Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 {
@@ -106,9 +115,50 @@ Random.prototype.nextIntRange = function(a, b)
 Random.prototype.from = function(arr)
 { return arr[this.nextInt(arr.length)]; }
 
+Array.prototype.shuffle = function(random)
+{
+	if (!random) random = new Random();
+	for (var t, i = 1, j; i < this.length; ++i)
+	{
+		j = random.nextInt(i);
+		t = this[j]; this[j] = this[i]; this[i] = t;
+	}
+
+	return this;
+}
+
+Array.prototype.contains = function(x)
+{ return this.indexOf(x) != -1; }
+
 Number.prototype.toHex = function(n, p)
 {
 	var hex = this.toString(16);
 	while (hex.length < n) hex = '0' + hex;
 	return (p != null ? p : '$') + hex;
-};
+}
+
+var TESTERS =
+{
+	'Akisto': 'se7endeadlysins',
+	'LiamPiper': 'liampiper',
+	'Mibramz': 'mibramz',
+	'daniplayerone': 'daniplayerone',
+	'Skybilz': 'skybilz',
+	'dotsarecool': 'dotsarecoolp',
+	'truman': 'truman',
+	'prawclaw': 'prawclaw',
+	'Sweetyt': 'sweetyt',
+	'yunakitten': 'yunakitten',
+	'princessproto': 'protomagicalgirl',
+	'radioactiverat': 'radioactiverat',
+	'rezephos': 'rezephos',
+	'marc765': 'marc765',
+}
+
+$('#tester-list').html(
+	$.map(TESTERS, function(twitch, name)
+	{
+		var str = twitch ? '<a href="http://twitch.tv/' + twitch + '">' + name + '</a>' : name;
+		return '<span class="tester-' + name + '">' + str + '</span>';
+	}).shuffle().join(', ')
+);

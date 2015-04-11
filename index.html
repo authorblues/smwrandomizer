@@ -33,8 +33,8 @@
 			
 				<div class="col-md-6">
 					<form>
-						<input type="file" id="original-rom" accept=".smc,.sfc">
-						<button id="select-original-rom" class="btn btn-default">
+						<input type="file" id="original-rom" accept=".sfc">
+						<button id="select-original-rom" class="btn btn-default btn-full-width">
 							<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
 							Select Original 512k unheadered NTSC-U ROM
 						</button>
@@ -147,7 +147,8 @@
 							<span>Last Seed: <span id="used-seed" class="mono">????????</span></span>
 						</div>
 						<span class="input-group-btn">
-							<button id="generate-randomized-rom" class="btn btn-default" type="button">
+							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button">
+								<span class="glyphicon glyphicon-random" aria-hidden="true"></span> 
 								Generate ROM
 							</button> 
 						</span>
@@ -241,17 +242,41 @@
 			</div>
 		</div>
 		
+		<hr />
+		
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6">
+					<div>
+						<a class="btn btn-default btn-full-width" href="http://github.com/authorblues/smwrandomizer/issues">
+							<span class="glyphicon glyphicon-fire" aria-hidden="true"></span> 
+							Report a Bug
+						</a>
+						
+						<a class="btn btn-default btn-full-width top-spaced" href="http://github.com/authorblues/smwrandomizer">
+							<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> 
+							Contribute
+						</a>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<h3>Testers</h3>
+					<p>The following people helped to test out the initial versions of the randomizer, and helped it to reach the stability it has today: <span id="tester-list"></span></p>
+				</div>
+			</div>
+		</div>
+		
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
 
-		<script src="js/vendor/bootstrap.min.js"></script>
-		<script src="js/vendor/FileSaver.min.js"></script>
-		<script src="js/main.js"></script>
-		
 		<script src="js/randomizer.js"></script>
 		<script src="js/randomizer.preset.js"></script>
 		<script src="js/randomizer.powerup.js"></script>
 		<script src="js/randomizer.bowser.js"></script>
 		<script src="js/randomizer.text.js"></script>
+		
+		<script src="js/vendor/bootstrap.min.js"></script>
+		<script src="js/vendor/FileSaver.min.js"></script>
+		<script src="js/main.js"></script>
 	</body>
 </html>

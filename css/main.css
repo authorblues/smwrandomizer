@@ -1,13 +1,17 @@
+p
+{
+	line-height: 1.7em;
+}
+
 #original-rom { display: none; }
 
-#original-rom-result { margin-right: 5px; }
+.glyphicon { margin-right: 5px; }
 #original-rom-result.glyphicon-ok         { color: green; }
 #original-rom-result.glyphicon-remove { color: red;   }
 
 .mono { font-family: monospace; }
 
-#select-original-rom,
-#generate-randomized-rom 
+.btn-full-width
 {
 	width: 100%;
 }

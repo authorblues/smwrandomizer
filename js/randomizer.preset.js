@@ -1,6 +1,6 @@
-$('#preset').change(function()
+function updatePreset(val)
 {
-	var preset = +$(this).val();
+	var preset = val instanceof Number ? val : +$('#preset').val();
 	if (preset > 0) $('.presetoption').prop('checked', false);
 	
 	if (preset == 0) return;
@@ -31,7 +31,9 @@ $('#preset').change(function()
 	$('#randomize_koopakids').prop('checked', preset > 3);
 	$('#randomize_bossdiff').prop('checked', preset > 5);
 	$('#remove_autoscrollers').prop('checked', preset > 4);
-});
+}
+
+$('#preset').change(updatePreset);
 
 // selecting any option by hand should set the preset box to "custom"
 $('.presetoption').click(function()
