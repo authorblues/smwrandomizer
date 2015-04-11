@@ -1,4 +1,4 @@
-var VERSION_STRING = 'v1.0';
+var VERSION_STRING = 'v1.1';
 
 // this is the md5 of the only rom that we will accept
 var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
@@ -109,7 +109,7 @@ var smw_stages = [
 	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x008, "cpath": NO_CASTLE, "tile": [0x01, 0x0D], "out": []}, 
 	{"name": "rswitch", "world": 3, "exits": 0, "castle": 0, "palace": 3, "ghost": 0, "water": 0, "id": 0x11B, "cpath": NO_CASTLE, "tile": [0x0B, 0x32], "out": []}, 
 	{"name": "bswitch", "world": 5, "exits": 0, "castle": 0, "palace": 2, "ghost": 0, "water": 0, "id": 0x121, "cpath": NO_CASTLE, "tile": [0x0D, 0x3A], "out": []}, 
-//	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003, "cpath": NORTH_CLEAR, "tile": [0x05, 0x08], "out": []}, 
+	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003, "cpath": NORTH_CLEAR, "tile": [0x05, 0x08], "out": []}, 
 ];
 
 function isPermanentTile(stage)
@@ -239,7 +239,8 @@ function randomizeROM(buffer, seed)
 	rom[0x2DA1D] = 0x60;
 
 	// write version number and the randomizer seed to the rom
-	writeToTitle(VERSION_STRING + " @" + vseed, 0x2, rom);
+	var checksum = getChecksum(rom).toHex(4, '');
+	writeToTitle(VERSION_STRING + " @" + vseed + "-" + checksum, 0x2, rom);
 	
 	// write metadata to the intro cutscene
 	//updateIntroText(vseed, rom);
@@ -642,6 +643,10 @@ function isSameBucket(a, b)
 	
 	// if same-type, most both be water/non-water for same bucket
 	if ($('#randomize_sametype').is(':checked') && a.water !== b.water) return false;
+	
+	// if same-type, most both be palace/non-palace for same bucket
+	if ($('#randomize_sametype').is(':checked') 
+		&& Math.sign(a.palace) !== Math.sign(b.palace)) return false;
 	
 	// option: randomize only within worlds
 	if ($('#randomize_sameworld').is(':checked') && a.world !== b.world) return false;
@@ -1094,7 +1099,7 @@ function fixDemo(rom)
 	rom[0x01C1F + 34] = 0xFF;
 }
 
-var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7 ];
+var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7, 0x1E3, 0x1E2 ];
 
 // randomizes slippery/water/tide flags
 function randomizeFlags(random, stages, rom)
@@ -1171,7 +1176,7 @@ function expandROM(rom)
 	return newrom;
 }
 
-function fixChecksum(rom)
+function getChecksum(rom)
 {
 	var checksum = 0;
 	for (var i = 0; i < rom.length; ++i)
@@ -1179,6 +1184,12 @@ function fixChecksum(rom)
 		checksum += rom[i];
 		checksum &= 0xFFFF;
 	}
+	return checksum;
+}
+
+function fixChecksum(rom)
+{
+	var checksum = getChecksum(rom);
 	
 	// checksum
 	rom[0x7FDE] = (checksum     ) & 0xFF;

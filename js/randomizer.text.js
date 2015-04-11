@@ -231,7 +231,11 @@ function updateIntroText(vseed, rom)
 	{
 		var line = i < lines.length ? lines[i] : "";
 		for (var j = 0; j < line.length; ++j, ++off)
+		{
+			if (!(line[j] in TEXT_MAPPING))
+				throw new Error('Character not found in charset: ' + line[j]);
 			rom[ndx+off] = TEXT_MAPPING[line[j]];
+		}
 		rom[ndx+off-1] |= 0x80;
 	}
 	
