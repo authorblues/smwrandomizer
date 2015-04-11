@@ -109,7 +109,7 @@ var smw_stages = [
 	{"name": "gswitch", "world": 2, "exits": 0, "castle": 0, "palace": 4, "ghost": 0, "water": 0, "id": 0x008, "cpath": NO_CASTLE, "tile": [0x01, 0x0D], "out": []}, 
 	{"name": "rswitch", "world": 3, "exits": 0, "castle": 0, "palace": 3, "ghost": 0, "water": 0, "id": 0x11B, "cpath": NO_CASTLE, "tile": [0x0B, 0x32], "out": []}, 
 	{"name": "bswitch", "world": 5, "exits": 0, "castle": 0, "palace": 2, "ghost": 0, "water": 0, "id": 0x121, "cpath": NO_CASTLE, "tile": [0x0D, 0x3A], "out": []}, 
-	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003, "cpath": NORTH_CLEAR, "tile": [0x05, 0x08], "out": []}, 
+	{"name": "topsecret", "world": 2, "exits": 0, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x003, "cpath": NO_CASTLE, "tile": [0x05, 0x08], "out": []}, 
 ];
 
 function isPermanentTile(stage)
@@ -1099,7 +1099,7 @@ function fixDemo(rom)
 	rom[0x01C1F + 34] = 0xFF;
 }
 
-var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7, 0x1E3, 0x1E2 ];
+var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7 ];
 
 // randomizes slippery/water/tide flags
 function randomizeFlags(random, stages, rom)
