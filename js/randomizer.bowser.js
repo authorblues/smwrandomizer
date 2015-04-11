@@ -58,3 +58,4 @@ function generateGauntlet(random, len, rom)
 		for (var j = 0; j < exits.length; ++j)
 			rom[exits[j].addr+3] = rooms[i+1] & 0xFF;
 	}
+}
