@@ -141,7 +141,7 @@ var TESTERS =
 {
 	'Akisto': 'se7endeadlysins',
 	'LiamPiper': 'liampiper',
-	'Mibramz': 'mibramz',
+	'Bramz': 'mibramz',
 	'daniplayerone': 'daniplayerone',
 	'Skybilz': 'skybilz',
 	'dotsarecool': 'dotsarecoolp',
@@ -150,7 +150,7 @@ var TESTERS =
 	'Sweetyt': 'sweetyt',
 	'yunakitten': 'yunakitten',
 	'princessproto': 'protomagicalgirl',
-	'radioactiverat': 'radioactiverat',
+	'radioactiverat': 'radioactive_rat',
 	'rezephos': 'rezephos',
 	'marc765': 'marc765',
 }
