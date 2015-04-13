@@ -18,12 +18,16 @@
 		</style>
 		<link rel="stylesheet" href="css/bootstrap-theme.min.css">
 		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css">
 
 		<script src="js/vendor/modernizr-2.8.3.min.js"></script>
 	</head>
 	<body>
+		
 		<!-- Main jumbotron for a primary marketing message or call to action -->
 		<div class="container">
+			<div class="alert hidden" id="alert" role="alert"></div>
+			
 			<h2>Super Mario World Randomizer</h2>
 			<p>by <span id="authorblues">authorblues</span> + kaizoman666 + dotsarecoolp</p>
 		</div>
@@ -33,10 +37,10 @@
 			
 				<div class="col-md-6">
 					<form>
-						<input type="file" id="original-rom" accept=".sfc">
+						<input type="file" id="original-rom" accept=".sfc,.smc">
 						<button id="select-original-rom" class="btn btn-default btn-full-width">
 							<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
-							Select Original 512k unheadered NTSC-U ROM
+							Select Original NTSC-U (English) ROM
 						</button>
 						
 						<div class="input-group top-spaced">
@@ -147,7 +151,7 @@
 							<span>Last Seed: <span id="used-seed" class="mono">????????</span></span>
 						</div>
 						<span class="input-group-btn">
-							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button">
+							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button" disabled>
 								<span class="glyphicon glyphicon-random" aria-hidden="true"></span> 
 								Generate ROM
 							</button> 
@@ -237,6 +241,14 @@
 								Remove Autoscrollers (except DP2)
 							</label>
 						</div>
+						
+						<h3>Cheats</h3>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="cheat_infinitelives" class="presetoption"> 
+								Infinite Lives
+							</label>
+						</div>
 					</form>
 				</div>
 			</div>
@@ -268,6 +280,7 @@
 		
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
 
 		<script src="js/randomizer.js"></script>
 		<script src="js/randomizer.preset.js"></script>

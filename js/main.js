@@ -37,7 +37,7 @@ $('#select-original-rom').click(
 $('#original-rom').change(function(e)
 {
 	getMD5(e.target.files[0], function(x)
-		{ checkRomResult(x === ORIGINAL_MD5, e.target.files[0]); });
+		{ checkRomResult(x in ORIGINAL_MD5, e.target.files[0]); });
 });
 
 $('form').submit(function(e)
@@ -66,6 +66,8 @@ function checkRomResult(valid, file)
 	$('#original-rom-result').removeClass('glyphicon-question-sign');
 	$('#original-rom-result').toggleClass('glyphicon-ok', valid);
 	$('#original-rom-result').toggleClass('glyphicon-remove', !valid);
+	
+	$('#generate-randomized-rom').prop('disabled', !valid);
 	
 	if (valid) ORIGINAL_ROM = file;
 }

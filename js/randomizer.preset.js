@@ -17,7 +17,7 @@ function updatePreset(val)
 	$('#bowser_default').prop('checked', true);
 	if (preset > 1) $('#bowser_swapdoors').prop('checked', true);
 	if (preset > 5) $('#bowser_minigauntlet').prop('checked', true);
-	if (preset > 7) $('#bowser_gauntlet').prop('checked', true);
+	if (preset > 6) $('#bowser_gauntlet').prop('checked', true);
 	$('#randomize_bowserdoors').prop('checked', preset > 3);
 	
 	$('#powerup_default').prop('checked', true);
