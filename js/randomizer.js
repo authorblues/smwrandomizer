@@ -1,7 +1,11 @@
-var VERSION_STRING = 'v1.1';
+var VERSION_STRING = 'v1.2';
 
 // this is the md5 of the only rom that we will accept
-var ORIGINAL_MD5 = "cdd3c8c37322978ca8669b34bc89c804";
+var ORIGINAL_MD5 =
+{
+	"cdd3c8c37322978ca8669b34bc89c804": 0x80000,
+	"dbe1f3c8f3a0b2db52b7d59417891117": 0x80200,
+};
 
 var LAYER1_OFFSET;
 var LAYER2_OFFSET;
@@ -161,6 +165,8 @@ function randomizeROM(buffer, seed)
 	$('#used-seed').text(vseed);
 	
 	var rom = new Uint8Array(buffer);
+	if (rom.length == 0x80200)
+		rom = new Uint8Array(rom.buffer, 0x200, 0x80000);
 	
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, stages, rom);
@@ -237,6 +243,10 @@ function randomizeROM(buffer, seed)
 	
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
+	
+	// infinite lives?
+	if ($('#cheat_infinitelives').is(':checked'))
+		rom.set([0xEA, 0xEA, 0xEA], 0x050D8);
 
 	// write version number and the randomizer seed to the rom
 	var checksum = getChecksum(rom).toHex(4);
@@ -442,9 +452,13 @@ function fixOverworldEvents(stages, rom)
 		var tile = stage.tile, x = tile[0], y = tile[1] - (stage.copyfrom.castle > 0)
 		var s = rom[COORDS+i*2+1] = (y >> 4) * 2 + (x >> 4);
 		
-		// this technically should wrap if x=0
-		// dirty, but no stage is at x=0, so it's safe
-		if (s >= 0x4) --x;
+		// my old version of this was wrong and hacky
+		// this version is just hacky (probably not wrong though)
+		if (s >= 0x4)
+		{
+			if (x == 0) --y;
+			x = (x + 0xF) & 0xF;
+		}
 		
 		var pos = ((y & 0xF) << 4) | (x & 0xF);
 		rom[COORDS+i*2] = pos;
@@ -1098,7 +1112,7 @@ function fixDemo(rom)
 	rom[0x01C1F + 34] = 0xFF;
 }
 
-var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0CC ];
+var NO_WATER_STAGES = [ 0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0CC ];
 
 // randomizes slippery/water/tide flags
 function randomizeFlags(random, stages, rom)

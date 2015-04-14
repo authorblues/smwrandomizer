@@ -164,3 +164,5 @@ $('#tester-list').html(
 		return '<span class="tester-' + name + '">' + str + '</span>';
 	}).shuffle().join(', ')
 );
+
+$('#title-version-number').text(VERSION_STRING);
