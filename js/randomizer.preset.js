@@ -6,18 +6,23 @@ function updatePreset(val)
 	if (preset == 0) return;
 	
 	$('#randomize_stages').prop('checked', true);
+	$('#randomize_exits').prop('checked', preset > 2);
+	$('#randomize_warps').prop('checked', preset > 3);
 	$('#randomize_sameworld').prop('checked', preset < 2);
 	$('#randomize_sametype').prop('checked', preset < 2);
+	
+	$('#randomize_levelexits').prop('checked', preset > 5);
+	$('#randomize_noyoshi').prop('checked', preset > 2);
+	$('#randomize_colors').prop('checked', preset > 4);
 	
 	$('#levelnames_samestage').prop('checked', true);
 	if (preset > 2) $('#levelnames_overworld').prop('checked', true);
 	if (preset > 3) $('#levelnames_randomstage').prop('checked', true);
-	$('#customnames').prop('checked', false);
 	
 	$('#bowser_default').prop('checked', true);
 	if (preset > 1) $('#bowser_swapdoors').prop('checked', true);
-	if (preset > 5) $('#bowser_minigauntlet').prop('checked', true);
-	if (preset > 6) $('#bowser_gauntlet').prop('checked', true);
+	if (preset > 4) $('#bowser_minigauntlet').prop('checked', true);
+	if (preset > 7) $('#bowser_gauntlet').prop('checked', true);
 	$('#randomize_bowserdoors').prop('checked', preset > 3);
 	
 	$('#powerup_default').prop('checked', true);
@@ -27,7 +32,7 @@ function updatePreset(val)
 	$('#addwater').prop('checked', preset > 5);
 	$('#delwater').prop('checked', preset > 7);
 	
-	$('#randomize_exits').prop('checked', preset > 2);
+	$('#randomize_enemies').prop('checked', preset > 6);
 	$('#randomize_koopakids').prop('checked', preset > 3);
 	$('#randomize_bossdiff').prop('checked', preset > 5);
 	$('#remove_autoscrollers').prop('checked', preset > 4);
@@ -57,5 +62,5 @@ var PRESET_NAMES =
 function getPresetName(n)
 {
 	if (n === undefined) n = $('#preset').val();
-	return PRESET_NAMES[n] || "Custom";
+	return PRESET_NAMES[n] || PRESET_NAMES[0];
 }

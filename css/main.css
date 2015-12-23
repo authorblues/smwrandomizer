@@ -3,13 +3,25 @@ p
 	line-height: 1.7em;
 }
 
+.beta
+{
+	font-variant: small-caps;
+	font-size: 60%;
+	color: grey;
+}
+
+#gen-group-container { width: 100%; }
+#gen-btn-container { width: 50%; }
+#generate-randomized-rom { width: 100%; }
+
 #original-rom { display: none; }
 
 .glyphicon { margin-right: 5px; }
-#original-rom-result.glyphicon-ok         { color: green; }
+#original-rom-result.glyphicon-ok     { color: green; }
 #original-rom-result.glyphicon-remove { color: red;   }
 
-.mono { font-family: monospace; }
+.mono { font-family: monospace; font-size: small; }
+.centered { margin: 0 auto; }
 
 .btn-full-width
 {

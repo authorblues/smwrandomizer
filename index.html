@@ -26,9 +26,9 @@
 		
 		<!-- Main jumbotron for a primary marketing message or call to action -->
 		<div class="container">
-			<div class="alert hidden" id="alert" role="alert"></div>
-			
-			<h2>Super Mario World Randomizer <span id="title-version-number"></span></h2>
+			<h2 class="header">Super Mario World 
+				<span class="en_us" data-en_us="Randomizer" data-en_gb="Randomiser">Randomizer</span> 
+				<span class="version-number"></span> <span class="beta">BETA</span></h2>
 			<p>by <span id="authorblues">authorblues</span> + kaizoman666 + dotsarecoolp</p>
 		</div>
 
@@ -36,121 +36,144 @@
 			<div class="row">
 			
 				<div class="col-md-6">
-					<form>
-						<input type="file" id="original-rom" accept=".sfc,.smc">
-						<button id="select-original-rom" class="btn btn-default btn-full-width">
-							<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
-							Select Original NTSC-U (English) ROM
-						</button>
-						
-						<div class="input-group top-spaced">
-							<div class="input-group-addon">
-								<span>Randomizer Preset</span>
-							</div>
-							<select class="form-control" id="preset">
-								<option value="0">&lt;Custom&gt;</option>
-								<option value="1">Gnarly (Easiest)</option>
-								<option value="2">Tubular</option>
-								<option value="3">Way Cool</option>
-								<option value="4">Awesome (Average)</option>
-								<option value="5">Groovy</option>
-								<option value="6">Mondo</option>
-								<option value="7">Outrageous (Hardest)</option>
-								<option value="8">Funky (Hardcore!)</option>
-							</select>
+					<input type="file" id="original-rom" accept=".sfc,.smc">
+					<button id="select-original-rom" class="btn btn-default btn-full-width">
+						<span class="glyphicon glyphicon-question-sign" aria-hidden="true" id="original-rom-result"></span> 
+						Select Original NTSC-U (English) ROM
+					</button>
+					
+					<div class="input-group top-spaced">
+						<div class="input-group-addon">
+							<span><span class="en_us" data-en_us="Randomizer" data-en_gb="Randomiser">Randomizer</span> Preset</span>
 						</div>
-						
-						<h3>Randomize Stages</h3>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_stages" checked> 
-								Randomly Swap Stages (Sorta the point, ya know?)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_sameworld" class="presetoption"> 
-								Keep Same World (Randomize only within world)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_sametype" class="presetoption"> 
-								Keep Same Type (Ghost, Water, Normal)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_95exit" class="presetoption"> 
-								95 Exit Mode (Don't move </i>Donut Ghost House</i>)
-							</label>
-						</div>
-						
-						<h3>Overworld Level Names</h3>
-						<div class="radio">
-							<label>
-								<input type="radio" name="levelnames" value="same_stage" id="levelnames_samestage" class="presetoption" checked> 
-								Match Stage
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="levelnames" value="same_overworld" id="levelnames_overworld" class="presetoption"> 
-								Match Overworld
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="levelnames" value="random_stage" id="levelnames_randomstage" class="presetoption"> 
-								Random Stage
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="customnames" class="presetoption"> 
-								Custom Random Names
-							</label>
-						</div>
-						
-						<h3>Bowser's Castle</h3>
-						<div class="radio">
-							<label>
-								<input type="radio" name="bowser" class="presetoption" id="bowser_default" value="default" checked> 
-								Default
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="bowser" class="presetoption" id="bowser_swapdoors" value="random"> 
-								Randomize Front/Back Door
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="bowser" class="presetoption" id="bowser_gauntlet" value="gauntlet"> 
-								The Gauntlet&#8482;
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="bowser" class="presetoption" id="bowser_minigauntlet" value="minigauntlet"> 
-								Mini-Gauntlet (3-5 rooms)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_bowserdoors" class="presetoption"> 
-								Randomize Bowser's 1-8 Doors
-							</label>
-						</div>
-					</form>
+						<select class="form-control" id="preset">
+							<option value="0">&lt;Custom&gt;</option>
+							<option value="1">Gnarly (Easiest)</option>
+							<option value="2">Tubular</option>
+							<option value="3">Way Cool</option>
+							<option value="4">Awesome (Average)</option>
+							<option value="5">Groovy</option>
+							<option value="6">Mondo</option>
+							<option value="7">Outrageous (Hardest)</option>
+							<option value="8">Funky (Hardcore!)</option>
+						</select>
+					</div>
+					
+					<h3><span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Stages</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_stages" checked> 
+							Randomly Swap Stages (Sorta the point, ya know?)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_exits" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Exits (Swap Normal/Secret Randomly)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_warps"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Warps
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_sameworld" class="presetoption"> 
+							Keep Same World (<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> only within world)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_sametype" class="presetoption"> 
+							Keep Same Type (Ghost, Water, Normal)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_95exit" class="presetoption"> 
+							95 Exit Mode (Don't move </i>Donut Ghost House</i>)
+						</label>
+					</div>
+					
+					<h3>Overworld Level Names</h3>
+					<div class="radio">
+						<label>
+							<input type="radio" name="levelnames" value="same_stage" id="levelnames_samestage" class="presetoption" checked> 
+							Match Stage
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="levelnames" value="same_overworld" id="levelnames_overworld" class="presetoption"> 
+							Match Overworld
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="levelnames" value="random_stage" id="levelnames_randomstage" class="presetoption"> 
+							Random Stage
+						</label>
+					</div>
+					
+					<h3>Bosses / Enemies</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_enemies" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Enemy Properties
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_koopakids" class="presetoption"> 
+							Shuffle Koopa Kids
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_bossdiff" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Boss Difficulty (Koopa Kids, Big Boo, Reznor, Bowser)
+						</label>
+					</div>
+					
+					<h3>Bowser's Castle</h3>
+					<div class="radio">
+						<label>
+							<input type="radio" name="bowser" class="presetoption" id="bowser_default" value="default" checked> 
+							Default
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="bowser" class="presetoption" id="bowser_swapdoors" value="random"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Front/Back Door
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="bowser" class="presetoption" id="bowser_gauntlet" value="gauntlet"> 
+							The Gauntlet&#8482;
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="bowser" class="presetoption" id="bowser_minigauntlet" value="minigauntlet"> 
+							Mini-Gauntlet (2-4 rooms)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_bowserdoors" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Bowser's 1-8 Doors
+						</label>
+					</div>
 				</div>
 				<div class="col-md-6">
-					<div class="input-group">
-						<div class="input-group-addon">
-							<span>Last Seed: <span id="used-seed" class="mono">????????</span></span>
-						</div>
-						<span class="input-group-btn">
+					<div class="input-group" id="gen-group-container">
+						<input type="text" class="form-control mono" 
+							placeholder="(Optional) Custom Seed" id="custom-seed">
+						<span class="input-group-btn" id="gen-btn-container">
 							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button" disabled>
 								<span class="glyphicon glyphicon-random" aria-hidden="true"></span> 
 								Generate ROM
@@ -159,97 +182,121 @@
 					</div>
 					
 					<div class="form-group">
-						<input type="text" class="form-control mono top-spaced" 
-							placeholder="Type Custom Seed Here" id="custom-seed">
+						<input type="text" class="form-control top-spaced mono" 
+							placeholder=".setgoal" id="setgoal-text">
 					</div>
 						
-					<form>
-						<h3>Powerups</h3>
-						<div class="radio">
-							<label>
-								<input type="radio" name="powerups" value="default" id="powerup_default" class="presetoption" checked> 
-								Default Powerups
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="powerups" value="random" id="powerup_randomize" class="presetoption"> 
-								Randomize Powerups
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="powerups" value="nocape" id="powerup_nocape" class="presetoption"> 
-								No Cape
-							</label>
-						</div>
-						<div class="radio">
-							<label>
-								<input type="radio" name="powerups" value="smallonly" id="powerup_smallonly" class="presetoption"> 
-								Small Only
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="noyoshi" class="presetoption"> 
-								No Yoshi
-							</label>
-						</div>
-						
-						<h3>Sublevel Physics</h3>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="slippery" class="presetoption"> 
-								Randomize Slippery/Ice Physics
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="addwater" class="presetoption"> 
-								Randomly Add Water to Stages
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="delwater" class="presetoption"> 
-								Randomly Remove Water from Stages (Can Be Difficult!)
-							</label>
-						</div>
-						
-						<h3>Other</h3>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_exits" class="presetoption"> 
-								Randomize Exits (Swap Normal/Secret Randomly)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_koopakids" class="presetoption"> 
-								Shuffle Koopa Kids
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="randomize_bossdiff" class="presetoption"> 
-								Randomize Boss Difficulty (Koopa Kids, Big Boo, Reznor, Bowser)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="remove_autoscrollers" class="presetoption"> 
-								Remove Autoscrollers (except DP2)
-							</label>
-						</div>
-						
-						<h3>Cheats</h3>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="cheat_infinitelives" class="presetoption"> 
-								Infinite Lives
-							</label>
-						</div>
-					</form>
+					<h3>Powerups</h3>
+					<div class="radio">
+						<label>
+							<input type="radio" name="powerups" value="default" id="powerup_default" class="presetoption" checked> 
+							Default Powerups
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="powerups" value="random" id="powerup_randomize" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Powerups
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="powerups" value="nocape" id="powerup_nocape" class="presetoption"> 
+							No Cape
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="powerups" value="smallonly" id="powerup_smallonly" class="presetoption"> 
+							Small Only
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="noyoshi" class="presetoption"> 
+							No Yoshi
+						</label>
+					</div>
+					
+					<h3>Stage Properties</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_noyoshi" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> No-Yoshi Entrances
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_levelexits" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Level Exits (Yoshi Wings, Keys, etc.)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_colors" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Stage Color Palettes
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="remove_autoscrollers" class="presetoption"> 
+							Remove Autoscrollers (except DP2)
+						</label>
+					</div>
+					
+					<h3>Sublevel Physics</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="slippery" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Slippery/Ice Physics
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="addwater" class="presetoption"> 
+							Randomly Add Water to Stages
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="delwater" class="presetoption"> 
+							Randomly Remove Water from Stages (Can Be Difficult!)
+						</label>
+					</div>
+					
+					<h3>Other</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="customnames"> 
+							Custom Stage Names
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="customtext"> 
+							Custom Text (Message Boxes, Cutscenes, etc.)
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="pogyo_mode" class="presetoption">
+							(☆^O^☆)
+						</label>
+					</div>
+					
+					<h3>Cheats</h3>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="cheat_infinitelives" class="cheat presetoption"> 
+							Infinite Lives
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="cheat_devmode" class="cheat presetoption"> 
+							Developer Mode
+						</label>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -273,7 +320,56 @@
 				</div>
 				<div class="col-md-6">
 					<h3>Testers</h3>
-					<p>The following people helped to test out the initial versions of the randomizer, and helped it to reach the stability it has today: <span id="tester-list"></span></p>
+					<p>The following people helped to test out the initial versions of the <span class="en_us" data-en_us="randomizer" data-en_gb="randomiser">Randomizer</span>, and helped it to reach the stability it has today: <span id="tester-list"></span></p>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Modal -->
+		<div class="modal fade" id="modal-download-win" tabindex="-1" role="dialog" aria-labelledby="modal-download-label" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="modal-download-label">
+							Quick Download
+						</h4>
+					</div>
+					<div class="modal-body">
+						<p>
+							You have been directed here to download the <strong class="version-number"></strong> rom with a seed of <strong class="seed"></strong> using
+							the <strong class="preset"></strong> preset. If this is not correct, close this window to access the customization tools to generate the rom 
+							of your choosing. If you would like to download this specific rom, please click the button labelled with the seed+preset below.
+						</p>
+						
+						<button type="button" id="generate-param-rom" class="btn btn-primary btn-full-width" data-dismiss="modal">
+							<span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+							Download <span class="preset"></span> <span class="version-number"></span> (<span class="seed"></span>)
+						</button>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="modal fade" id="modal-error-win" tabindex="-1" role="dialog" aria-labelledby="modal-error-label" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="modal-error-label">
+							An Error Has Occurred
+						</h4>
+					</div>
+					<div class="modal-body">
+						<p id="modal-error-text"></p>
+						<ul id="modal-error-list"></ul>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -283,10 +379,12 @@
 		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
 
 		<script src="js/randomizer.js"></script>
+		<script src="js/randomizer.patch.js"></script>
 		<script src="js/randomizer.preset.js"></script>
 		<script src="js/randomizer.powerup.js"></script>
 		<script src="js/randomizer.bowser.js"></script>
 		<script src="js/randomizer.text.js"></script>
+		<script src="js/randomizer.sound.js"></script>
 		
 		<script src="js/vendor/bootstrap.min.js"></script>
 		<script src="js/vendor/FileSaver.min.js"></script>

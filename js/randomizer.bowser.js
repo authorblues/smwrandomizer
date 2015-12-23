@@ -1,17 +1,21 @@
 var bowserentrances = [
-	{"name": "frontdoor", "world": 10, "exits": -1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10D}, 
-	{"name": "backdoor",  "world": 10, "exits": -1, "castle": 0, "palace": 0, "ghost": 0, "water": 0, "id": 0x10E}, 
+	{"name": "frontdoor", "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10D, "cpath": NORTH_CLEAR, "tile": [0x18, 0x23], "out": []}, 
+	{"name": "backdoor",  "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10E, "cpath": NORTH_CLEAR, "tile": [0x1A, 0x23], "out": []}, 
 ];
 
 var BOWSER_DARKROOM_ID = 0x1BD;
 
-function randomizeBowserEntrances(random, map, rom)
+function randomizeBowserEntrances(random, rom)
 {
 	backupData(bowserentrances, rom);
 	shuffle(bowserentrances, random);
 	
+	// remove owtile data to prevent owtile swap
 	for (var i = 0; i < bowserentrances.length; ++i)
-		performCopy(bowserentrances[i], map, rom);
+		bowserentrances[i].data.owtile = null;
+	
+	for (var i = 0; i < bowserentrances.length; ++i)
+		performCopy(bowserentrances[i], rom);
 }
 
 var bowser8doors = [ 0x1D4, 0x1D3, 0x1D2, 0x1D1, 0x1CF, 0x1CE, 0x1CD, 0x1CC ];
