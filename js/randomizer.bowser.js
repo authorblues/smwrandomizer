@@ -10,12 +10,13 @@ function randomizeBowserEntrances(random, rom)
 	backupData(bowserentrances, rom);
 	shuffle(bowserentrances, random);
 	
-	// remove owtile data to prevent owtile swap
 	for (var i = 0; i < bowserentrances.length; ++i)
-		bowserentrances[i].data.owtile = null;
-	
-	for (var i = 0; i < bowserentrances.length; ++i)
+	{
 		performCopy(bowserentrances[i], rom);
+		
+		// reset the overworld tile
+		rom[getOverworldOffset(bowserentrances[i])] = bowserentrances[i].data.owtile;
+	}
 }
 
 var bowser8doors = [ 0x1D4, 0x1D3, 0x1D2, 0x1D1, 0x1CF, 0x1CE, 0x1CD, 0x1CC ];
