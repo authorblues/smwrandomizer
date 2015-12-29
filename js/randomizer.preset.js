@@ -36,6 +36,10 @@ function updatePreset(val)
 	$('#randomize_koopakids').prop('checked', preset > 3);
 	$('#randomize_bossdiff').prop('checked', preset > 5);
 	$('#remove_autoscrollers').prop('checked', preset > 4);
+	
+	$('#customnames').prop('checked', preset > 2);
+	$('#customtext').prop('checked', preset > 3);
+	$('#pogyo_mode').prop('checked', preset > 5);
 }
 
 $('#preset').change(updatePreset);
