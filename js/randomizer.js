@@ -339,7 +339,7 @@ function randomizeROM(buffer, seed)
 	rom[0x2DA1D] = 0x60;
 	
 	if ($('#randomize_noyoshi').is(':checked'))
-		randomizeNoYoshi(stages, random, rom);
+		randomizeNoYoshi([].concat(stages, bowserentrances), random, rom);
 	
 	if ($('#randomize_enemies').is(':checked'))
 		randomizeEnemyProperties(stages, random, rom);
@@ -451,13 +451,13 @@ function fixSwitchPalaceEventNumbers(stages, rom)
 */
 var OVERWORLD_MAPS = 
 [
-	{submapid: 0, palette: 0, palette_addr: [0x3410, 0x376A], xmin: 0x00, xmax: 0x1F, ymin: 0x00, ymax: 0x1F, name: 'MAIN'},
-	{submapid: 1, palette: 1, palette_addr: [0x33D8, 0x3732], xmin: 0x00, xmax: 0x0F, ymin: 0x20, ymax: 0x29, name: 'YI'},
-	{submapid: 2, palette: 2, palette_addr: [0x3480, 0x37DA], xmin: 0x00, xmax: 0x0F, ymin: 0x2B, ymax: 0x34, name: 'VD'},
-	{submapid: 3, palette: 3, palette_addr: [0x34B8, 0x3812], xmin: 0x00, xmax: 0x0F, ymin: 0x35, ymax: 0x3F, name: 'FOI'},
-	{submapid: 4, palette: 2, palette_addr: [0x3480, 0x37DA], xmin: 0x10, xmax: 0x1F, ymin: 0x20, ymax: 0x29, name: 'VOB'},
-	{submapid: 5, palette: 4, palette_addr: [0x34F0, 0x384A], xmin: 0x10, xmax: 0x1F, ymin: 0x2B, ymax: 0x34, name: 'SP'},
-	{submapid: 6, palette: 5, palette_addr: [0x3448, 0x37A2], xmin: 0x10, xmax: 0x1F, ymin: 0x35, ymax: 0x3F, name: 'SW'},
+	{submapid: 0, palette: 0, ug: 0, palette_addr: [0x3410, 0x376A], xmin: 0x00, xmax: 0x1F, ymin: 0x00, ymax: 0x1F, name: 'MAIN'},
+	{submapid: 1, palette: 1, ug: 0, palette_addr: [0x33D8, 0x3732], xmin: 0x00, xmax: 0x0F, ymin: 0x20, ymax: 0x29, name: 'YI'},
+	{submapid: 2, palette: 2, ug: 1, palette_addr: [0x3480, 0x37DA], xmin: 0x00, xmax: 0x0F, ymin: 0x2B, ymax: 0x34, name: 'VD'},
+	{submapid: 3, palette: 3, ug: 0, palette_addr: [0x34B8, 0x3812], xmin: 0x00, xmax: 0x0F, ymin: 0x35, ymax: 0x3F, name: 'FOI'},
+	{submapid: 4, palette: 2, ug: 1, palette_addr: [0x3480, 0x37DA], xmin: 0x10, xmax: 0x1F, ymin: 0x20, ymax: 0x29, name: 'VOB'},
+	{submapid: 5, palette: 4, ug: 1, palette_addr: [0x34F0, 0x384A], xmin: 0x10, xmax: 0x1F, ymin: 0x2B, ymax: 0x34, name: 'SP'},
+	{submapid: 6, palette: 5, ug: 1, palette_addr: [0x3448, 0x37A2], xmin: 0x10, xmax: 0x1F, ymin: 0x35, ymax: 0x3F, name: 'SW'},
 ];
 
 // returns a value from the OVERWORLD_MAPS map
@@ -474,9 +474,6 @@ function getMapForStage(stage)
 	// what madness would have us reach this point?
 	throw new Error("Stage " + stage.name + " doesn't seem to correspond to any map/submap.");
 }
-
-function useUndergroundBG(stage)
-{ return [2, 4, 5, 6].contains(getMapForStage(stage).submapid); }
 
 var OFFSCREEN_EVENT_TILES =
 {
@@ -572,7 +569,7 @@ function performCopy(stage, rom)
 		// moving a castle away, need to fix the top tile
 		if (!isCastle(stage.copyfrom) && isCastle(stage))
 			rom[getOverworldOffset(stage, true)] = [0x00, 0x00, 0x10][stage.cpath];
-		
+	
 		// fix offscreen event tiles
 		if (stage.name in OFFSCREEN_EVENT_TILES)
 		{
@@ -1730,11 +1727,12 @@ function randomizeNoYoshi(stages, random, rom)
 	for (var i = 0; i < stages.length; ++i)
 	{
 		var stage = stages[i], trans = getTranslevel(stage.id);
-		var ug = useUndergroundBG(stage), flag = NO_YOSHI_DISABLED;
+		var ug = getMapForStage(stage).ug, flag = NO_YOSHI_DISABLED;
+		var from = stage.copyfrom ? stage.copyfrom : stage;
 		
 		// pick the appropriate flag
-		if (stage.copyfrom.ghost == 1) flag = NO_YOSHI_GHOST;
-		else if (stage.copyfrom.castle) flag = ug ? NO_YOSHI_CASTLE_NIGHT : NO_YOSHI_CASTLE_DAY;
+		if (from.ghost == 1) flag = NO_YOSHI_GHOST;
+		else if (from.castle) flag = ug ? NO_YOSHI_CASTLE_NIGHT : NO_YOSHI_CASTLE_DAY;
 		else if (0 == random.nextInt(8)) flag = ug ? NO_YOSHI_STARS : NO_YOSHI_PLAINS;
 		
 		// set "disable no-yoshi intro" to 0 for hijack
