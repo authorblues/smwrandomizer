@@ -133,8 +133,7 @@ function removeAllPowerups(rom, stages)
 function removeYoshi(rom, stages)
 {
 	// change yoshi blocks to 1-up blocks
-	for (var i = 0; i < 36; ++i)
-		if (rom[0x07080+i] == 0x18) rom[0x07080+i] = 0x0A;
+	rom[0x108A1] = 0x78;
 		
 	// when baby yoshi grows, he loses all interaction with everything
 	rom[0x0A2C1] = 0x02;
