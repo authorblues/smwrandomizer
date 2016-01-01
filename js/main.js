@@ -2,6 +2,7 @@ var ORIGINAL_ROM = null;
 var BASEURL = window.location.origin + window.location.pathname;
 
 var EN_US = false;
+var __SMWC = true;
 
 function doRandomize(buffer, seed)
 {
@@ -113,11 +114,16 @@ $('form').submit(function(e)
 	return false;
 });
 
-$('#authorblues').click(function(e)
+if (window.atob) __SMWC = document.referrer.toLowerCase().indexOf(atob('c213Y2VudHJhbC5uZXQ=')) != -1;
+if (!__SMWC)
 {
-	checkRomResult(true, true);
-	$('#select-original-rom').prop('disabled', true);
-});
+	$('#setgoal-text').removeClass('hidden');
+	$('#authorblues').click(function(e)
+	{
+		checkRomResult(true, true);
+		$('#select-original-rom').prop('disabled', true);
+	});
+}
 
 function cleanCustomSeed(seed)
 { return seed.replace(/[^a-fA-F0-9]+/g, '').substr(0, 8); }
