@@ -835,11 +835,16 @@ function randomizeColorPalettes(stages, random, rom)
 	}
 	
 	// randomize all the CI2 sublevels as well
-	randomizeColorPaletteByAddr(random, 0x06E9FB, null, rom);
-	randomizeColorPaletteByAddr(random, 0x06EAB0, null, rom);
-	randomizeColorPaletteByAddr(random, 0x06EB72, null, rom);
-	randomizeColorPaletteByAddr(random, 0x06EBBE, null, rom);
-	randomizeColorPaletteByAddr(random, 0x06EC7E, null, rom);
+	randomizeColorPaletteByAddr(random, 0x06E985, null, rom); // 1A
+	randomizeColorPaletteByAddr(random, 0x06E9FB, null, rom); // 1B
+	randomizeColorPaletteByAddr(random, 0x06EAB0, null, rom); // 1C
+	
+	randomizeColorPaletteByAddr(random, 0x06EB0B, null, rom); // 2A
+	randomizeColorPaletteByAddr(random, 0x06EB72, null, rom); // 2B
+	randomizeColorPaletteByAddr(random, 0x06EBBE, null, rom); // 2C
+	
+	randomizeColorPaletteByAddr(random, 0x06EC24, null, rom); // 3A
+	randomizeColorPaletteByAddr(random, 0x06EC7E, null, rom); // 3B
 }
 
 function randomizeColorPaletteByAddr(random, layer1, layer2, rom)
