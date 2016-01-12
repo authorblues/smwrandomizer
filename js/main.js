@@ -11,7 +11,7 @@ function doRandomize(buffer, seed)
 		var result = randomizeROM(buffer, seed);
 		var url = BASEURL + '#!/' + result.seed + '/' + result.preset;
 		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' - ' + url);
-		saveAs(new Blob([result.buffer], {type: "octet/stream"}), 'smw-' + result.seed + '.sfc');
+		saveAs(new Blob([result.buffer], {type: "octet/stream"}), 'smw-' + result.seed + result.type);
 	}
 	catch (e)
 	{

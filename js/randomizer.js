@@ -214,6 +214,7 @@ var TRANSLEVEL_EVENTS = 0x2D608;
 // bind `this` to null to disable downloading the ROM
 function randomizeROM(buffer, seed)
 {
+	var ext = '.sfc';
 	var stages = deepClone(SMW_STAGES);
 	if ($('#randomize_95exit').is(':checked'))
 	{
@@ -234,7 +235,10 @@ function randomizeROM(buffer, seed)
 	
 	var rom = new Uint8Array(buffer);
 	if (rom.length == 0x80200)
+	{
 		rom = new Uint8Array(rom.buffer, 0x200, 0x80000);
+		ext = '.smc';
+	}
 	
 	// patch the rom with necessary patches
 	applyPatches(ROM_PATCHES, rom);
@@ -398,7 +402,7 @@ function randomizeROM(buffer, seed)
 	}
 	
 	// return the modified buffer
-	return { seed: vseed, preset: preset, buffer: rom.buffer };
+	return { seed: vseed, preset: preset, buffer: rom.buffer, type: ext || '.sfc' };
 }
 
 function shuffle(stages, random)
