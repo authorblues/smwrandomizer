@@ -187,6 +187,14 @@ function deepClone(obj)
 window.onhashchange = checkHash;
 checkHash();
 
+Math.sign = Math.sign || function(x)
+{
+	x = +x;
+	if (x > 0) return  1;
+	if (x < 0) return -1;
+	return 0;
+}
+
 Uint8Array.prototype.slice = Uint8Array.prototype.slice || function(start, end)
 {
 	var src = this.subarray(start, end);
