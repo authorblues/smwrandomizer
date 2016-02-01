@@ -367,6 +367,9 @@ function randomizeROM(buffer, seed)
 	// (☆^O^☆)
 	if ($('#pogyo_mode').is(':checked')) pogyo(stages, random, rom);
 	
+	// mess with the overworld layer2 table
+	updateOverworldLayer2(random, rom);
+	
 	// add all of the cheat options (if any)
 	cheatOptions(rom);
 	
@@ -2228,6 +2231,95 @@ function randomizeFlags(random, rom)
 		
 		rom[FLAGBASE+id] = flag;
 	}
+}
+
+function coordsToLayer2Position(x, y)
+{
+	if (y >= 0x40)
+	{
+		y = 0x40 + (y + 0x3F) % 0x40;
+		x =        (x + 0x3E) % 0x40;
+	}
+	
+	var bx = Math.floor(x / 0x20);
+	var by = Math.floor(y / 0x20);
+	var bn = by * 2 + bx;
+	
+	var ox = x & 0x1F;
+	var oy = y & 0x1F;
+	
+	return bn * 0x400 + oy * 0x20 + ox;
+}
+
+var STAR_PATTERNS = 
+[
+	[ // credit: Dotsarecool
+		" x  xxxx        xxxx  x  ",
+		"x  x x  x  x   x x  x  x ",
+		"x   xx     x    xx     x ",
+		"x           x          x ",
+		"x          xx          x ",
+		"x       x      x       x ",
+		" x       xxxxxx       x  ",
+	],
+	[ // credit: Dotsarecool
+		"                         ", 
+		"  xx                  xx ",
+		"xx  x  xx       xx  xx  x",
+		"    x xx x     xx x     x",
+		"   x  xxxx     xxxx    x ",
+		" xx    xx       xx   xx  ",
+		"          xxxxx          ",
+	],
+	[ // credit: Dotsarecool
+		"   x x  x  xx  xx   x    ",
+		"   x x x x x x x x x x   ",
+		"   x x x x x x x x x x   ",
+		"   xx  xxx xx  xx  xxx   ",
+		"   x x x x x   x   x x   ",
+		"   x x x x x   x   x x   ",
+		"   x x x x x   x   x x   ",
+	],
+	[ // credit: Dotsarecool
+		"    x x       xxxxxxxx   ",
+		"   x x xxx      x  x     ",
+		"   xxxx   x    xxx x     ",
+		"  xx    x x   x  x xxx   ",
+		"   x      x     xx x     ",
+		"  xx      x      x x x   ",
+		"   x  xxxx    xxx   xx   ",
+	],
+	[ // credit: Dotsarecool
+		" x       x     x       x ",
+		"x   x   x x   x x   x   x",
+		"x xxxxx    xxx    xxxxx x",
+		"x  xxx    x   x    xxx  x",
+		"x  xxx    x   x    xxx  x",
+		"x x   x   x   x   x   x x",
+		" x         xxx         x ",
+	],
+];
+
+function updateOverworldLayer2(random, rom)
+{
+	// decompress the layer2 map
+	var layer2mapA = decompressRLE2(rom.slice(0x22533, 0x22533+6904));
+	var layer2mapB = decompressRLE2(rom.slice(0x2402B, 0x2402B+5709));
+	
+	var stars = random.from(STAR_PATTERNS).slice(0);
+	for (var y = 0; y <    stars.length; ++y)
+	for (var x = 0; x < stars[y].length; ++x)
+	{
+		var pos = coordsToLayer2Position(0x24 + x, 0x5B + y);
+		layer2mapA[pos] = (stars[y][x] == ' ' ? 0x71 : 0x7C);
+		
+		layer2mapB[pos] &= 0xE3;
+		layer2mapB[pos] |= (stars[y][x] == ' ' ? 0x4 : 0x5) << 2;
+	}
+	
+	// write the compressed layer2 map back to the rom
+	rom.set(compressRLE2(layer2mapA), 0x22533);
+	rom.set(compressRLE2(layer2mapB), 0x2402B);
 }
 
 function cheatOptions(rom)

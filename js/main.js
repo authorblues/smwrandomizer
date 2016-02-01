@@ -184,6 +184,90 @@ function deepClone(obj)
 	else return obj;
 }
 
+function compressRLE2(src)
+{
+	var compress = [], dcopy = [];
+	for (var i = 0, len; i < src.length; i += len)
+	{
+		// determine length of potential RLE segment
+		for (var j = 1; src[i] == src[i+j]; ++j);
+		var len = j;
+		
+		// if this is a worthwhile RLE segment
+		if (len > (dcopy.length ? 3 : 1))
+		{
+			// flush the direct copy buffer
+			if (dcopy.length)
+			{
+				compress.push(dcopy.length - 1);
+				for (var k = 0; k < dcopy.length; ++k)
+					compress.push(dcopy[k]);
+				dcopy = [];
+			}
+			
+			// add the RLE segment
+			compress.push(0x80 | (len - 1));
+			compress.push(src[i]);
+		}
+		// otherwise, hold in direct copy buffer
+		else
+		{
+			// if adding this to the direct copy buffer would
+			// overflow the 0x7F length of the RLE opcode
+			if (dcopy.length + len > 0x80)
+			{
+				// flush the buffer
+				compress.push(dcopy.length - 1);
+				for (var k = 0; k < dcopy.length; ++k)
+					compress.push(dcopy[k]);
+				dcopy = [];
+			}
+			
+			while (j--) dcopy.push(src[i]);
+		}
+	}
+	
+	// flush the remaining direct copy values
+	if (dcopy.length)
+	{
+		compress.push(dcopy.length - 1);
+		for (var k = 0; k < dcopy.length; ++k)
+			compress.push(dcopy[k]);
+	}
+	
+	// wrap in uint8 array
+	return new Uint8Array(compress);
+}
+
+function decompressRLE2(src)
+{
+	var decompress = [];
+	for (var i = 0; i < src.length; ++i)
+	{
+		// get length field from header
+		var len = (src[i] & 0x7F) + 1;
+		
+		// RLE bit is set
+		if (0x80 & src[i])
+		{
+			// get bit to repeat and repeat it
+			var val = src[++i];
+			for (var j = 0; j < len; ++j)
+				decompress.push(val);
+		}
+		// direct copy
+		else
+		{
+			// transfer direct copy chunk
+			for (var j = 0; j < len; ++j)
+				decompress.push(src[++i]);
+		}
+	}
+	
+	// wrap in uint8 array
+	return new Uint8Array(decompress);
+}
+
 window.onhashchange = checkHash;
 checkHash();
 
