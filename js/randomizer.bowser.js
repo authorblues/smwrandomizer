@@ -12,10 +12,11 @@ function randomizeBowserEntrances(random, rom)
 	
 	for (var i = 0; i < bowserentrances.length; ++i)
 	{
-		performCopy(bowserentrances[i], rom);
+		var b = bowserentrances[i];
+		performCopy(b, rom);
 		
 		// reset the overworld tile
-		rom[getOverworldOffset(bowserentrances[i])] = bowserentrances[i].data.owtile;
+		rom[getOverworldOffset(b)] = b.data.owtile;
 	}
 }
 

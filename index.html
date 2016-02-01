@@ -35,7 +35,6 @@
 
 		<div class="container">
 			<div class="row">
-			
 				<div class="col-md-6">
 					<input type="file" id="original-rom" accept=".sfc,.smc">
 					<button id="select-original-rom" class="btn btn-default btn-full-width">
@@ -59,7 +58,29 @@
 							<option value="8">Funky (Hardcore!)</option>
 						</select>
 					</div>
+				</div>
+				
+				<div class="col-md-6">
+					<div class="input-group" id="gen-group-container">
+						<input type="text" class="form-control mono" 
+							placeholder="(Optional) Custom Seed" id="custom-seed">
+						<span class="input-group-btn" id="gen-btn-container">
+							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button" disabled>
+								<span class="glyphicon glyphicon-random" aria-hidden="true"></span> 
+								Generate ROM
+							</button> 
+						</span>
+					</div>
 					
+					<div class="form-group top-spaced">
+						<input type="text" class="form-control mono hidden" 
+							placeholder=".setgoal" id="setgoal-text">
+					</div>
+				</div>
+			</div>
+					
+			<div class="row">
+				<div class="col-md-6">
 					<h3><span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Stages</h3>
 					<div class="checkbox">
 						<label>
@@ -171,22 +192,6 @@
 					</div>
 				</div>
 				<div class="col-md-6">
-					<div class="input-group" id="gen-group-container">
-						<input type="text" class="form-control mono" 
-							placeholder="(Optional) Custom Seed" id="custom-seed">
-						<span class="input-group-btn" id="gen-btn-container">
-							<button id="generate-randomized-rom" class="btn btn-default btn-full-width" type="button" disabled>
-								<span class="glyphicon glyphicon-random" aria-hidden="true"></span> 
-								Generate ROM
-							</button> 
-						</span>
-					</div>
-					
-					<div class="form-group">
-						<input type="text" class="form-control top-spaced mono hidden" 
-							placeholder=".setgoal" id="setgoal-text">
-					</div>
-						
 					<h3>Powerups</h3>
 					<div class="radio">
 						<label>
