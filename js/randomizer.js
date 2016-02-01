@@ -2088,8 +2088,8 @@ function randomizeKeyLocations(stages, random, rom)
 		// stages that could potentially cause problems when moving the key
 		if (['dp2', 'vd1', 'ci2', 'bgh'].contains(stages[i].name)) continue;
 		
-		// 25% of the time, and if we find a key we can move...
-		if (random.nextInt(4) == 0 && (key = findKey(stages[i], rom)))
+		// 80% of the time, and if we find a key we can move...
+		if (random.nextInt(5) != 0 && (key = findKey(stages[i], rom)))
 		{
 			var candidates = findKeyCandidates(stages[i], random, rom);
 			if (!candidates.length) continue;
