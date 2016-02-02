@@ -1849,7 +1849,7 @@ var CI2_ROOM_OFFSETS =
 var CI2_LAYER_OFFSETS = 
 {
 	'layer1': snesAddressToOffset(0x05DB08),
-	'layer2': snesAddressToOffset(0x05DB1C),
+//	'layer2': snesAddressToOffset(0x05DB2C),
 	'sprite': snesAddressToOffset(0x05DB1A),
 };
 
