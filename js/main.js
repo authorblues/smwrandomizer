@@ -299,10 +299,13 @@ Random.prototype.clone = function()
 { return new Random(this.seed); }
 
 Random.prototype.pull = function(n)
-{ this.seed += (n === undefined ? 1 : n); }
+{ while (n--) this.next(); }
+
+Random.prototype.next = function(z)
+{ return this.seed = ((214013 * this.seed + 2531011) & 0x7fffffff) >> 16; }
 
 Random.prototype.nextFloat = function()
-{ var x = Math.sin(this.seed++) * 10000; return x - Math.floor(x); }
+{ return this.next() / 0x7fff; }
 
 // Box-Muller transform, converts uniform distribution to normal distribution
 // depends on uniformity of nextFloat(), which I'm not confident of
