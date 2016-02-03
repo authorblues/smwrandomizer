@@ -1,4 +1,4 @@
-var VERSION_STRING = 'v1.3';
+var VERSION_STRING = 'v1.4';
 
 // this is the md5 of the only rom that we will accept
 var ORIGINAL_MD5 =
