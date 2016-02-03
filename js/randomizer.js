@@ -142,7 +142,7 @@ var SMW_STAGES =
 	{"name": "warp-sw3", "exits": 0, "id": 0x012, "tile": [0x10, 0x0F], "warp": 0x10, "rwarp": 0x11, "events": [{"stageid": 0x130, "secret": 0}, {"stageid": 0x130, "secret": 1}]}, 
 	{"name": "warp-sw4", "exits": 0, "id": 0x01E, "tile": [0x14, 0x10], "warp": 0x12, "rwarp": 0x13, "events": [{"stageid": 0x132, "secret": 0}, {"stageid": 0x132, "secret": 1}]}, 
 	{"name": "warp-sw5", "exits": 0, "id": 0x10C, "tile": [0x15, 0x23], "warp": 0x19, "rwarp": 0x15, "events": [{"stageid": 0x135, "secret": 0}, {"stageid": 0x135, "secret": 1}]}, 
-	{"name": "warp-sp",  "exits": 0, "id": 0x131, "tile": [0x18, 0x38], "warp": 0x16, "rwarp": 0x17, "events": [{"stageid": 0x136, "secret": 1}]}, 
+	{"name": "warp-sp",  "exits": 0, "id": 0x131, "tile": [0x18, 0x38], "warp": 0x16, "rwarp": 0x17, "events": []}, 
 	
 	// other
 	{"name": "topsecret", "exits": 0, "id": 0x003, "tile": [0x05, 0x08]}, 
