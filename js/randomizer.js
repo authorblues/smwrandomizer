@@ -1005,11 +1005,8 @@ function randomizeZeroes(stages, random, rom)
 
 function pogyo(stages, random, rom)
 {
-	// enaqbzvmr unzzre oeb guebja vgrz
+	// randomize hammer bro thrown item
 	rom[0x15AC4] = random.from([0x02, 0x04, 0x0A, 0x0A, 0x0B, 0x0B, 0x0D, 0x0E]);
-	
-	// frg crnpu'f guebja vgrz gb "fbzrguvat ryfr"
-	rom[0x1A8EE] = 0xA2; // 0xB1;
 
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);

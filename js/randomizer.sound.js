@@ -1,11 +1,13 @@
 // actual sound effect ids
-var SOUND_EFFECT = {
+var SOUND_EFFECT =
+{
 	YOSHI_OW: { id: 0x20, bank: 0xF9 },
 };
 
 // snes offsets for where different sound effects are loaded to be played
 // must call snesAddressToOffset() on these to convert them to rom offsets
-var SOUND_EFFECT_TRIGGER = {
+var SOUND_EFFECT_TRIGGER = 
+{
 	NINTENDO_PRESENTS: 0x0093C1,
 	
 	SCREEN_SCROLL: 0x00CE40,
