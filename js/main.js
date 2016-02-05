@@ -307,6 +307,9 @@ Random.prototype.next = function(z)
 Random.prototype.nextFloat = function()
 { return this.next() / 0x7fff; }
 
+Random.prototype.flipCoin = function(x)
+{ return this.nextFloat() < x; }
+
 // Box-Muller transform, converts uniform distribution to normal distribution
 // depends on uniformity of nextFloat(), which I'm not confident of
 Random.prototype.nextGaussian = function()

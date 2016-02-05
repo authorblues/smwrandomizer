@@ -764,7 +764,7 @@ var GFX_REQ_BY_LAYER2 =
 	0xFFF45A: [1, 0x1B, 0x18], // Castle (Blocks)
 	0xFFE674: [1, 0x1B, null], // Bonus
 	0xFFDAB9: [0, 0x0D,    3], // Water
-//	0xFFE8EE: null,         // Empty/Layer 2
+//	0xFFE8EE: null,            // Empty/Layer 2
 	0xFFE7C0: [0, 0x19, null], // Mountains
 	0xFFE103: [1, 0x1B,    1], // Castle Pillars
 	0xFFDF59: [0, 0x19, null], // Mountains & Clouds
@@ -772,15 +772,15 @@ var GFX_REQ_BY_LAYER2 =
 	0xFFD900: [0, 0x1B, null], // P. Hills
 	0xFFE472: [0, 0x19, null], // Big Hills
 	0xFFE684: [0, 0x0C,    2], // Stars
-	0xFFF175: [1, 0x0C, null], // Ghost Ship
+//	0xFFF175: [1, 0x0C, null], // Ghost Ship
 	0xFFDC71: [0, 0x19, null], // Hills & Clouds
-//	0x06861B: null,         // Ghost House Exit
+//	0x06861B: null,            // Ghost House Exit
 };
 
 function randomizeColorPalettes(stages, random, rom)
 {
 	// random swap mario/luigi
-	if (0 == random.nextInt(4))
+	if (random.flipCoin(0.5))
 	{
 		var palettes = {
 			'normal':    { addr: [0x032C8, 0x032DC], size: 20 },
@@ -1749,7 +1749,7 @@ function randomizeNoYoshi(stages, random, rom)
 		// pick the appropriate flag
 		if (from.ghost == 1) flag = NO_YOSHI_GHOST;
 		else if (from.castle) flag = ug ? NO_YOSHI_CASTLE_NIGHT : NO_YOSHI_CASTLE_DAY;
-		else if (0 == random.nextInt(8)) flag = ug ? NO_YOSHI_STARS : NO_YOSHI_PLAINS;
+		else if (random.flipCoin(0.125)) flag = ug ? NO_YOSHI_STARS : NO_YOSHI_PLAINS;
 		
 		// set "disable no-yoshi intro" to 0 for hijack
 		rom[HEADER4_OFFSET + trans] &= 0x7F;
@@ -1798,7 +1798,7 @@ function randomizeBossDifficulty(random, rom)
 	rom[0x0FD46] = random.nextIntRange(0x08, 0x28);
 	
 	// randomize reznor
-	if (0 == random.nextInt(3)) rom.set([0x38, 0xE9], 0x198C7);
+	if (random.flipCoin(0.33)) rom.set([0x38, 0xE9], 0x198C7);
 	rom[0x198C9] = random.nextIntRange(0x01, 0x04);
 }
 
@@ -1956,7 +1956,7 @@ function randomizeYoshiWings(stages, random, rom)
 		if (stages[i].castle || stages[i].ghost) continue;
 		
 		// if stage has no exits, or 90% of the time otherwise, skip
-		if (!stages[i].exits || random.nextInt(12) != 0) continue;
+		if (!stages[i].exits || random.flipCoin(0.9)) continue;
 		
 		// if wings are already present, remove them
 		var wings = findWings(rom, stages[i]);
@@ -2089,7 +2089,7 @@ function randomizeKeyLocations(stages, random, rom)
 		if (['dp2', 'vd1', 'ci2', 'bgh'].contains(stages[i].name)) continue;
 		
 		// 80% of the time, and if we find a key we can move...
-		if (random.nextInt(5) != 0 && (key = findKey(stages[i], rom)))
+		if (random.flipCoin(0.8) && (key = findKey(stages[i], rom)))
 		{
 			var candidates = findKeyCandidates(stages[i], random, rom);
 			if (!candidates.length) continue;
@@ -2220,10 +2220,10 @@ function randomizeFlags(random, rom)
 		if ($('#slippery').is(':checked'))
 		{
 			// 12.5% of stages will have slippery flag swapped
-			if (0 == random.nextInt(8)) flag ^= 0x80;
+			if (random.flipCoin(0.125)) flag ^= 0x80;
 			
 			// if the stage is slippery, 33% of the time, changed to "half-slippery"
-			if ((flag & 0x80) && 0 == random.nextInt(3)) flag ^= 0x90;
+			if ((flag & 0x80) && random.flipCoin(0.33)) flag ^= 0x90;
 			
 			// fix intro if slippery
 			if (id == 0xC7 && (flag & 0xF0)) fixDemo(rom);
@@ -2297,6 +2297,15 @@ var STAR_PATTERNS =
 		"x  xxx    x   x    xxx  x",
 		"x x   x   x   x   x   x x",
 		" x         xxx         x ",
+	],
+	[
+		"         x   xxxx        ",
+		"        x      x         ",
+		"       x      x          ",
+		"      x     xxxxxx       ",
+		"       x      xx         ",
+		"        x    x           ",
+		"         x    xxx        ",
 	],
 ];
 

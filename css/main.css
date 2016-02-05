@@ -3,7 +3,13 @@ p
 	line-height: 1.7em;
 }
 
-.beta
+.header .version-number
+{
+	font-size: 60%;
+	color: grey;
+}
+
+.header .beta
 {
 	font-variant: small-caps;
 	font-size: 60%;
