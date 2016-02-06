@@ -480,7 +480,6 @@ var LONG_COPYPASTAS =
 	"His YouTube name is PangaeaPanga. I assume this isn't his real name, but maybe it is. Whatever the case, PangaeaPanga is an accomplished video game speedrunner, and we should all hope to one day lack the responsibilities he does, so we too can successfully play video games blindfolded.",
 	"Our menboo in Japan, hallowed be your name. your kingdom come, your will be done, on nicovideo, as it is in heaven. Give us this day our WRs, and forgive us our game saving, as we also have forgiven our debtors. And lead us not into splicing, but deliver us from Volpe. Amen.",
 	"Aaron packed a bag with his Super Nintendo, SMW, and his greasy red shell before setting out on his journey on his majestic steed, Yoshi, which was the name he gave to his bicycle. He rode to the end of his driveway and fell over on his bike. \"Oh my god.\" He said as he reset. This repeated for the next few hours because he wanted green splits for the beginning of his adventure.",
-	"dude this 960 is going to ruin the community. not all of us can run 96, let alone ten times, so how do you think that makes us runners who aren't super gifted feel that we're not allowed on your discord group. do you know how hard it is to sleep at night knowing that i can't finish every exit of super mario world in under 90 minutes? maybe two years ago is too far away for you to remember HOW HARD IT IS! now you're just tearing everything apart talking about it on discord trying to build hype. yeah, BUILD HYPE for THE END OF THE SMW COMMUNITY",
 	
 	// general copypastas
 	"Hey guys, Reggie from Nintendo here. I'm glad to see that you are enjoying one of our finer games, Super Mario World, but I'm going to have to ask you to refrain from breaking it like you are. You are NOT playing it the way we wanted you to, and you are having a lot less fun than you could. Please consider or your body won't be ready for the Nintendo Lawyers. Thank you Mr. Randomizer, and Game on! - Regginator",
@@ -605,4 +604,7 @@ function rewriteCredits(random, rom)
 	
 	while (lineptr < LINE_POINTER_END)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
+	
+	if (tblptr > CREDITS_TABLE_BASE + CREDITS_TABLE_SIZE)
+		throw new Error('credits table pointer exceeded available size');
 }
