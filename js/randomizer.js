@@ -2020,7 +2020,7 @@ var KEY_CAN_REPLACE = [
 	
 	// other enemies (some tileset specific)
 	0x0D, 0x11, 0x13, 0x26, 0x27, 0x46, 0x4E, 0x51, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73,
-	0x86, 0x99, 0x9F, 0xAB, 
+	0x86, 0x99, 0x9F, 0xAB, 0xBE, 0xBF, 0x3D,
 	
 	// powerups
 	0x74, 0x75, 0x76, 0x77, 0x78,
@@ -2030,12 +2030,15 @@ var KEY_CAN_REPLACE = [
 ];
 
 var KEY_REPLACEMENTS = [
-	// koopas and goombas
+	// koopas and goombas (not flying to avoid dropping in a pit)
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0C, 0xBD, 0x0F, 0x10,
 	0xDA, 0xDB, 0xDC, 0xDD, 0xDF,
 	
 	// powerups
 	0x78,
+	
+	// other
+	0x21,
 ];
 
 function findKeyCandidates(stage, random, rom)
@@ -2093,13 +2096,13 @@ function randomizeKeyLocations(stages, random, rom)
 			
 			// replace the key with a valid replacement
 			if (key.sprite) rom[key.sprite.addr+2] = random.from(KEY_REPLACEMENTS);
-			else if (key.block) rom[key.block.addr+2] = 0x34;
+			else if (key.block) rom[key.block+2] = 0x34;
 			
 			// find a place to put the key
 			key = random.from(candidates);
 			
 			if (key.sprite) rom[key.sprite.addr+2] = 0x80;
-			else if (key.block) rom[key.block.addr+2] = 0x35;
+			else if (key.block) rom[key.block+2] = 0x35;
 		}
 	}
 }
