@@ -666,6 +666,7 @@ function randomizeEnemyProperties(mode, stages, random, rom)
 	if (mode == 'default') return;
 		
 	// randomize color palettes for koopas
+	var __ka = {}, __kb = {};
 	for (var i = 0; i < KOOPA_SETS.length; ++i)
 	{
 		var koopaset = KOOPA_SETS[i];
