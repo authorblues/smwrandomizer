@@ -730,6 +730,32 @@ function randomizeEnemyProperties(mode, stages, random, rom)
 	else if (mode == 'chaos') rom.set(Array.prototype.shuffle.call(table, random), 0x0F137);
 }
 
+var LEVEL_MODES =
+{
+	0x0: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x1: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
+	0x2: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x3: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x4: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x5: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x6: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x7: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 0 },
+	0x8: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x9: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0xA: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
+	0xB: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0xC: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0xD: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
+	0xE: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0xF: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
+};
+
+function getLevelMode(id, rom)
+{
+	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
+	return LEVEL_MODES[rom[snesAddressToOffset(snes)+1] & 0x0F];
+}
+
 var VALID_FGP_BY_TILESET = 
 {
 	0x0: [0, 1,    3, 4, 5, 6, 7], // Normal 1
@@ -2258,6 +2284,12 @@ function randomizeFlags(random, rom)
 		}
 		
 		rom[FLAGBASE+id] = flag;
+		
+		var bouyancy = getLevelMode(id, rom).layer2inter ? 0x80 : 0x40;
+		if (!(flag & 0x01)) bouyancy = 0x00;
+		
+		addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+		rom[addr] = (rom[addr] & 0x3F) | bouyancy;
 	}
 }
 
