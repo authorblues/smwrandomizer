@@ -32,7 +32,10 @@ function updatePreset(val)
 	$('#addwater').prop('checked', preset > 5);
 	$('#delwater').prop('checked', preset > 7);
 	
-	$('#randomize_enemies').prop('checked', preset > 6);
+	$('#enemyprop_default').prop('checked', true);
+	if (preset > 2) $('#enemyprop_normal').prop('checked', true);
+	if (preset > 7) $('#enemyprop_chaos').prop('checked', true);
+	
 	$('#randomize_koopakids').prop('checked', preset > 3);
 	$('#randomize_bossdiff').prop('checked', preset > 5);
 	$('#remove_autoscrollers').prop('checked', preset > 4);

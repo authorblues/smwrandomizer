@@ -139,13 +139,27 @@
 						</label>
 					</div>
 					
-					<h3>Bosses / Enemies</h3>
-					<div class="checkbox">
+					<h3>Enemy Properties</h3>
+					<div class="radio">
 						<label>
-							<input type="checkbox" id="randomize_enemies" class="presetoption"> 
-							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Enemy Properties
+							<input type="radio" name="enemyprop" value="default" id="enemyprop_default" class="presetoption" checked> 
+							Default
 						</label>
 					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="enemyprop" value="normal" id="enemyprop_normal" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Consistently
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input type="radio" name="enemyprop" value="chaos" id="enemyprop_chaos" class="presetoption"> 
+							<span class="en_us" data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Chaotically
+						</label>
+					</div>
+					
+					<h3>Bosses / Enemies</h3>
 					<div class="checkbox">
 						<label>
 							<input type="checkbox" id="randomize_koopakids" class="presetoption"> 

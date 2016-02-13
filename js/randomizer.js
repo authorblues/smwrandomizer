@@ -344,8 +344,7 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_noyoshi').is(':checked'))
 		randomizeNoYoshi([].concat(stages, bowserentrances), random, rom);
 	
-	if ($('#randomize_enemies').is(':checked'))
-		randomizeEnemyProperties(stages, random, rom);
+	randomizeEnemyProperties($('input[name="enemyprop"]:checked').val(), stages, random, rom);
 	
 	if ($('#randomize_colors').is(':checked'))
 	{
@@ -638,17 +637,34 @@ function getFreeSwitchTile(stage, rom)
 	if (tiles.length) return tiles[0];
 	throw new Error('No free switch tiles remaining for this location.');
 }
-	
-var KOOPA_SETS = [
+
+var KOOPA_SETS = 
+[
 	[0x00, 0x01, 0x02, 0x03], // shell-less
 	[0x04, 0x05, 0x06, 0x07], // shelled
-	[0x08, 0x0A, 0x0B], // flying
-	[0x09, 0x0C], // winged, not flying
-	[0x23, 0x24, 0x25], // net koopas
+	[0x08, 0x0A, 0x0B],       // flying
+	[0x09, 0x0C],             // winged, not flying
+	[0x22, 0x23, 0x24, 0x25], // net koopas
 ];
 
-function randomizeEnemyProperties(stages, random, rom)
+var KOOPA_STOMP = 
 {
+	0x04: 0x00,
+	0x05: 0x01,
+	0x06: 0x02,
+	0x07: 0x03,
+	0x08: 0x04,
+	0x09: 0x04,
+	0x0A: 0x05,
+	0x0B: 0x05,
+	0x0C: 0x07,
+};
+
+function randomizeEnemyProperties(mode, stages, random, rom)
+{
+	// my favorite :)
+	if (mode == 'default') return;
+		
 	// randomize color palettes for koopas
 	for (var i = 0; i < KOOPA_SETS.length; ++i)
 	{
@@ -663,7 +679,22 @@ function randomizeEnemyProperties(stages, random, rom)
 		{
 			rom[0x3F3FE + koopaset[j]] &= 0xF1;
 			rom[0x3F3FE + koopaset[j]] |= palettes[kooprand[j]];
+			
+			__ka[koopaset[j]] = kooprand[j];
+			__kb[kooprand[j]] = koopaset[j];
 		}
+	}
+	
+	// make sure koopas produce like-colored koopas when stunned
+	if (mode == 'normal')
+	{
+		// fix shell koopas (04-07)
+		for (var id = 0x04; id <= 0x07; ++id)
+			rom[0x0961C + __ka[id]] = __kb[KOOPA_STOMP[id]];
+		
+		// fix wing koopas (08-0C)
+		for (var id = 0x08; id <= 0x0C; ++id)
+			rom[0x0A7C9 + __ka[id]] = __kb[KOOPA_STOMP[id]];
 	}
 	
 	// randomize the table of yoshi+shell color actions
@@ -685,9 +716,17 @@ function randomizeEnemyProperties(stages, random, rom)
 		table[i * 4 + 1] |= 0x4; // red shell always spits fire
 	}
 	
-	// this is going to cause a lot of chaos...
 	// write the table back to the rom shuffled
-	rom.set(Array.prototype.shuffle.call(table, random), 0x0F137);
+	if (mode == 'normal') 
+	{
+		var c = [0,1,2,3].shuffle(random);
+		var oldtable = table.slice(0);
+		
+		for (var x = 0; x < 4; ++x)
+		for (var y = 0; y < 4; ++y)
+			table[x * 4 + y] = oldtable[c[x] * 4 + c[y]];
+	}
+	else if (mode == 'chaos') rom.set(Array.prototype.shuffle.call(table, random), 0x0F137);
 }
 
 var VALID_FGP_BY_TILESET = 
