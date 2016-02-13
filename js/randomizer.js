@@ -1796,18 +1796,6 @@ function randomizeNoYoshi(stages, random, rom)
 		rom[TABLE_BASE + (trans>>1)] &= ~(0xF << shift);
 		rom[TABLE_BASE + (trans>>1)] |= (flag << shift);
 	}
-	
-	// handle special translevels (code copied from above)
-	var NO_INTRO_TRANSLEVELS = [0x00, 0x25];
-	for (var i = 0; i < NO_INTRO_TRANSLEVELS.length; ++i)
-	{
-		var trans = NO_INTRO_TRANSLEVELS[i];
-		rom[HEADER4_OFFSET + trans] &= 0x7F;
-		
-		var shift = (trans & 1) ? 4 : 0;
-		rom[TABLE_BASE + (trans>>1)] &= ~(0xF << shift);
-		rom[TABLE_BASE + (trans>>1)] |= 6 << shift;
-	}
 }
 
 function randomizeBossDifficulty(random, rom)
