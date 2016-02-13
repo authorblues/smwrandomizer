@@ -2202,10 +2202,10 @@ function fixDemo(rom)
 
 var NO_WATER_STAGES = [
 	// do not add water to these stages
-	0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0CC,
+	0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0D3, 0x0CC,
 	
 	// do not remove water from these stages
-	0x1CE, 
+	
 ];
 
 // randomizes slippery/water/tide flags
@@ -2250,7 +2250,7 @@ function randomizeFlags(random, rom)
 		var flag = (entr == 5 ? 0x80 : 0) | (entr == 7 ? 0x01 : 0);
 		
 		// base water on how many screens the stage has
-		if (0 == random.nextInt(Math.max(numscreens, 4) * 2) && !NO_WATER_STAGES.contains(id)
+		if (0 == random.nextInt(Math.max(numscreens*1.5, 4)|0) && !NO_WATER_STAGES.contains(id)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked')) flag ^= 0x01;
 		
 		// force certain stages to not have water
