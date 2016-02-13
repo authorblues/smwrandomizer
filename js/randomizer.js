@@ -2251,7 +2251,7 @@ function randomizeFlags(random, rom)
 		var flag = (entr == 5 ? 0x80 : 0) | (entr == 7 ? 0x01 : 0);
 		
 		// base water on how many screens the stage has
-		if (0 == random.nextInt(Math.max(numscreens*1.5, 4)|0) && !NO_WATER_STAGES.contains(id)
+		if (0 == random.nextInt(Math.max(numscreens*1.5, 8)|0) && !NO_WATER_STAGES.contains(id)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked')) flag ^= 0x01;
 		
 		// force certain stages to not have water
