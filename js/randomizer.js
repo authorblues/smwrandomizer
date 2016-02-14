@@ -732,28 +732,44 @@ function randomizeEnemyProperties(mode, stages, random, rom)
 
 var LEVEL_MODES =
 {
-	0x0: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
-	0x1: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
-	0x2: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 1 },
-	0x3: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
-	0x4: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
-	0x5: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
-	0x6: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
-	0x7: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 0 },
-	0x8: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 1 },
-	0x9: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
-	0xA: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
-	0xB: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
-	0xC: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
-	0xD: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
-	0xE: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
-	0xF: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
+	0x00: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x01: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
+	0x02: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x03: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x04: { maxscreens: 0x0D, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x05: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x06: { maxscreens: 0x0E, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x07: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 0 },
+	0x08: { maxscreens: 0x0E, horiz: 0, layer2bg: 0, layer2inter: 1 },
+	0x09: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x0A: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
+	0x0B: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x0C: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x0D: { maxscreens: 0x1C, horiz: 0, layer2bg: 1, layer2inter: 0 },
+	0x0E: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x0F: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
+	0x10: { maxscreens: 0x00, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x11: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x12: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x13: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x14: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x15: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x16: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x17: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x18: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x19: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x1A: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x1B: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x1C: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x1D: { maxscreens: 0x00, horiz: 1, layer2bg: 0, layer2inter: 1 },
+	0x1E: { maxscreens: 0x20, horiz: 1, layer2bg: 1, layer2inter: 0 },
+	0x1F: { maxscreens: 0x10, horiz: 1, layer2bg: 0, layer2inter: 0 },
 };
 
 function getLevelMode(id, rom)
 {
 	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
-	return LEVEL_MODES[rom[snesAddressToOffset(snes)+1] & 0x0F];
+	return LEVEL_MODES[rom[snesAddressToOffset(snes)+1] & 0x1F];
 }
 
 var VALID_FGP_BY_TILESET = 
@@ -1935,9 +1951,9 @@ function findWings(rom, stage)
 		var start = LAYER1_OFFSET + 3 * stage.sublevels[i];
 		var snes = getPointer(start, 3, rom);
 		
-		var addr = snesAddressToOffset(snes);
-		var vertical = [0x7, 0x8, 0xA, 0xD].contains(rom[addr+1] & 0x1F);
+		var vertical = !getLevelMode(stage.sublevels[i], rom).horiz;
 		
+		var addr = snesAddressToOffset(snes);
 		for (addr += 5;; addr += 3)
 		{
 			// 0xFF sentinel represents end of level data
