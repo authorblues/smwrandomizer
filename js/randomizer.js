@@ -844,7 +844,7 @@ var GFX_REQ_BY_LAYER2 =
 	0xFFEF80: [1, 0x0C,    4], // Ghost House
 	0xFFDE54: [0, 0x19, null], // Small Hills
 	0xFFF45A: [1, 0x1B, 0x18], // Castle (Blocks)
-	0xFFE674: [1, 0x1B, null], // Bonus
+//	0xFFE674: [1, 0x1B, null], // Bonus
 	0xFFDAB9: [0, 0x0D,    3], // Water
 //	0xFFE8EE: null,            // Empty/Layer 2
 	0xFFE7C0: [0, 0x19, null], // Mountains
