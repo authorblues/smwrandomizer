@@ -2301,11 +2301,13 @@ function randomizeFlags(random, rom)
 		
 		rom[FLAGBASE+id] = flag;
 		
-		var bouyancy = getLevelMode(id, rom).layer2inter ? 0x80 : 0x40;
-		if (!(flag & 0x01)) bouyancy = 0x00;
-		
+		// get address of sprite table and setup buoyancy default
 		addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
-		rom[addr] = (rom[addr] & 0x3F) | bouyancy;
+		var buoyancy = (flag & 0x01) ? (getLevelMode(id, rom).layer2inter ? 0x80 : 0x40) : 0x00;
+		
+		// if buoyancy was already set, just leave it as it was
+		if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
+		rom[addr] = (rom[addr] & 0x3F) | buoyancy;
 	}
 }
 
