@@ -344,7 +344,8 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_noyoshi').is(':checked'))
 		randomizeNoYoshi([].concat(stages, bowserentrances), random, rom);
 	
-	randomizeEnemyProperties($('input[name="enemyprop"]:checked').val(), stages, random, rom);
+	var enemyprop = $('input[name="enemyprop"]:checked').val();
+	randomizeEnemyProperties(enemyprop, stages, random, rom);
 	
 	if ($('#randomize_colors').is(':checked'))
 	{
@@ -362,9 +363,10 @@ function randomizeROM(buffer, seed)
 	// (☆^O^☆)
 	// (☆^O^☆) (☆^O^☆)
 	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
+	if ($('#pogyo_mode').is(':checked')) pogyo(stages, random, rom);
+	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
 	// (☆^O^☆) (☆^O^☆)
 	// (☆^O^☆)
-	if ($('#pogyo_mode').is(':checked')) pogyo(stages, random, rom);
 	
 	// mess with the overworld layer2 table
 	updateOverworldLayer2(random, rom);
@@ -1650,8 +1652,8 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 				// screen exit info from the four bytes
 				var x = { from: id, addr: addr };
 				x.screen =   (rom[addr  ] & 0x1F);
-				x.water  = !!(rom[addr+1] & 0x08);
-				x.issecx = !!(rom[addr+1] & 0x02);
+				x.water  =   (rom[addr+1] & 0x08);
+				x.issecx =   (rom[addr+1] & 0x02);
 				x.target =    rom[addr+3] | (id & 0x100);
 				
 				x.data = rom.slice(addr, addr+3);
