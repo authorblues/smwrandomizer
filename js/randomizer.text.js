@@ -99,7 +99,7 @@ var TITLE_STRINGS =
 	"#5 ROY'S ",
 	"#6 WENDY'S ",
 	"#7 LARRY'S ",
-	["DONUT ", "PIZZA ", "KUSO! ", "KOOPA ", "KAIZO ", "SUSHI "],
+	["DONUT ", "PIZZA ", "KUSO! ", "KOOPA ", "KAIZO ", "SUSHI ", "HORSE "],
 	"GREEN ",
 	["TOP SECRET AREA ", "TAKE A BREAK ", "WHY THE RUSH? ", "KEEP YOUR CAPES "],
 	["VANILLA ", "DIAMOND ", "CALZONE ", "EMERALD "],
