@@ -32,6 +32,10 @@ function updatePreset(val)
 	$('#addwater').prop('checked', preset > 5);
 	$('#delwater').prop('checked', preset > 7);
 	
+	$('#saving_all').prop('checked', true);
+	if (preset > 3) $('#saving_original').prop('checked', true);
+	if (preset > 6) $('#saving_default').prop('checked', true);
+	
 	$('#enemyprop_default').prop('checked', true);
 	if (preset > 2) $('#enemyprop_normal').prop('checked', true);
 	if (preset > 7) $('#enemyprop_chaos').prop('checked', true);

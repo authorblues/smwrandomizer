@@ -193,6 +193,15 @@ function isCastle(stage)
 function isSwitchPalace(stage, rom)
 { return [0x76, 0x77, 0x78, 0x79].contains(rom[getOverworldOffset(stage)]); }
 
+function isSavePoint(stage)
+{
+	// this handles the weird case where we pass bowser's castle to this function
+	if (stage.exits <= 0) return false;
+	
+	var SAVE_TILES = [ 'sp2', 'sp4', 'sp6', 'sp8', 'soda' ];
+	return stage.castle || stage.ghost || SAVE_TILES.contains(stage.name);
+}
+
 function getCopiedStage(stages, name)
 {
 	for (var i = 0; i < stages.length; ++i) 
@@ -271,7 +280,6 @@ function randomizeROM(buffer, seed)
 		for (var i = 0; i < buckets.length; ++i) shuffle(buckets[i], random);
 	}
 	
-	
 	// this is a quick fix for cases where we don't do any swaps
 	for (var i = 0; i < stages.length; ++i)
 		if (!stages[i].copyfrom) stages[i].copyfrom = stages[i];
@@ -334,6 +342,9 @@ function randomizeROM(buffer, seed)
 	
 	// fix message box messages
 	fixMessageBoxes(stages, rom);
+	
+	var saveprop = $('input[name="saving"]:checked').val();
+	fixSaveLocations(saveprop, stages, rom);
 	
 	if ($('#randomize_bossdiff').is(':checked'))
 		randomizeBossDifficulty(random, rom);
@@ -638,6 +649,46 @@ function getFreeSwitchTile(stage, rom)
 	
 	if (tiles.length) return tiles[0];
 	throw new Error('No free switch tiles remaining for this location.');
+}
+
+function fixSaveLocations(mode, stages, rom)
+{
+	// don't do anything
+	if (mode == 'default') return;
+	
+	// all or nothing options
+	else if (mode == 'all' ) { rom[0x20F93] = 0x00; }
+	else if (mode == 'none') { rom[0x20F92] = 0x80; }
+	
+	// move the save points :(
+	else if (mode == 'original')
+	{
+		var hijack = [
+			0xCA, 0x30, 0x1B, 0xBD, 0x15, 0xA2, 0xCD, 0x11, 0x1F, 0xD0, 0xF5, 0xAC, 0xD6, 0x0D, 0xBD, 0xD5, 
+			0xA1, 0xD9, 0x1F, 0x1F, 0xD0, 0xEA, 0xBD, 0xF5, 0xA1, 0xD9, 0x21, 0x1F, 0xD0, 0xE2, 0x60
+		];
+		rom.set(hijack, 0x221B6);
+		
+		var z = 0;
+		for (var i = 0; i < stages.length; ++i)
+		{
+			if (!isSavePoint(stages[i])) continue;
+			var map = getMapForStage(stages[i]);
+			
+			var x = stages[i].tile[0];
+			var y = stages[i].tile[1];
+			
+			if (map.name !== 'MAIN') { --x; y -= 0x20; }
+			
+			rom[0x221B6 + hijack.length            + z] = x;
+			rom[0x221B6 + hijack.length + 1 * 0x20 + z] = y;
+			rom[0x221B6 + hijack.length + 2 * 0x20 + z] = map.submapid;
+			console.log(stages[i].name, x, y, map.submapid);
+			++z;
+		}
+		
+		rom.set([0xA2, z, 0x20, 0xB9, 0xA1, 0xE0, z, 0xB0, 0x70, 0xEA], 0x20F8A);
+	}
 }
 
 var KOOPA_SETS = 
