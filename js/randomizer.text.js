@@ -91,7 +91,7 @@ var TEXT_MAPPING =
 var TITLE_STRINGS =
 [
 	["YOSHI'S ", "MARIO'S ", "LUIGI'S ", "DEATHLY ", "LEMMY'S ", "LARRY'S ", "WENDY'S ", "KOOPA'S "],
-	["STAR ", "HYPE ", "MOON ", "KUSO "],
+	["STAR ", "HYPE ", "MOON ", "KUSO ", "EPIC "],
 	"#1 IGGY'S ",
 	"#2 MORTON'S ",
 	"#3 LEMMY'S ",

@@ -1847,6 +1847,9 @@ function snesAddressToOffset(addr)
 
 function shuffleLevelNames(stages, random)
 {
+	// don't swap level names for non levels
+	stages = $.grep(stages, function(x){ return x.exits > 0; });
+	
 	var ptrs = $.map(stages, function(x){ return x.data['nameptr']; }).shuffle(random);
 	for (var i = 0; i < ptrs.length; ++i) stages[i].data['nameptr'] = ptrs[i];
 }
