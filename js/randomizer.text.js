@@ -416,7 +416,6 @@ function updateEndGameText(text, rom)
 	var res = processEndGameText(text);
 	
 	rom[0x1AEBB] = res.len;
-	rom[0x1AE5B + res.len] = 0x40;
 	rom.set(res.data, 0x1D524);
 }
 
