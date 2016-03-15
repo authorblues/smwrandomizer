@@ -1717,6 +1717,19 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 	return exits;
 }
 
+function getScreenExitListStart(addr, rom)
+{
+	addr += 5;
+	for (;; addr += 3)
+	{
+		// 0xFF sentinel represents end of level data
+		if (rom[addr] === 0xFF) return -1;
+		
+		// pattern looks like the start of the screen exits list
+		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) return addr;
+	}
+}
+
 function getSublevelFromExit(exit, rom)
 {
 	if (!exit.issecx) return exit.target;
@@ -1822,6 +1835,13 @@ function removeAutoscrollers(rom)
 		// remove the actual autoscroller sprites
 		deleteSprites([0xE8, 0xF3], sprites, rom);
 	}
+}
+
+function bytesToLittleEndian(arr)
+{
+	for (var i = 0, x = 0; i < arr.length; ++i)
+		x |= (arr[i] << (i*8));
+	return x;
 }
 
 // assumes little-endian
