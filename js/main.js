@@ -402,6 +402,9 @@ var TESTERS =
 	'radioactiverat': 'radioactive_rat',
 	'rezephos': 'rezephos',
 	'marc765': 'marc765',
+	'seathorne': 'seathorne74',
+	'stephen1704': 'stephen1704',
+	'dodechehedron': 'dodechehedron',
 }
 
 $('#tester-list').html(
