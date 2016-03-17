@@ -123,6 +123,10 @@ if (!__SMWC)
 		checkRomResult(true, true);
 		$('#select-original-rom').prop('disabled', true);
 	});
+	
+	// i don't care if people find these, but they shouldn't be readily accessible
+	if (window.location.href.indexOf('localhost') != -1)
+		$('#cheatmenu').removeClass('hidden');
 }
 
 function cleanCustomSeed(seed)
