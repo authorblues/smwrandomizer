@@ -157,10 +157,16 @@ function checkHash()
 	var seed = cleanCustomSeed(parts[0]);
 	if (parts.length > 0) $('#custom-seed').val(seed);
 	
-	var preset = parts.length > 1 ? +parts[1] : 0;
-	$('#preset').val(preset); updatePreset();
+	var given = parts.length > 1 ? parts[1] : '0';
+	if (given[0] == 'x')
+	{
+		$('#preset').val(0);
+		setRandomizerSettings(given.substr(1));
+	}
+	else
+	{ $('#preset').val(+parts[1]); updatePreset(); }
 	
-	if (preset > 0)
+	if (parts.length > 1)
 	{
 		$('#modal-download-win .modal-body .seed').text(seed);
 		$('#modal-download-win .modal-body .preset').text(getPresetName());
@@ -295,6 +301,32 @@ Uint8Array.prototype.writeBytes = function(b, addr, val)
 
 //Uint8Array.prototype.readBytes = function(b, addr)
 //{ var x = 0, s = 0; for (; b--; s += 8, addr++) x |= (this[addr] & 0xFF) << s; return x; }
+
+function bitsToHex(_arr)
+{
+	var arr = _arr.slice(0);
+	
+	var h = '', x, i;
+	while (arr.length)
+	{
+		var z = arr.splice(0, 4);
+		for (x = 0, i = 0; i < z.length; ++i)
+			x |= (z[i] ? 1 : 0) << i;
+		h += x.toString(16);
+	}
+	
+	return h;
+}
+
+function hexToBits(x)
+{
+	for (var a = [], i = 0; i < x.length; ++i)
+	{
+		var v = parseInt(x[i], 16);
+		for (var j = 0; j < 4; v >>= 1, ++j) a.push(v & 1);
+	}
+	return a;
+}
 
 function Random(seed)
 { this.seed = Math.floor(seed || (Math.random() * 0xFFFFFFFF)) % 0xFFFFFFFF; }

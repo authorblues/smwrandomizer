@@ -409,11 +409,7 @@ function randomizeROM(buffer, seed)
 	
 	// update the location.hash
 	var preset = +$('#preset').val();
-	if (preset)
-	{
-		var newstate = '#!/' + vseed + '/' + $('#preset').val();
-		// TODO: put this link into the alert element
-	}
+	if (!preset) preset = 'x' + getRandomizerSettings();
 	
 	// return the modified buffer
 	return { seed: vseed, preset: preset, buffer: rom.buffer, type: ext || '.sfc' };
