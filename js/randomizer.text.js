@@ -371,9 +371,10 @@ var ENDGAME_TEXTS =
 	],
 ];
 
+var FRAMES_PER_CHAR = 0x0A;
 function processEndGameText(text)
 {
-	var textlength = 0, textdata = [];
+	var textlength = 0, textdata = [], texttime = [];
 	if (text.length > 4) throw "updateEndGameText: too many lines";
 	
 	// for each line
@@ -388,8 +389,8 @@ function processEndGameText(text)
 			var ch = text[i][j], cc = 0x0E;
 			var nx = 0x18 + (j * 0x08), ny = 0x20 + (i * 0x10);
 			
-			// skip spaces
-			if (ch == ' ') continue;
+			// skip spaces (add delay to simulate typing the space)
+			if (ch == ' ') { texttime[textlength - 1] += FRAMES_PER_CHAR; continue; }
 			
 			// W is a modified, flipped M
 			if (ch == 'W') { cc |= 0xC0; ny--; }
@@ -397,6 +398,7 @@ function processEndGameText(text)
 			// gentle alert if we get an invalid character
 			if (ch in EGTEXT_CHARACTERS)
 			{
+				texttime.push(FRAMES_PER_CHAR);
 				textdata.push(nx, ny, EGTEXT_CHARACTERS[ch], cc);
 				++textlength;
 			}
@@ -404,9 +406,12 @@ function processEndGameText(text)
 		}
 	}
 	
+	// add a delay to the last character
+	texttime[textlength - 1] = 0x80;
+	
 	// only a max of 83 characters available
 	if (textlength > 84) throw "updateEndGameText: too many characters";
-	return { len: textlength, data: textdata };
+	return { len: textlength, data: textdata, time: texttime };
 }
 
 function updateEndGameText(text, rom)
@@ -416,8 +421,8 @@ function updateEndGameText(text, rom)
 	var res = processEndGameText(text);
 	
 	rom[0x1AEBB] = res.len;
-	rom[0x1AE5B + res.len - 1] = 0x40;
 	rom.set(res.data, 0x1D524);
+	rom.set(res.time, 0x1AE5B);
 }
 
 function randomizeEndGameText(random, rom)
@@ -578,7 +583,9 @@ function rewriteCredits(random, rom)
 	lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 	tblptr = writeCreditLine("TESTERS", 0x2C, charToTitleNum, rom, tblptr);
 	
-	var TESTER_NAMES = Object.keys(TESTERS).shuffle(random);
+	var TESTER_NAMES = Object.keys(TESTERS).shuffle(random).slice(0, 8);
+	TESTER_NAMES.push('AND OTHERS');
+	
 	for (var i = 0; i < TESTER_NAMES.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
