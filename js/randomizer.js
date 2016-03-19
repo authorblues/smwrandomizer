@@ -49,12 +49,12 @@ var NO_CASTLE   = 0,
 /*
 	0x0 = Beige/White
 	0x1 = White/Gold
-	0x2 = DkBlue/Black
+	0x2 = DkBlue/Black*
 	0x3 = Brown/Gold
 	0x4 = Black/White (Palette-specific?)
 	0x5 = LtBlue/DkBlue
-	0x6 = Gold/Brown
-	0x7 = Green/Black
+	0x6 = Gold/Brown*
+	0x7 = Green/Black*
 */	
 var TITLE_TEXT_COLOR = 0x4;
 
@@ -394,6 +394,9 @@ function randomizeROM(buffer, seed)
 	
 	// update the credits
 	rewriteCredits(random, rom);
+	
+	// force bg palette for intro to fix text colors
+	rom[0x305B5] = (rom[0x305B5] & 0x1F) | (random.from([0, 2, 7]) << 5);
 	
 	// write metadata to the intro cutscene
 	//updateIntroText(vseed, rom);
