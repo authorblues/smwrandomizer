@@ -966,6 +966,9 @@ function randomizeColorPalettes(stages, random, rom)
 		rom);
 	}
 	
+	// randomize bowser statue colors
+	rom[0x08321] = 0x01 | (random.from([0,2,4,7]) << 1);
+	
 	// randomize all standard sublevels
 	for (var id = 0; id < 0x200; ++id)
 	{
