@@ -1144,6 +1144,16 @@ function pogyo(stages, random, rom)
 {
 	// randomize hammer bro thrown item
 	rom[0x15AC4] = random.from([0x02, 0x04, 0x0A, 0x0A, 0x0B, 0x0B, 0x0D, 0x0E]);
+	
+	if (random.flipCoin(0.5))
+	{	
+		// modify fishin lakitu
+		rom[0x166AD] = 0x0E;
+		rom[0x166B7] = (rom[0x166B7] & 0xFE) | 1;
+		
+		rom.set([0x54, 0xF1],       0x166E8);
+		rom.set([0xEA, 0xEA, 0xEA], 0x166E4);
+	}
 
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);
