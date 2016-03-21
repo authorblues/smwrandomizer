@@ -1154,6 +1154,10 @@ function pogyo(stages, random, rom)
 		rom.set([0x54, 0xF1],       0x166E8);
 		rom.set([0xEA, 0xEA, 0xEA], 0x166E4);
 	}
+	
+	// randomize ball and chain speed
+	rom[0x15634] =         random.nextIntRange(1,6);
+	rom[0x1563A] = 0x100 - random.nextIntRange(1,6);
 
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);
