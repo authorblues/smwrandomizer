@@ -1851,8 +1851,10 @@ function deleteSprites(todelete, sprites, rom)
 function sortSprites(sprites, rom)
 {
 	var addr = sprites[0].addr;
-	sprites.sort(function(a,b){ return b._major - a._major; });
+	for (var i = 1; i < sprites.length; ++i)
+		if (sprites[i].addr < addr) addr = sprites[i].addr;
 	
+	sprites.sort(function(a,b){ return b._major - a._major; });
 	for (var i = 0; i < sprites.length; ++i, addr += 3)
 		rom.set(sprites[i].data, sprites[i].addr = addr);
 }
