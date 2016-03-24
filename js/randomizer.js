@@ -249,7 +249,7 @@ function randomizeROM(buffer, seed)
 	}
 	
 	// patch the rom with necessary patches
-	applyPatches(ROM_PATCHES, rom);
+	applyBasePatches(rom);
 	
 	replaceFileSelect(TITLE_TEXT_COLOR, rom);
 	
