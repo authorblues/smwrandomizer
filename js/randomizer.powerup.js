@@ -107,8 +107,6 @@ function addHammerSuit(rom)
 	// make mario/luigi color palette grey
 	rom.set([0x84, 0x10, 0x8C, 0x31, 0x10, 0x42], 0x032F0+8);
 	rom.set([0x84, 0x10, 0x8C, 0x31, 0x10, 0x42], 0x03304+8);
-	
-	console.log('hammer suit :^)');
 }
 
 function removeCape(rom, stages)
