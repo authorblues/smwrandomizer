@@ -202,6 +202,13 @@ function isSavePoint(stage)
 	return stage.castle || stage.ghost || SAVE_TILES.contains(stage.name);
 }
 
+function getStage(stages, name)
+{
+	for (var i = 0; i < stages.length; ++i) 
+		if (stages[i].name == name) return stages[i];
+	return null;
+}
+
 function getCopiedStage(stages, name)
 {
 	for (var i = 0; i < stages.length; ++i) 
@@ -219,7 +226,14 @@ var SEC_EXIT_OFFSET_X2 = 0x2FC00;
 
 var TRANSLEVEL_EVENTS = 0x2D608;
 
-// bind `this` to null to disable downloading the ROM
+// purely for debug purposes
+function forceSwap(stages, a, b)
+{
+	a = getStage(stages, a);
+	b = getStage(stages, b);
+	a.copyfrom = b; b.copyfrom = a;
+}
+
 function randomizeROM(buffer, seed)
 {
 	var ext = '.sfc';
