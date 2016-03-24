@@ -441,6 +441,8 @@ var TESTERS =
 	'seathorne': 'seathorne74',
 	'stephen1704': 'stephen1704',
 	'dodechehedron': 'dodechehedron',
+	'GDF': 'greendeathflavor',
+	'PangaeaPanga': 'pangaeapanga',
 }
 
 $('#tester-list').html(
