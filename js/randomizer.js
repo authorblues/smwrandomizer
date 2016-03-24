@@ -277,6 +277,10 @@ function randomizeROM(buffer, seed)
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, rom);
 	
+	// randomize autoscroller sprites and update v-scroll, if checked
+	if ($('#randomize_autoscrollers').is(':checked'))
+		randomizeAutoscrollers(random, rom);
+	
 	// NOTE: MAKE SURE ANY TABLES BACKED UP BY THIS ROUTINE ARE GENERATED *BEFORE*
 	// THIS POINT. OTHERWISE, WE ARE BACKING UP UNINITIALIZED MEMORY!
 	backupData(stages, rom);
@@ -328,10 +332,6 @@ function randomizeROM(buffer, seed)
 	}
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
-	
-	// randomize autoscroller sprites and update v-scroll, if checked
-	if ($('#randomize_autoscrollers').is(':checked'))
-		randomizeAutoscrollers(random, rom);
 	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random.clone(), rom);
@@ -1840,37 +1840,25 @@ function updateSprite(s, rom)
 function deleteSprites(todelete, sprites, rom)
 {
 	if (!sprites.length) return 0;
-	var deleted = 0;
 	
 	var len = sprites.length, base = sprites[0].addr;
-	for (var i = len - 1; i >= 0; --i)
-		if (todelete.contains(sprites[i].spriteid))
-		{
-			for (var j = i + 1; j < len; ++j)
-			{
-				var addr = base + j * 3;
-				rom.set(rom.slice(addr, addr + 3), addr - 3);
-				sprites[j].addr -= 3; // not needed, but correct
-			}
-				
-			// remove the sprite object from the list
-			sprites.splice(i, 1); --len; ++deleted;
-		}
-		
-	// end of list marker
-	rom[base + len * 3] = 0xFF;
-	return deleted;
+	var left = $.grep(sprites, function(x){ return !todelete.contains(x.spriteid); });
+	
+	sortSprites(left, rom, base);
+	return len - left.length;
 }
 
-function sortSprites(sprites, rom)
+function sortSprites(sprites, rom, addr)
 {
-	var addr = sprites[0].addr;
-	for (var i = 1; i < sprites.length; ++i)
-		if (sprites[i].addr < addr) addr = sprites[i].addr;
+	var addr = addr || sprites[0].addr;	
+	sprites.sort(function(a,b){ return a._major - b._major; });
 	
-	sprites.sort(function(a,b){ return b._major - a._major; });
 	for (var i = 0; i < sprites.length; ++i, addr += 3)
 		rom.set(sprites[i].data, sprites[i].addr = addr);
+	
+	// write the end of list sentinel (this allows us to use
+	// this method as a component of deleting sprites as well)
+	rom[addr] = 0xFF;
 }
 
 var AUTOSCROLL_ROOMS = 
@@ -1923,13 +1911,14 @@ function randomizeAutoscrollers(random, rom)
 	var newauto = AUTOSCROLL_ROOMS.slice(0).shuffle(random);
 	var prio = REPLACEABLE_SPRITES.slice(0).reverse();
 	
-	for (var i = 0, n = random.nextIntRange(0,3); i < n; ++i)
+	var numAutoscrollers = random.nextIntRange(0,3);
+	for (var i = 0; i < numAutoscrollers; ++i)
 	{
 		var sprites = getSpritesBySublevel(newauto[i], rom);
 		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.spriteid) - prio.indexOf(a.spriteid); })[0];
 		
 		if (!REPLACEABLE_SPRITES.contains(best.spriteid))
-			throw new Error("Could not find a sprite to mutate for autoscroller - " + newauto[i].toHex(3));
+			throw new Error('Could not find a sprite in ' + newauto[i].toHex(3) + ' to mutate for autoscroller');
 		
 		// speed of the autoscroller is dictated by Y (0 = slow, 1 = medium, 2 = fast)
 		best.screen = 0;
