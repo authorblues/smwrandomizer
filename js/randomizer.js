@@ -210,7 +210,7 @@ function getCopiedStage(stages, name)
 }
 
 // koopa kid boss room sublevels, indexed by castle #
-var koopa_kids = [0x1F6, 0x0E5, 0x1F2, 0x0D9, 0x0CC, 0x0D3, 0x1EB];
+var koopa_kids = [ 0x1F6, 0x0E5, 0x1F2, 0x0D9, 0x0CC, 0x0D3, 0x1EB ];
 
 var SEC_EXIT_OFFSET_LO = 0x2F800;
 var SEC_EXIT_OFFSET_HI = 0x2FE00;
@@ -315,8 +315,9 @@ function randomizeROM(buffer, seed)
 	
 	if ($('#noyoshi').is(':checked')) removeYoshi(rom, stages);
 	
-	// remove all autoscroller sprites and update v-scroll, if checked
-	if ($('#remove_autoscrollers').is(':checked')) removeAutoscrollers(rom);
+	// randomize autoscroller sprites and update v-scroll, if checked
+	if ($('#randomize_autoscrollers').is(':checked'))
+		randomizeAutoscrollers(random, rom);
 	
 	// update level names if randomized
 	if ($('#customnames').is(':checked')) randomizeLevelNames(random.clone(), rom);
@@ -1773,6 +1774,13 @@ function getRelatedSublevels(baseid, rom)
 	return ids;
 }
 
+/*
+	YYYYEEsy XXXXSSSS
+
+	yYYYY - minor axis
+	sSSSS - screen number
+	 XXXX - major axis
+*/
 function getSpritesBySublevel(id, rom)
 {
 	var start = SPRITE_OFFSET + 2 * id;
@@ -1789,10 +1797,30 @@ function getSpritesBySublevel(id, rom)
 		var s = { stage: id, addr: addr };
 		s.spriteid = rom[addr+2];
 		
+		s.screen =  (rom[addr+1]       & 0xF) | ((rom[addr] & 0x2) << 3);
+		s.minor  = ((rom[addr  ] >> 4) & 0xF) | ((rom[addr] & 0x1) << 4);
+		s.major  = ((rom[addr+1] >> 4) & 0xF);
+		s.extend = ((rom[addr  ] >> 2) * 0x3);
+		
+		// stage "x" value (assuming horizontal level)
+		s._major = s.screen * 16 + s.major;
+		
+		s.data = rom.slice(addr, addr+3);
 		sprites.push(s);
 	}
 	
 	return sprites;
+}
+
+function updateSprite(s, rom)
+{
+	// update data values
+	s.data[0] = ((s.minor & 0x0F) << 4) | (s.extend << 2) | ((s.screen & 0x10) >> 3) | ((s.minor & 0x10) >> 4);
+	s.data[1] = ((s.major & 0x0F) << 4) | (s.screen & 0x0F);
+	s.data[2] = s.spriteid;
+	
+	s._major = s.screen * 16 + s.major;
+	rom.set(s.data, s.addr);
 }
 
 function deleteSprites(todelete, sprites, rom)
@@ -1820,13 +1848,37 @@ function deleteSprites(todelete, sprites, rom)
 	return deleted;
 }
 
-function removeAutoscrollers(rom)
+function sortSprites(sprites, rom)
+{
+	var addr = sprites[0].addr;
+	sprites.sort(function(a,b){ return b._major - a._major; });
+	
+	for (var i = 0; i < sprites.length; ++i, addr += 3)
+		rom.set(sprites[i].data, sprites[i].addr = addr);
+}
+
+var AUTOSCROLL_ROOMS = 
+[
+	// good rooms
+	0x011, 0x111, 0x12D, 0x1CD,
+	
+	// maybe less good rooms?
+	0x126, 0x1CC, 0x01B, 0x11C,
+];
+
+var REPLACEABLE_SPRITES =
+[ 0x02, 0x03, 0xAB, 0x1D, 0x50, 0x4C, 0x33, 0xBC, 0x93, 0xB3, 0xC2, ];
+
+function randomizeAutoscrollers(random, rom)
 {
 	for (var id = 0; id < 0x200; ++id)
 	{
 		// don't remove autoscroller for DP2 due to issues with the
 		// layer 2 movement. sorry, but this is a wontfix issue.
 		if (id == 0x009) continue;
+		
+		// don't ALWAYS remove autoscrollers :^)
+		if (!random.flipCoin(0.8)) continue;
 	
 		var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
 		var addr = snesAddressToOffset(snes) + 4;
@@ -1850,6 +1902,29 @@ function removeAutoscrollers(rom)
 			
 		// remove the actual autoscroller sprites
 		deleteSprites([0xE8, 0xF3], sprites, rom);
+	}
+	
+	var newauto = AUTOSCROLL_ROOMS.slice(0).shuffle(random);
+	var prio = REPLACEABLE_SPRITES.slice(0).reverse();
+	
+	for (var i = 0, n = random.nextIntRange(0,3); i < n; ++i)
+	{
+		var sprites = getSpritesBySublevel(newauto[i], rom);
+		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.spriteid) - prio.indexOf(a.spriteid); })[0];
+		
+		if (!REPLACEABLE_SPRITES.contains(best.spriteid))
+			throw new Error("Could not find a sprite to mutate for autoscroller - " + newauto[i].toHex(3));
+		
+		// speed of the autoscroller is dictated by Y (0 = slow, 1 = medium, 2 = fast)
+		best.screen = 0;
+		best.major = 8;
+		best.minor = random.from([0,1,1,1]);
+		
+		best.spriteid = 0xF3;
+		best.extend = 0;
+		
+		updateSprite(best, rom);
+		sortSprites(sprites, rom);
 	}
 }
 
@@ -2663,7 +2738,7 @@ function remapScreenExits(stages, random, rom)
 		console.log('screen exit from', xwhich.from, 'to', xwhich.to);
 		
 		var newdest = candidates.length ? random.from(candidates) : unused[xwhich.pipe][0];
-		if (!newdest) throw 'Cannot find an outgoing path for screen exit: ' + which;
+		if (!newdest) throw new Error('Cannot find an outgoing path for screen exit: ' + which);
 		
 		console.log('exit will now go to', newdest.to);
 		
