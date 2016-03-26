@@ -66,7 +66,8 @@ function addHammerSuit(rom)
 	rom[0x07EC5] = 0xA0;
 	
 	// initial X speeds
-	rom.set([0xFF, 0x01], 0x07E94);
+	var xspd = 0x02;
+	rom.set([0x100-xspd, xspd], 0x07E94);
 	
 	// max speed and gravity
 	var mspd = 0x78;
