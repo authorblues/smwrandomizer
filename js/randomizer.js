@@ -665,18 +665,31 @@ function getFreeSwitchTile(stage, rom)
 	throw new Error('No free switch tiles remaining for this location.');
 }
 
+var FORCE_SAVE = ['c7', 'bfort'];
 function fixSaveLocations(mode, stages, rom)
 {
-	// don't do anything
-	if (mode == 'default') return;
-	
 	// all or nothing options
-	else if (mode == 'all' ) { rom[0x20F93] = 0x00; }
+	     if (mode == 'all' ) { rom[0x20F93] = 0x00; }
 	else if (mode == 'none') { rom[0x20F92] = 0x80; }
 	
 	// move the save points :(
-	else if (mode == 'original')
+	else
 	{
+		var savestages = [];
+		
+		if (mode == 'default')
+		{
+			for (var i = 0; i < stages.length; ++i)
+				if (isSavePoint(stages[i].copyfrom) || FORCE_SAVE.contains(stages[i].name))
+					savestages.push(stages[i]);
+		}
+		else if (mode == 'original')
+		{
+			for (var i = 0; i < stages.length; ++i)
+				if (isSavePoint(stages[i]) || FORCE_SAVE.contains(stages[i].name))
+					savestages.push(stages[i]);
+		}
+		
 		var hijack = [
 			0xCA, 0x30, 0x1B, 0xBD, 0x15, 0xA2, 0xCD, 0x11, 0x1F, 0xD0, 0xF5, 0xAC, 0xD6, 0x0D, 0xBD, 0xD5, 
 			0xA1, 0xD9, 0x1F, 0x1F, 0xD0, 0xEA, 0xBD, 0xF5, 0xA1, 0xD9, 0x21, 0x1F, 0xD0, 0xE2, 0x60
@@ -684,20 +697,19 @@ function fixSaveLocations(mode, stages, rom)
 		rom.set(hijack, 0x221B6);
 		
 		var z = 0;
-		for (var i = 0; i < stages.length; ++i)
+		for (var i = 0; i < savestages.length; ++i)
 		{
-			if (!isSavePoint(stages[i])) continue;
-			var map = getMapForStage(stages[i]);
+			var stage = savestages[i];
+			var map = getMapForStage(stage);
 			
-			var x = stages[i].tile[0];
-			var y = stages[i].tile[1];
+			var x = stage.tile[0];
+			var y = stage.tile[1];
 			
 			if (map.name !== 'MAIN') { --x; y -= 0x20; }
 			
 			rom[0x221B6 + hijack.length            + z] = x;
 			rom[0x221B6 + hijack.length + 1 * 0x20 + z] = y;
 			rom[0x221B6 + hijack.length + 2 * 0x20 + z] = map.submapid;
-			console.log(stages[i].name, x, y, map.submapid);
 			++z;
 		}
 		
