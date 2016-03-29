@@ -195,11 +195,8 @@ function isSwitchPalace(stage, rom)
 
 function isSavePoint(stage)
 {
-	// this handles the weird case where we pass bowser's castle to this function
-	if (stage.exits <= 0) return false;
-	
 	var SAVE_TILES = [ 'sp2', 'sp4', 'sp6', 'sp8', 'soda' ];
-	return stage.castle || stage.ghost || SAVE_TILES.contains(stage.name);
+	return stage.castle || stage.ghost || stage.palace || SAVE_TILES.contains(stage.name);
 }
 
 function getStage(stages, name)
