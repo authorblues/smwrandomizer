@@ -394,6 +394,10 @@ function randomizeROM(buffer, seed)
 	// mess with the overworld layer2 table
 	updateOverworldLayer2(random, rom);
 	
+	// you asked for it!
+	if ($('#randomize_music').is(':checked'))
+		randomizeMusic(random.clone(), rom);
+	
 	// add all of the cheat options (if any)
 	cheatOptions(rom);
 	
@@ -1186,6 +1190,9 @@ function pogyo(stages, random, rom)
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);
 	changeSound(SOUND_EFFECT_TRIGGER.OVERWORLD_MOVE, SOUND_EFFECT.YOSHI_OW, rom);
+	
+	// https://twitter.com/Dotsarecool/status/714639606696771589
+	if (random.flipCoin(0.1)) detuneMusic(rom);
 }
 
 function getSecondaryExitTarget(xid, rom)

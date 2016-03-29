@@ -70,3 +70,21 @@ function changeSound(trigger, sound, rom)
 	while (rom[offset+1] != 0x1D) ++offset;
 	rom[offset] = sound.bank;
 }
+
+function detuneMusic(rom)
+{
+	// copy music timer to tuning byte
+	rom.set([0x84, 0x45, 0x00], 0x700EF);
+}
+
+// if you use this feature, i hope you run into the road and get hit by a car going just
+// fast enough to cause you bruising and mild discomfort, but proving otherwise not fatal
+function randomizeMusic(random, rom)
+{
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
+		var addr = snesAddressToOffset(snes) + 2;
+		rom[addr] = (rom[addr] & 0x8F) | (random.nextInt(8) << 4);
+	}
+}
