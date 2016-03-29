@@ -415,7 +415,8 @@ $(document).ready(function()
 	var language = window.navigator.userLanguage || window.navigator.language || "";
 	EN_US = (language.indexOf('US') != -1);
 	
-	$('.en_us').each(function()
+	if (!EN_US) document.title = document.title.replace('ize', 'ise');
+	$('[data-en_gb]').each(function()
 	{
 		var s = $(this);
 		s.text(EN_US ? s.attr('data-en_us') : s.attr('data-en_gb'));
