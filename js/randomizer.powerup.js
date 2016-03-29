@@ -63,7 +63,7 @@ function randomizePowerups(random, rom, stages)
 function addHammerSuit(rom)
 {
 	// initial Y speed
-	rom[0x07EC5] = 0xA0;
+	rom[0x07EC5] = 0x80;
 	
 	// initial X speeds
 	var xspd = 0x02;
