@@ -78,7 +78,7 @@ function detuneMusic(rom)
 }
 
 // if you use this feature, i hope you run into the road and get hit by a car going just
-// fast enough to cause you bruising and mild discomfort, but proving otherwise not fatal
+// fast enough to cause you bruising and mild discomfort, but proving otherwise non-fatal
 function randomizeMusic(random, rom)
 {
 	for (var id = 0; id < 0x200; ++id)
