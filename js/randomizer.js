@@ -934,7 +934,7 @@ var VALID_BGP_BY_LAYER2 =
 
 var VALID_BGC_BY_LAYER2 = 
 {
-	0xFFDD44: [0, 1, 2, 3, 4, 5, 6, 7], // Clouds
+	0xFFDD44: [0, 1, 2, 3,    5, 6, 7], // Clouds
 	0xFFEC82: [0, 1, 2, 3, 4, 5, 6, 7], // Bushes
 	0xFFEF80: [         3, 4,        ], // Ghost House
 	0xFFDE54: [0, 1, 2, 3, 4, 5, 6, 7], // Small Hills
