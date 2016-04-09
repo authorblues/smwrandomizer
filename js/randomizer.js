@@ -1890,7 +1890,7 @@ function swapExits(stage, rom)
 	rom.writeBytes(2, 0x26359 + ndxb * 2, offsetb);
 }
 
-var primarySublevelIds = $.map(SMW_STAGES, function(x){ return x.id });
+var PRIMARY_SUBLEVEL_IDS = $.map(SMW_STAGES, function(x){ return x.id });
 
 function isSublevelFree(id, rom)
 {
@@ -1945,7 +1945,7 @@ function findOpenSublevel(bank, rom)
 	var start = [0x025, 0x13C][bank >> 16], x;
 	for (var i = start; i <= 0xFF; ++i)
 		if (isSublevelFree(x = bank | i, rom))
-			if (!primarySublevelIds.contains(x)) return x;
+			if (!PRIMARY_SUBLEVEL_IDS.contains(x)) return x;
 	
 	// please god, this should never happen!
 	throw new Error('No free sublevels in bank ' + bank.toHex(3));
