@@ -2854,6 +2854,9 @@ function cheatOptions(rom)
 		
 		// L+AA to make Mario fly, L+A again to disable
 		rom[snesAddressToOffset(0x00CC84)] = 0xF0;
+		
+		// free roam overworld
+		rom.set([0x4C, 0xAF, 0x92], snesAddressToOffset(0x049291));
 	}
 	
 	// if any of the cheat options are set, update file select
