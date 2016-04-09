@@ -270,6 +270,7 @@ function randomizeROM(buffer, seed)
 {
 	var ext = '.sfc';
 	var stages = deepClone(SMW_STAGES);
+	
 	if ($('#randomize_95exit').is(':checked'))
 	{
 		// remove dgh and topsecret from rotation
@@ -302,6 +303,9 @@ function randomizeROM(buffer, seed)
 	// fix some base tiles for consistency -- get your shit together Nintendo
 	rom[0x679F1] = 0x78; // ysp - is green, but gets fixed by offscreen event
 	rom[0x67D51] = 0x5A; // thanks for leaving an old switch just laying around
+	
+	// in randomizer, "bonus star" counter shows completed exits instead
+	rom.set([0xAD, 0x2E, 0x1F], 0x00F8F);
 	
 	// change switch palaces to use higher event numbers
 	fixSwitchPalaceEventNumbers(stages, rom);
