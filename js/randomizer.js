@@ -34,6 +34,41 @@ var LEVEL_OFFSETS = [
 	{"name": "lvflags", "bytes": 1, "offset": FLAGBASE = 0x1FDE0},
 ];
 
+/*
+	Primary header - first five bytes of level data
+	BBBLLLLL CCCOOOOO 3MMMSSSS TTPPPFFF IIVVZZZZ
+	
+	BBB   = BG palette
+	LLLLL = Length of level (amount of screens)
+	CCC   = BG color
+	OOOOO = Level mode (ignore this, can be used to randomly make levels dark or transparent though)
+	3     = Layer 3 Priority
+	MMM   = Music
+	SSSS  = Sprite tileset
+	TT    = Time (00 = 0, 01 = 200, 10 = 300, 11 = 400)
+	PPP   = Sprite palette
+	FFF   = FG palette
+	II    = Item memory (ignore this)
+	VV    = Vertical scroll (00 = no v-scroll, 01 = v-scroll, 10 = v-scroll only if sprinting/flying/climbing, 11 = no v or h-scroll)
+	ZZZZ  = FG/BG tileset
+	
+	Secondary header
+	SSSSYYYY 33TTTXXX MMMMFFBB IUVEEEEE
+	
+	SSSS = Layer 2 scroll settings (see LM)
+	YYYY = Level entrance Y position (ignore this)
+	33 = Layer 3 settings (00 = none, 01 = tide, 10 = mondo tide, 11 = tileset specific)
+	TTT = Level entrance type (ignore this and pretty much all the below ones too)
+	XXX = Level entrance X position
+	MMMM = Level entrance midway screen
+	FF = Level entrance FG init position
+	BB = Level entrance BG init position
+	I = Disable no-Yoshi intro flag
+	U = Unknown vertical positioning flag
+	V = Vertical positioning flag
+	EEEEE = Level entrance screen number
+*/
+
 var trans_offsets = [
 	// name pointer
 	{"name": "nameptr", "bytes": 2, "offset": 0x220FC},
