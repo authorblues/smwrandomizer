@@ -1238,6 +1238,56 @@ function randomizeZeroes(stages, random, rom)
 	}
 }
 
+/*
+	Object Lists
+	NBBYYYYY bbbbXXXX SSSSSSSS
+	
+	N = New screen (advance a screen)
+	BBbbbb = Object id (Object 0 gets extended object id from SSSSSSSS)
+	YYYYY = Minor Axis
+	XXXX = Major Axis
+	SSSSSSSS = Additional bits
+*/
+function parseObjectList(addr, rom)
+{
+	var objs = [], screen = 0;
+	for (;; addr += 3)
+	{
+		// 0xFF sentinel represents end of level data
+		if (rom[addr] === 0xFF) break;
+
+		// pattern looks like the start of the screen exits list
+		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+
+		var obj = { addr: addr, n: (rom[addr] & 0x80) };
+		obj.id = ((rom[addr] & 0x60) >> 1) | ((rom[addr+1] & 0xF0) >> 4);
+	
+		if (obj.n) screen += 16;
+		obj.major = screen + (rom[addr+1] & 0x0F);
+		obj.minor = rom[addr] & 0x1F;
+	
+		obj.extra = rom[addr+2];
+		obj.extended = (obj.id === 0);
+		objs.push(obj);
+		
+		// extended object 01 updates screen to YYYYY value
+		if (obj.extended && obj.extra == 0x01)
+			screen = 16 * obj.minor;
+	}
+	
+	return objs;
+}
+
+function writeObject(obj, rom)
+{
+	rom.set(
+	[	obj.n | ((obj.id & 0x30) << 1) | obj.minor
+	,	((obj.id & 0x0F) << 4) | (obj.major & 0x0F)
+	,	obj.extra
+	],
+	obj.addr);
+}
+
 function pogyo(stages, random, rom)
 {
 	// randomize hammer bro thrown item
