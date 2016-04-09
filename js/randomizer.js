@@ -1127,6 +1127,8 @@ function randomizeBackgrounds(random, rom)
 	}
 }
 
+var SWITCH_OBJECTS = [ null, 0x8B, 0x8C, 0x8D, 0x8A ];
+
 function randomizeZeroes(stages, random, rom)
 {
 	var zeroes = $.grep(stages, function(x){ return x.exits == 0; }).shuffle(random);
@@ -1204,6 +1206,35 @@ function randomizeZeroes(stages, random, rom)
 			rom.set([y & 0xFF, ((y >> 8) & 0x01)],                       STAR_TO_Y + 2*stage.copyfrom.rwarp);
 			rom.set([y & 0xFF, ((y >> 8) & 0x01)],                       STAR_TO_Y + 2*stage.copyfrom.rwarp);
 		}
+	}
+	
+	// swap switch palace colors around
+	var newswitch = [1,2,3,4].shuffle(random);
+	for (var i = 0; i < switches.length; ++i)
+	{
+		var stage = switches[i];
+		for (var j = 0; j < stage.sublevels.length; ++j)
+		{
+			var start = LAYER1_OFFSET + 3 * stage.sublevels[j];
+			var snes = getPointer(start, 3, rom);
+			
+			var addr = snesAddressToOffset(snes) + 5;
+			for (;; addr += 3)
+			{
+				// 0xFF sentinel represents end of level data
+				if (rom[addr] === 0xFF) break;
+				
+				// pattern looks like the start of the screen exits list
+				if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+				
+				// get object id, modify switches
+				if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] == SWITCH_OBJECTS[stage.palace])
+					rom[addr+2] = SWITCH_OBJECTS[newswitch[i]];
+			}
+		}
+		
+		// fix the tile color as well
+		stage.palace = newswitch[i];
 	}
 }
 
