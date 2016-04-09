@@ -1288,6 +1288,122 @@ function writeObject(obj, rom)
 	obj.addr);
 }
 
+var SWITCH_REPLACEMENT_SPRITES =
+[
+	{ id: 0x09, sp4: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
+	{ id: 0x1C, sp4: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
+	{ id: 0x0D, sp4: 0x02, water: 0, tide: 0, name: 'Bob-omb', pos: [[32, 23]], },
+	{ id: 0x13, sp4: 0x02, water: 0, tide: 0, name: 'Spiny', pos: [[32, 23]], },
+	{ id: 0x1B, sp4: 0x04, water: 0, tide: 0, name: 'Football', pos: [[32, 23]], },
+	{ id: 0x1D, sp4: 0x02, water: 0, tide: 0, name: 'Bouncing Fire', pos: [[32, 23], [22, 23], [12, 23]], },
+	{ id: 0x1F, sp4: 0x03, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
+	{ id: 0x26, sp4: 0x03, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
+	{ id: 0x27, sp4: 0x03, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
+	{ id: 0x28, sp4: 0x11, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
+	{ id: 0x37, sp4: 0x11, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
+	{ id: 0x3A, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
+	{ id: 0x3B, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
+	{ id: 0x3D, sp4: 0x06, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 22], [39, 20]], },
+	{ id: 0x3F, sp4: 0x02, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x40, sp4: 0x02, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x4B, sp4: 0x02, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
+	{ id: 0x4D, sp4: 0x09, water: 0, tide: 0, name: 'Ground Mole', pos: [[24, 23], [28, 23], [32, 23], [36, 23]], },
+//	{ id: 0x4E, sp4: 0x09, water: 0, tide: 0, name: 'Wall Mole', pos: [[24, 25], [28, 25], [32, 25], [36, 25]], },
+	{ id: 0x51, sp4: 0x0E, water: 0, tide: 0, name: 'Ninji', pos: [[34, 23], [35, 23], [36, 23], [37, 23]], },
+//	{ id: 0x52, sp4: 0x11, water: 0, tide: 0, name: 'Moving Hole', pos: [[12, 24], [12, 24], [24, 24]], },
+	{ id: 0x6E, sp4: 0x23, water: 0, tide: 0, name: 'Dino Rhino (Big)', pos: [[28, 22], [36, 22]], },
+	{ id: 0x6F, sp4: 0x23, water: 0, tide: 0, name: 'Dino Torch (Small)', pos: [[37, 23], [34, 23], [31, 23]], },
+	{ id: 0x70, sp4: 0x09, water: 0, tide: 0, name: 'Pokey', pos: [[37, 19], [35, 19]], },
+	{ id: 0x71, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Red)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x72, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Yellow)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x73, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Feather)', pos: [[32, 23], [30, 23], [30, 23], [31, 23]], },
+	{ id: 0x86, sp4: 0x02, water: 0, tide: 0, name: 'Wiggler', pos: [[29, 23], [27, 23], [25, 23]], },
+	{ id: 0x90, sp4: 0x11, water: 0, tide: 0, name: 'Green Gas Bubble', pos: [[35, 18]], },
+	{ id: 0x99, sp4: 0x0E, water: 0, tide: 0, name: 'Volcano Lotus', pos: [[36, 23], [37, 23]], },
+	{ id: 0x9E, sp4: 0x03, water: 0, tide: 0, name: 'Ball n Chain', pos: [[32, 19]], },
+	{ id: 0x9F, sp4: 0x20, water: 0, tide: 0, name: 'Banzai Bill', pos: [[38, 19], [41, 19]], },
+	{ id: 0xA4, sp4: 0x05, water: 0, tide: 1, name: 'Floating Spike Ball', pos: [[36, 23], [35, 23]], },
+	{ id: 0xA8, sp4: 0x04, water: 0, tide: 0, name: 'Blargg', pos: [[33, 24], [31, 24]], },
+	{ id: 0xAA, sp4: 0x03, water: 0, tide: 0, name: 'Fishbone', pos: [[30, 21], [30, 22], [30, 23]], },
+	{ id: 0xAB, sp4: 0x20, water: 0, tide: 0, name: 'Rex', pos: [[27, 22], [29, 22], [37, 22]], },
+	{ id: 0xB0, sp4: 0x11, water: 0, tide: 0, name: 'Buddy Boo Line', pos: [[31, 21]], },
+	{ id: 0xB2, sp4: 0x03, water: 0, tide: 0, name: 'Falling Spike', pos: [[33, 14], [35, 14], [37, 14]], },
+	{ id: 0xBB, sp4: 0x03, water: 0, tide: 0, name: 'Moving Grey Block', pos: [[14, 24], [30, 24]], }, // SPECIAL
+	{ id: 0xBE, sp4: 0x04, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
+	{ id: 0xBF, sp4: 0x20, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
+	{ id: 0xC3, sp4: 0x06, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
+	{ id: 0xC9, sp4: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[35, 22], [35, 23]], },
+	{ id: 0xCA, sp4: 0x06, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 21]], },
+	{ id: 0xCB, sp4: 0x11, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
+	{ id: 0xCF, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
+	{ id: 0xD0, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
+	{ id: 0xD3, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
+	{ id: 0xD4, sp4: 0x02, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
+	{ id: 0xD5, sp4: 0x05, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
+	{ id: 0xD6, sp4: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xD7, sp4: 0x05, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xE1, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ceiling', pos: [[1, 0]], },
+	{ id: 0xE5, sp4: 0x11, water: 0, tide: 0, name: 'Boo Cloud (SGS room2)', pos: [[1, 0]], },
+	{ id: 0xE2, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CCW', pos: [[26, 20], [10, 20], [39, 21]], },
+	{ id: 0xE3, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CW', pos: [[26, 20], [10, 20], [39, 21]], },
+];
+
+function randomizeSwitchRooms(stages, random, rom)
+{
+	var switches = $.grep(stages, function(x){ return x.palace; });
+	
+	var sp4 = random.from($.grep(SWITCH_REPLACEMENT_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
+	var candidates = $.grep(SWITCH_REPLACEMENT_SPRITES, function(x){ return [null, sp4].contains(x.sp4); });
+	console.log(sp4, $.map(candidates, function(x){ return x.name; }));
+	
+	rom[0x028F2] = sp4;
+	for (var i = 0; i < switches.length; ++i)
+	{
+		var id = switches[i].sublevels[1];
+		var sprites = getSpritesBySublevel(id, rom);
+		if (sprites.length !== 1) continue;
+		
+		var oldsprite = sprites[0];
+		var newsprite = random.from(candidates);
+		var pos = random.from(newsprite.pos);
+		
+		oldsprite.screen = Math.floor(pos[0] / 16);
+		oldsprite.major = pos[0] % 16;
+		oldsprite.minor = pos[1];
+		
+		oldsprite.spriteid = newsprite.id;
+		updateSprite(oldsprite, rom);
+		
+		// setup water (using the hijack found in randomizeFlags)
+		rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
+		
+		// setup tide if needed
+		var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
+		if (newsprite.tide)
+		{
+			// add layer 3 priority to make tide appear over the ground
+			rom[addr+2] = (rom[addr+2] & 0x7F) | 0x80;
+			
+			// set the tide object to (01 = low tide)
+			rom[HEADER2_OFFSET+id] = (rom[HEADER2_OFFSET+id] & 0x3F) | 0x40;
+		}
+		
+		// special case handling
+		switch (newsprite.id)
+		{
+			case 0xBB: // Moving Grey Block
+				var objlist = parseObjectList(addr+5, rom);
+				for (var j = 0; j < objlist.length; ++j)
+					if (objlist[j].id == 0x3D && objlist[j].major == pos[0]-14)
+					{
+						objlist[j].extra -= 7;
+						writeObject(objlist[j], rom);
+					}
+				break;
+		}
+	}
+}
+
 function pogyo(stages, random, rom)
 {
 	// randomize hammer bro thrown item
@@ -1306,6 +1422,9 @@ function pogyo(stages, random, rom)
 	// randomize ball and chain speed
 	rom[0x15634] =         random.nextIntRange(1,6);
 	rom[0x1563A] = 0x100 - random.nextIntRange(1,6);
+	
+	// randomize sprite in switch room
+	randomizeSwitchRooms(stages, random, rom);
 
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);
