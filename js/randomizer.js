@@ -2069,7 +2069,7 @@ function getSpritesBySublevel(id, rom)
 		s.screen =  (rom[addr+1]       & 0xF) | ((rom[addr] & 0x2) << 3);
 		s.minor  = ((rom[addr  ] >> 4) & 0xF) | ((rom[addr] & 0x1) << 4);
 		s.major  = ((rom[addr+1] >> 4) & 0xF);
-		s.extend = ((rom[addr  ] >> 2) * 0x3);
+		s.extend = ((rom[addr  ] >> 2) & 0x3);
 		
 		// stage "x" value (assuming horizontal level)
 		s._major = s.screen * 16 + s.major;
