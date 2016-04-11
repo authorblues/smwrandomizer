@@ -1,3 +1,6 @@
+var POWERUP_FIRE = { tweaker: 0x10 };
+var POWERUP_CAPE = { tweaker: 0x20 };
+
 function randomizePowerups(random, rom, stages)
 {
 	var powerups = [ 0x74, 0x75, 0x77 ];
@@ -60,6 +63,17 @@ function randomizePowerups(random, rom, stages)
 	if (random.flipCoin(0.5)) addHammerSuit(rom);
 }
 
+function powerupCanKill(id, powerup, rom)
+{
+	// ensure that the tweaker bit for the sprite is off
+	// (bit represents "sprite cannot be killed")
+	rom[0x3F4C7+id] &= 0xFF ^ 0x02;
+	
+	// ensure that the tweaker bit for the powerup is off
+	// (bit represents "sprite immune to powerup")
+	rom[0x3F3FE+id] &= 0xFF ^ powerup.tweaker;
+}
+
 function addHammerSuit(rom)
 {
 	// initial Y speed
@@ -108,6 +122,11 @@ function addHammerSuit(rom)
 	// make mario/luigi color palette grey
 	rom.set([0x84, 0x10, 0x8C, 0x31, 0x10, 0x42], 0x032F0+8);
 	rom.set([0x84, 0x10, 0x8C, 0x31, 0x10, 0x42], 0x03304+8);
+	
+	// sprites to make killable via hammer
+	var sprites = [ 0x26, 0x27, 0xAE, 0xC3, 0xAA, 0x44, ];
+	for (var i = 0; i < sprites.length; ++i)
+		powerupCanKill(sprites[i], POWERUP_FIRE, rom);
 }
 
 function removeCape(rom, stages)
