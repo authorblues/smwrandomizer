@@ -912,7 +912,7 @@ var VALID_FGP_BY_TILESET =
 
 var VALID_BGP_BY_LAYER2 = 
 {
-	0xFFDD44: [0, 1, 2, 3, 4, 5, 6, 7], // Clouds
+	0xFFDD44: [0, 1, 2, 3,    5, 6, 7], // Clouds
 	0xFFEC82: [0,    2, 3,    5, 6, 7], // Bushes
 	0xFFEF80: [   1,    3,    5, 6, 7], // Ghost House
 	0xFFDE54: [0, 1, 2, 3,    5, 6, 7], // Small Hills
@@ -934,7 +934,7 @@ var VALID_BGP_BY_LAYER2 =
 
 var VALID_BGC_BY_LAYER2 = 
 {
-	0xFFDD44: [0, 1, 2, 3,    5, 6, 7], // Clouds
+	0xFFDD44: [0, 1, 2, 3, 4, 5, 6, 7], // Clouds
 	0xFFEC82: [0, 1, 2, 3, 4, 5, 6, 7], // Bushes
 	0xFFEF80: [         3, 4,        ], // Ghost House
 	0xFFDE54: [0, 1, 2, 3, 4, 5, 6, 7], // Small Hills
@@ -1209,6 +1209,10 @@ function randomizeZeroes(stages, random, rom)
 	}
 	
 	// swap switch palace colors around
+	var c2t = {}, transmap = {};
+	for (var i = 0; i < switches.length; ++i)
+		c2t[switches[i].palace] = switches[i].translevel;
+	
 	var newswitch = [1,2,3,4].shuffle(random);
 	for (var i = 0; i < switches.length; ++i)
 	{
@@ -1235,7 +1239,11 @@ function randomizeZeroes(stages, random, rom)
 		
 		// fix the tile color as well
 		stage.palace = newswitch[i];
+		transmap[c2t[stage.palace]] = stage.translevel;
 	}
+	
+	// correct the message box / cutscene data
+	_fixMessageBoxes(transmap, rom);
 }
 
 /*
@@ -1498,7 +1506,11 @@ function fixMessageBoxes(stages, rom)
 	// mapping for where translevels moved
 	for (var i = 0; i < stages.length; ++i)
 		transmap[stages[i].copyfrom.translevel] = stages[i].translevel;
-	
+	_fixMessageBoxes(transmap, rom);
+}
+
+function _fixMessageBoxes(transmap, rom)
+{
 	// 23 bytes in table at 0x2A590
 	for (var i = 0; i < 23; ++i)
 	{
