@@ -391,6 +391,9 @@ Number.prototype.toHex = function(n, p)
 	return (p != null ? p : '') + hex;
 }
 
+Number.prototype.toPrintHex = function(n)
+{ return '0x' + this.toHex(n).toUpperCase(); }
+
 function ROMLogger(rom)
 { this.rom = rom; }
 
@@ -444,6 +447,7 @@ var TESTERS =
 	'dodechehedron': 'dodechehedron',
 	'GDF': 'greendeathflavor',
 	'PangaeaPanga': 'pangaeapanga',
+	'linkdeadx2': 'linkdeadx2',
 }
 
 $('#tester-list').html(
