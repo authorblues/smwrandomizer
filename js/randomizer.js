@@ -1288,7 +1288,7 @@ function writeObject(obj, rom)
 	obj.addr);
 }
 
-var SWITCH_REPLACEMENT_SPRITES =
+var SP4_SPRITES =
 [
 	{ id: 0x09, sp4: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
 	{ id: 0x1C, sp4: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
@@ -1299,11 +1299,11 @@ var SWITCH_REPLACEMENT_SPRITES =
 	{ id: 0x1F, sp4: 0x03, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
 	{ id: 0x26, sp4: 0x03, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
 	{ id: 0x27, sp4: 0x03, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
-	{ id: 0x28, sp4: 0x11, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
+//	{ id: 0x28, sp4: 0x11, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
 	{ id: 0x37, sp4: 0x11, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
 	{ id: 0x3A, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
 	{ id: 0x3B, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
-	{ id: 0x3D, sp4: 0x06, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 22], [39, 20]], },
+	{ id: 0x3D, sp4: 0x06, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 23], [39, 21]], },
 	{ id: 0x3F, sp4: 0x02, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
 	{ id: 0x40, sp4: 0x02, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
 	{ id: 0x4B, sp4: 0x02, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
@@ -1338,7 +1338,7 @@ var SWITCH_REPLACEMENT_SPRITES =
 	{ id: 0xCF, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
 	{ id: 0xD0, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
 	{ id: 0xD3, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
-	{ id: 0xD4, sp4: 0x02, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
+//	{ id: 0xD4, sp4: 0x02, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
 	{ id: 0xD5, sp4: 0x05, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
 	{ id: 0xD6, sp4: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
 	{ id: 0xD7, sp4: 0x05, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
@@ -1352,9 +1352,8 @@ function randomizeSwitchRooms(stages, random, rom)
 {
 	var switches = $.grep(stages, function(x){ return x.palace; });
 	
-	var sp4 = random.from($.grep(SWITCH_REPLACEMENT_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
-	var candidates = $.grep(SWITCH_REPLACEMENT_SPRITES, function(x){ return [null, sp4].contains(x.sp4); });
-	console.log(sp4, $.map(candidates, function(x){ return x.name; }));
+	var sp4 = random.from($.grep(SP4_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
+	var candidates = $.grep(SP4_SPRITES, function(x){ return [null, sp4].contains(x.sp4); });
 	
 	rom[0x028F2] = sp4;
 	for (var i = 0; i < switches.length; ++i)
@@ -1374,8 +1373,19 @@ function randomizeSwitchRooms(stages, random, rom)
 		oldsprite.spriteid = newsprite.id;
 		updateSprite(oldsprite, rom);
 		
-		// setup water (using the hijack found in randomizeFlags)
-		rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
+		if (newsprite.water)
+		{
+			// setup water (using the hijack found in randomizeFlags)
+			rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
+			
+			// get address of sprite table and setup buoyancy default
+			var addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+			var buoyancy = getLevelMode(id, rom).layer2inter ? 0x80 : 0x40;
+			
+			// if buoyancy was already set, just leave it as it was
+			if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
+			rom[addr] = (rom[addr] & 0x3F) | buoyancy;
+		}
 		
 		// setup tide if needed
 		var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
