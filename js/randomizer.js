@@ -1449,7 +1449,7 @@ function pogyo(stages, random, rom)
 	changeSound(SOUND_EFFECT_TRIGGER.OVERWORLD_MOVE, SOUND_EFFECT.YOSHI_OW, rom);
 	
 	// https://twitter.com/Dotsarecool/status/714639606696771589
-	if (random.flipCoin(0.1)) detuneMusic(rom);
+	detuneMusic(rom, random);
 }
 
 function getSecondaryExitTarget(xid, rom)

@@ -71,10 +71,38 @@ function changeSound(trigger, sound, rom)
 	rom[offset] = sound.bank;
 }
 
-function detuneMusic(rom)
+/* vibrato values:
+   - delay (00 for always vibrato)
+   - frequency (01 = slow, 40 = fast)
+   - amplitude (00 = none, FF = ~2 octaves)
+*/
+var VIBRATO_PRESETS =
+[
+	[0x00, 0x14, 0xD0], // "chinese smw" - dotsarecool
+	[0x00, 0x01, 0xF8], // "touch fuzzy get dizzy" - dotsarecool
+	null,
+];
+
+function detuneMusic(rom, random)
 {
+	// usually do nothing
+	if (random.flipCoin(0.93)) return;
+	
+	var v = random.from(VIBRATO_PRESETS);
+	if (v && v.length == 3)
+	{
+		rom.set(
+		[
+			0x3F, 0x5C, 0x12, 0xE8, v[0], 0xD5, 0x40, 0x03, 
+			0x3F, 0x5E, 0x12, 0xE8, v[1], 0xD5, 0x31, 0x03, 
+			0x00, 0x3F, 0x5E, 0x12, 0xE8, v[2], 0xD4, 0xA1, 
+			0x6F, 0x3F, 0x5C, 0x12, 0xE8, 0x00, 0xD5, 0x41, 
+			0x03, 0x6F
+		],
+		0x708C5);
+	}
 	// copy music timer to tuning byte
-	rom.set([0x84, 0x45, 0x00], 0x700EF);
+	else rom.set([0x84, 0x45, 0x00], 0x700EF);
 }
 
 // if you use this feature, i hope you run into the road and get hit by a car going just
