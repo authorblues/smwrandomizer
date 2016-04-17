@@ -1298,62 +1298,62 @@ function writeObject(obj, rom)
 
 var SP4_SPRITES =
 [
-	{ id: 0x09, sp4: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
-	{ id: 0x1C, sp4: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
-	{ id: 0x0D, sp4: 0x02, water: 0, tide: 0, name: 'Bob-omb', pos: [[32, 23]], },
-	{ id: 0x13, sp4: 0x02, water: 0, tide: 0, name: 'Spiny', pos: [[32, 23]], },
-	{ id: 0x1B, sp4: 0x04, water: 0, tide: 0, name: 'Football', pos: [[32, 23]], },
-	{ id: 0x1D, sp4: 0x02, water: 0, tide: 0, name: 'Bouncing Fire', pos: [[32, 23], [22, 23], [12, 23]], },
-	{ id: 0x1F, sp4: 0x03, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
-	{ id: 0x26, sp4: 0x03, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
-	{ id: 0x27, sp4: 0x03, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
-//	{ id: 0x28, sp4: 0x11, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
-	{ id: 0x37, sp4: 0x11, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
-	{ id: 0x3A, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
-	{ id: 0x3B, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
-	{ id: 0x3D, sp4: 0x06, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 23], [39, 21]], },
-	{ id: 0x3F, sp4: 0x02, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
-	{ id: 0x40, sp4: 0x02, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
-	{ id: 0x4B, sp4: 0x02, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
-	{ id: 0x4D, sp4: 0x09, water: 0, tide: 0, name: 'Ground Mole', pos: [[24, 23], [28, 23], [32, 23], [36, 23]], },
-//	{ id: 0x4E, sp4: 0x09, water: 0, tide: 0, name: 'Wall Mole', pos: [[24, 25], [28, 25], [32, 25], [36, 25]], },
-	{ id: 0x51, sp4: 0x0E, water: 0, tide: 0, name: 'Ninji', pos: [[34, 23], [35, 23], [36, 23], [37, 23]], },
-//	{ id: 0x52, sp4: 0x11, water: 0, tide: 0, name: 'Moving Hole', pos: [[12, 24], [12, 24], [24, 24]], },
-	{ id: 0x6E, sp4: 0x23, water: 0, tide: 0, name: 'Dino Rhino (Big)', pos: [[28, 22], [36, 22]], },
-	{ id: 0x6F, sp4: 0x23, water: 0, tide: 0, name: 'Dino Torch (Small)', pos: [[37, 23], [34, 23], [31, 23]], },
-	{ id: 0x70, sp4: 0x09, water: 0, tide: 0, name: 'Pokey', pos: [[37, 19], [35, 19]], },
-	{ id: 0x71, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Red)', pos: [[34, 18], [24, 18]], },
-	{ id: 0x72, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Yellow)', pos: [[34, 18], [24, 18]], },
-	{ id: 0x73, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Feather)', pos: [[32, 23], [30, 23], [30, 23], [31, 23]], },
-	{ id: 0x86, sp4: 0x02, water: 0, tide: 0, name: 'Wiggler', pos: [[29, 23], [27, 23], [25, 23]], },
-	{ id: 0x90, sp4: 0x11, water: 0, tide: 0, name: 'Green Gas Bubble', pos: [[35, 18]], },
-	{ id: 0x99, sp4: 0x0E, water: 0, tide: 0, name: 'Volcano Lotus', pos: [[36, 23], [37, 23]], },
-	{ id: 0x9E, sp4: 0x03, water: 0, tide: 0, name: 'Ball n Chain', pos: [[32, 19]], },
-	{ id: 0x9F, sp4: 0x20, water: 0, tide: 0, name: 'Banzai Bill', pos: [[38, 19], [41, 19]], },
-	{ id: 0xA4, sp4: 0x05, water: 0, tide: 1, name: 'Floating Spike Ball', pos: [[36, 23], [35, 23]], },
-	{ id: 0xA8, sp4: 0x04, water: 0, tide: 0, name: 'Blargg', pos: [[33, 24], [31, 24]], },
-	{ id: 0xAA, sp4: 0x03, water: 0, tide: 0, name: 'Fishbone', pos: [[30, 21], [30, 22], [30, 23]], },
-	{ id: 0xAB, sp4: 0x20, water: 0, tide: 0, name: 'Rex', pos: [[27, 22], [29, 22], [37, 22]], },
-	{ id: 0xB0, sp4: 0x11, water: 0, tide: 0, name: 'Buddy Boo Line', pos: [[31, 21]], },
-	{ id: 0xB2, sp4: 0x03, water: 0, tide: 0, name: 'Falling Spike', pos: [[33, 14], [35, 14], [37, 14]], },
-	{ id: 0xBB, sp4: 0x03, water: 0, tide: 0, name: 'Moving Grey Block', pos: [[14, 24], [30, 24]], }, // SPECIAL
-	{ id: 0xBE, sp4: 0x04, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
-	{ id: 0xBF, sp4: 0x20, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
-	{ id: 0xC3, sp4: 0x06, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
-	{ id: 0xC9, sp4: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[35, 22], [35, 23]], },
-	{ id: 0xCA, sp4: 0x06, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 21]], },
-	{ id: 0xCB, sp4: 0x11, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
-	{ id: 0xCF, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
-	{ id: 0xD0, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
-	{ id: 0xD3, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
-//	{ id: 0xD4, sp4: 0x02, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
-	{ id: 0xD5, sp4: 0x05, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
-	{ id: 0xD6, sp4: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
-	{ id: 0xD7, sp4: 0x05, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
-	{ id: 0xE1, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ceiling', pos: [[1, 0]], },
-	{ id: 0xE5, sp4: 0x11, water: 0, tide: 0, name: 'Boo Cloud (SGS room2)', pos: [[1, 0]], },
-	{ id: 0xE2, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CCW', pos: [[26, 20], [10, 20], [39, 21]], },
-	{ id: 0xE3, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CW', pos: [[26, 20], [10, 20], [39, 21]], },
+	{ id: 0x09, sp4: null, mem: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
+	{ id: 0x1C, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
+	{ id: 0x0D, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bob-omb', pos: [[32, 23]], },
+	{ id: 0x13, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Spiny', pos: [[32, 23]], },
+	{ id: 0x1B, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Football', pos: [[32, 23]], },
+	{ id: 0x1D, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bouncing Fire', pos: [[32, 23], [22, 23], [12, 23]], },
+	{ id: 0x1F, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
+	{ id: 0x26, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
+	{ id: 0x27, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
+	{ id: 0x28, sp4: 0x11, mem: 0x09, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
+	{ id: 0x37, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
+	{ id: 0x3A, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
+	{ id: 0x3B, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
+	{ id: 0x3D, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 23], [39, 21]], },
+	{ id: 0x3F, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x40, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x4B, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
+	{ id: 0x4D, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Ground Mole', pos: [[24, 23], [28, 23], [32, 23], [36, 23]], },
+//	{ id: 0x4E, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Wall Mole', pos: [[24, 25], [28, 25], [32, 25], [36, 25]], },
+	{ id: 0x51, sp4: 0x0E, mem: null, water: 0, tide: 0, name: 'Ninji', pos: [[34, 23], [35, 23], [36, 23], [37, 23]], },
+//	{ id: 0x52, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Moving Hole', pos: [[12, 24], [12, 24], [24, 24]], },
+	{ id: 0x6E, sp4: 0x23, mem: null, water: 0, tide: 0, name: 'Dino Rhino (Big)', pos: [[28, 22], [36, 22]], },
+	{ id: 0x6F, sp4: 0x23, mem: null, water: 0, tide: 0, name: 'Dino Torch (Small)', pos: [[37, 23], [34, 23], [31, 23]], },
+	{ id: 0x70, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Pokey', pos: [[37, 19], [35, 19]], },
+	{ id: 0x71, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Red)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x72, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Yellow)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x73, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Feather)', pos: [[32, 23], [30, 23], [30, 23], [31, 23]], },
+	{ id: 0x86, sp4: 0x02, mem: 0x0A, water: 0, tide: 0, name: 'Wiggler', pos: [[29, 23], [27, 23], [25, 23]], },
+	{ id: 0x90, sp4: 0x11, mem: 0x0D, water: 0, tide: 0, name: 'Green Gas Bubble', pos: [[35, 18]], },
+	{ id: 0x99, sp4: 0x0E, mem: null, water: 0, tide: 0, name: 'Volcano Lotus', pos: [[36, 23], [37, 23]], },
+	{ id: 0x9E, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Ball n Chain', pos: [[32, 19]], },
+	{ id: 0x9F, sp4: 0x20, mem: 0x04, water: 0, tide: 0, name: 'Banzai Bill', pos: [[38, 19], [41, 19]], },
+	{ id: 0xA4, sp4: 0x05, mem: null, water: 0, tide: 1, name: 'Floating Spike Ball', pos: [[36, 23], [35, 23]], },
+	{ id: 0xA8, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Blargg', pos: [[33, 24], [31, 24]], },
+	{ id: 0xAA, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Fishbone', pos: [[30, 21], [30, 22], [30, 23]], },
+	{ id: 0xAB, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Rex', pos: [[27, 22], [29, 22], [37, 22]], },
+	{ id: 0xB0, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Buddy Boo Line', pos: [[31, 21]], },
+	{ id: 0xB2, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Falling Spike', pos: [[33, 14], [35, 14], [37, 14]], },
+	{ id: 0xBB, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Moving Grey Block', pos: [[14, 24], [30, 24]], }, // SPECIAL
+	{ id: 0xBE, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
+	{ id: 0xBF, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
+	{ id: 0xC3, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
+	{ id: 0xC9, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[35, 22], [35, 23]], },
+	{ id: 0xCA, sp4: 0x06, mem: null, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 21]], },
+	{ id: 0xCB, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
+	{ id: 0xCF, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
+	{ id: 0xD0, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
+	{ id: 0xD3, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
+//	{ id: 0xD4, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
+	{ id: 0xD5, sp4: 0x05, mem: null, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
+	{ id: 0xD6, sp4: null, mem: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xD7, sp4: 0x05, mem: null, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xE1, sp4: 0x11, mem: 0x07, water: 0, tide: 0, name: 'Boo Ceiling', pos: [[1, 0]], },
+	{ id: 0xE5, sp4: 0x11, mem: 0x07, water: 0, tide: 0, name: 'Boo Cloud (SGS room2)', pos: [[1, 0]], },
+	{ id: 0xE2, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo Ring CCW', pos: [[26, 20], [10, 20], [39, 21]], },
+	{ id: 0xE3, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo Ring CW', pos: [[26, 20], [10, 20], [39, 21]], },
 ];
 
 function randomizeSwitchRooms(stages, random, rom)
@@ -1381,19 +1381,25 @@ function randomizeSwitchRooms(stages, random, rom)
 		oldsprite.spriteid = newsprite.id;
 		updateSprite(oldsprite, rom);
 		
+		// address of the sprite header
+		var addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+		
+		// if the new sprite requires water
 		if (newsprite.water)
 		{
 			// setup water (using the hijack found in randomizeFlags)
 			rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
 			
 			// get address of sprite table and setup buoyancy default
-			var addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
 			var buoyancy = getLevelMode(id, rom).layer2inter ? 0x80 : 0x40;
 			
 			// if buoyancy was already set, just leave it as it was
 			if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
 			rom[addr] = (rom[addr] & 0x3F) | buoyancy;
 		}
+		
+		// if the new sprite needs a different sprite memory setting
+		if (newsprite.mem !== null) rom[addr] = (rom[addr] & 0xC0) | newsprite.mem;
 		
 		// setup tide if needed
 		var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
