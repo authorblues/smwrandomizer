@@ -10,18 +10,19 @@ function doRandomize(buffer, seed)
 	{
 		var result = randomizeROM(buffer, seed);
 		var url = BASEURL + '#!/' + result.seed + '/' + result.preset;
-		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' - ' + url);
+		var category = result.category || "No Starworld";
+		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' ' + category + ' - ' + url);
 		saveAs(new Blob([result.buffer], {type: "octet/stream"}), 'smw-' + result.seed + result.type);
 	}
 	catch (e)
 	{
 		$('#modal-error-win #modal-error-text').text(e.name + ': ' + e.message);
 		$('#modal-error-win #modal-error-list').empty();
-		
+
 		if (e instanceof ValidationError)
 			for (var i = 0; i < e.errors.length; ++i)
 				$('#modal-error-win #modal-error-list').append($('<li>').text(e.errors[i]).addClass('mono'));
-		
+
 		$('#modal-error-win').modal('show');
 		throw e;
 	}
@@ -30,16 +31,16 @@ function doRandomize(buffer, seed)
 $('#generate-randomized-rom').click(function(e)
 {
 	if (!ORIGINAL_ROM) return;
-	
+
 	// maybe this will be a NaN?
 	var seed = parseInt($('#custom-seed').val(), 16);
-	
+
 	if (ORIGINAL_ROM === true)
 	{
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', 'smw.sfc', true);
 		xhr.responseType = 'arraybuffer';
-		
+
 		xhr.onload = function(e){ doRandomize(xhr.response, seed); }
 		xhr.send();
 	}
@@ -55,11 +56,11 @@ $('#generate-param-rom').click(function(e)
 {
 	// maybe this will be a NaN?
 	var seed = parseInt($('#custom-seed').val(), 16);
-	
+
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', 'smw.sfc', true);
 	xhr.responseType = 'arraybuffer';
-	
+
 	xhr.onload = function(e){ doRandomize(xhr.response, seed); }
 	xhr.send();
 });
@@ -72,7 +73,7 @@ function _validateRandomizer(buffer, maxiter, iter, errors)
 		new Uint8Array(copy).set(new Uint8Array(buffer));
 		try { randomizeROM(copy); } catch (e) { ++errors; }
 	}
-	
+
 	if (iter) setTimeout(_validateRandomizer.bind(this, buffer, maxiter, iter, errors), 100);
 	else console.log('Validation complete: ' + errors + ' errors (' + Math.round(errors*100/maxiter) + '%)'); // FIXME
 }
@@ -82,9 +83,9 @@ function validateRandomizer(iter)
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', 'smw.sfc', true);
 	xhr.responseType = 'arraybuffer';
-	
+
 	iter = iter || 10000;
-	xhr.onload = function(e) 
+	xhr.onload = function(e)
 	{
 		console.log('Starting ' + iter + ' iterations of the randomizer...');
 		_validateRandomizer(xhr.response, iter, iter, 0);
@@ -123,7 +124,7 @@ if (!__SMWC)
 		checkRomResult(true, true);
 		$('#select-original-rom').prop('disabled', true);
 	});
-	
+
 	// i don't care if people find these, but they shouldn't be readily accessible
 	if (window.location.href.indexOf('localhost') != -1)
 		$('#cheatmenu').removeClass('hidden');
@@ -143,9 +144,9 @@ function checkRomResult(valid, file)
 	$('#original-rom-result').removeClass('glyphicon-question-sign');
 	$('#original-rom-result').toggleClass('glyphicon-ok', valid);
 	$('#original-rom-result').toggleClass('glyphicon-remove', !valid);
-	
+
 	$('#generate-randomized-rom').prop('disabled', !valid);
-	
+
 	if (valid) ORIGINAL_ROM = file;
 }
 
@@ -153,10 +154,10 @@ function checkHash()
 {
 	if (!location.hash || location.hash.indexOf("#!/") !== 0) return;
 	var parts = location.hash.split('/').slice(1);
-	
+
 	var seed = cleanCustomSeed(parts[0]);
 	if (parts.length > 0) $('#custom-seed').val(seed);
-	
+
 	var given = parts.length > 1 ? parts[1] : '0';
 	if (given[0] == 'x')
 	{
@@ -165,7 +166,7 @@ function checkHash()
 	}
 	else
 	{ $('#preset').val(+parts[1]); updatePreset(); }
-	
+
 	if (parts.length > 1)
 	{
 		$('#modal-download-win .modal-body .seed').text(seed);
@@ -202,7 +203,7 @@ function compressRLE2(src)
 		// determine length of potential RLE segment
 		for (var j = 1; src[i] == src[i+j]; ++j);
 		var len = j;
-		
+
 		// if this is a worthwhile RLE segment
 		if (len > (dcopy.length ? 3 : 1))
 		{
@@ -214,7 +215,7 @@ function compressRLE2(src)
 					compress.push(dcopy[k]);
 				dcopy = [];
 			}
-			
+
 			// add the RLE segment
 			compress.push(0x80 | (len - 1));
 			compress.push(src[i]);
@@ -232,11 +233,11 @@ function compressRLE2(src)
 					compress.push(dcopy[k]);
 				dcopy = [];
 			}
-			
+
 			while (j--) dcopy.push(src[i]);
 		}
 	}
-	
+
 	// flush the remaining direct copy values
 	if (dcopy.length)
 	{
@@ -244,7 +245,7 @@ function compressRLE2(src)
 		for (var k = 0; k < dcopy.length; ++k)
 			compress.push(dcopy[k]);
 	}
-	
+
 	// wrap in uint8 array
 	return new Uint8Array(compress);
 }
@@ -256,7 +257,7 @@ function decompressRLE2(src)
 	{
 		// get length field from header
 		var len = (src[i] & 0x7F) + 1;
-		
+
 		// RLE bit is set
 		if (0x80 & src[i])
 		{
@@ -273,7 +274,7 @@ function decompressRLE2(src)
 				decompress.push(src[++i]);
 		}
 	}
-	
+
 	// wrap in uint8 array
 	return new Uint8Array(decompress);
 }
@@ -305,7 +306,7 @@ Uint8Array.prototype.writeBytes = function(b, addr, val)
 function bitsToHex(_arr)
 {
 	var arr = _arr.slice(0);
-	
+
 	var h = '', x, i;
 	while (arr.length)
 	{
@@ -314,7 +315,7 @@ function bitsToHex(_arr)
 			x |= (z[i] ? 1 : 0) << i;
 		h += x.toString(16);
 	}
-	
+
 	return h;
 }
 
@@ -417,7 +418,7 @@ $(document).ready(function()
 	// use RANDOMIZER if language is set to en_US
 	var language = window.navigator.userLanguage || window.navigator.language || "";
 	EN_US = (language.indexOf('US') != -1);
-	
+
 	if (!EN_US) document.title = document.title.replace('ize', 'ise');
 	$('[data-en_gb]').each(function()
 	{
@@ -448,6 +449,7 @@ var TESTERS =
 	'GDF': 'greendeathflavor',
 	'PangaeaPanga': 'pangaeapanga',
 	'linkdeadx2': 'linkdeadx2',
+	"Aetyate": "aetyate",
 }
 
 $('#tester-list').html(
