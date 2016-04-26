@@ -431,7 +431,7 @@ function performCopy(stage, rom)
 			// disable the event for the offscreen events table
 			if (stage.name != 'c1' && isPermanentTile(stage))
 				rom[OFFSCREEN_EVENT_NUMBERS+x] = 0xFF;
-			
+
 			// if this is the dp3 offscreen event and the tile is permanent,
 			// prevent the event from triggering (weird special case) (event x77 is unused)
 			if (stage.name == 'dp3' && isPermanentTile(stage)) rom[0x268EC] = 0x77;
@@ -899,6 +899,9 @@ function parseObjectList(addr, rom)
 		if (obj.n) screen += 16;
 		obj.major = screen + (rom[addr+1] & 0x0F);
 		obj.minor = rom[addr] & 0x1F;
+
+		obj.x = horiz ? obj.major : obj.minor;
+		obj.y = horiz ? obj.minor : obj.major;
 
 		obj.extra = rom[addr+2];
 		obj.extended = (obj.id === 0);
@@ -1717,6 +1720,8 @@ function getSpritesBySublevel(id, rom)
 	var addr = snesAddressToOffset(snes) + 1;
 	var sprites = [];
 
+	var horiz = getLevelMode(id, rom).horiz;
+
 	for (;; addr += 3)
 	{
 		// 0xFF sentinel represents end of level data
@@ -1730,6 +1735,9 @@ function getSpritesBySublevel(id, rom)
 		s.major  = ((rom[addr+1] >> 4) & 0xF);
 		s.extend = ((rom[addr  ] >> 2) & 0x3);
 
+		s.x = horiz ? s.major : s.minor;
+		s.y = horiz ? s.minor : s.major;
+
 		// stage "x" value (assuming horizontal level)
 		s._major = s.screen * 16 + s.major;
 
@@ -1740,8 +1748,12 @@ function getSpritesBySublevel(id, rom)
 	return sprites;
 }
 
-function updateSprite(s, rom)
+function updateSprite(s, rom, changes)
 {
+	changes = changes || {};
+	for (var k in changes) if (changes.hasOwnProperty(k))
+		s[k] = changes[k];
+
 	// update data values
 	s.data[0] = ((s.minor & 0x0F) << 4) | (s.extend << 2) | ((s.screen & 0x10) >> 3) | ((s.minor & 0x10) >> 4);
 	s.data[1] = ((s.major & 0x0F) << 4) | (s.screen & 0x0F);
@@ -1882,6 +1894,16 @@ function shuffleLevelNames(stages, random)
 
 	var ptrs = $.map(stages, function(x){ return x.data['nameptr']; }).shuffle(random);
 	for (var i = 0; i < ptrs.length; ++i) stages[i].data['nameptr'] = ptrs[i];
+}
+
+// x is number of frames (not guaranteed to be exact)
+function setYoshiSwallowTimer(x, rom)
+{
+	var z = 0;
+	while ((x >> z) > 0x100) ++z;
+
+	rom[0x0F1A5] = (1 << z) - 1;
+	rom[0x0F35C] = ((x >> z) - 1) & 0xFF;
 }
 
 function randomizeNoYoshi(stages, random, rom)
@@ -2060,7 +2082,7 @@ function randomizeYoshiWings(stages, random, rom)
 
 		// if wings are already present, remove them
 		var wings = findWings(rom, stages[i]);
-		if (wings) writeObject(wings.object, rom, {extra: 0x34});
+		if (wings) writeObject(wings.object, rom, {id: 0x00, extra: 0x34});
 		else
 		{
 			// otherwise, if wings are not, maybe add them
@@ -2068,7 +2090,7 @@ function randomizeYoshiWings(stages, random, rom)
 			if (candidateWings.length)
 			{
 				var candidate = random.from(candidateWings);
-				writeObject(candidate.object, rom, {extra: 0x35});
+				writeObject(candidate.object, rom, {id: 0x00, extra: 0x35});
 			}
 		}
 	}
@@ -2174,7 +2196,7 @@ function randomizeKeyLocations(stages, random, rom)
 	{
 		// stages that could potentially cause problems when moving the key
 		if (['dp2', 'vd1', 'ci2', 'bgh'].contains(stages[i].name)) continue;
-		
+
 		// 80% of the time, and if we find a key we can move...
 		if (random.flipCoin(0.8) && (key = findKey(stages[i], rom)))
 		{
@@ -2182,14 +2204,14 @@ function randomizeKeyLocations(stages, random, rom)
 			if (!candidates.length) continue;
 
 			// replace the key with a valid replacement
-			if (key.sprite) rom[key.sprite.addr+2] = random.from(KEY_REPLACEMENTS);
-			else if (key.block) rom[key.block.addr+2] = 0x34;
+			if (key.sprite) updateSprite(key.sprite, rom, {spriteid: random.from(KEY_REPLACEMENTS)});
+			else if (key.block) writeObject(key.block, rom, {id: 0x00, extra: 0x34});
 
 			// find a place to put the key
 			key = random.from(candidates);
 
-			if (key.sprite) rom[key.sprite.addr+2] = 0x80;
-			else if (key.block) rom[key.block.addr+2] = 0x35;
+			if (key.sprite) updateSprite(key.sprite, rom, {spriteid: 0x80});
+			else if (key.block) writeObject(key.block, rom, {id: 0x00, extra: 0x35});
 		}
 	}
 }
@@ -2281,7 +2303,7 @@ function randomizeFlags(random, rom)
 		var start = LAYER1_OFFSET + 3 * id;
 		var snes = getPointer(start, 3, rom);
 		var addr = snesAddressToOffset(snes);
-		
+
 		var numscreens = rom[addr] & 0x1F;
 		var entr = (rom[0x2F200+id] >> 3) & 0x7;
 		var tide = (rom[0x2F200+id] >> 6) & 0x3;
@@ -2553,7 +2575,7 @@ function remapScreenExits(stages, random, rom)
 		var world = null;
 		for (var k in wexits) if (wexits.hasOwnProperty(k))
 			if (xworld[k]) world = xworld[k];
-		
+
 		if (!world) worlds.push(world = { entr: {}, exit: {} });
 		world.entr[exits[i].from] = exits[i];
 
