@@ -24,8 +24,8 @@ function isSwitchPalace(stage, rom)
 
 function isSavePoint(stage)
 {
-	var SAVE_TILES = [ 'sp2', 'sp4', 'sp6', 'sp8', 'soda' ];
-	return stage.castle || stage.ghost || stage.palace || SAVE_TILES.contains(stage.name);
+	if (stage.castle || stage.ghost || stage.palace) return true;
+	return [ 'sp2', 'sp4', 'sp6', 'sp8', 'sgs' ].contains(stage.name);
 }
 
 function getStage(stages, name)
