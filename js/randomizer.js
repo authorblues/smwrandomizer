@@ -1495,6 +1495,37 @@ function getIncomingSecondaryExits(id, rom)
 	return exits;
 }
 
+function fixSecondaryExits(to, fm, rom)
+{
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var sec = getSecondaryExit(id, rom);
+		if (sec.target == fm)
+		{
+			sec.target = to;
+			if ((fm & 0x100) != (to & 0x100))
+			{
+				var oldsecid = sec.id;
+				deleteSecondaryExit(sec.id, rom);
+				sec.id = findOpenSecondaryExit(to & 0x100, rom);
+
+				for (var j = 0; j < 0x200; ++j)
+				{
+					var exits = getScreenExits(j, rom);
+					for (var k = 0; k < exits.length; ++k)
+						if (exits[k].target == oldsecid)
+						{
+							exits[k].target = sec.id;
+							writeExit(exits[k], rom);
+						}
+				}
+			}
+
+			writeSecondaryExit(sec, rom);
+		}
+	}
+}
+
 function writeSecondaryExit(sec, rom)
 {
 	// if the target is in the wrong location, get a better slot
@@ -1652,7 +1683,7 @@ function copyBackupToSublevel(id, data, rom)
 function copySublevel(to, fm, rom)
 {
 	// if copying from TEST, that is slightly suspicious
-	if (isSublevelFree(fm, rom)) console.log('Suspicious copy: ' + fm.toHex(3, '0x') + ' was TEST');
+	if (isSublevelFree(fm, rom)) console.log('Suspicious copy: ' + fm.toPrintHex(3) + ' was TEST');
 
 	// slower than doing it directly, but better for code maintenance
 	copyBackupToSublevel(to, backupSublevel(fm, rom), rom);
@@ -1665,6 +1696,9 @@ function moveSublevel(to, fm, rom)
 
 	// copy the TEST level into the now-freed sublevel slot
 	clearSublevel(fm, rom);
+
+	// fix all associated secondary exits
+	fixSecondaryExits(to, fm, rom);
 }
 
 function findOpenSublevel(bank, rom)
@@ -2657,8 +2691,11 @@ function validateROM(stages, rom)
 				e.errors.push('Sublevel ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' (was ' + stage.name + ') is empty');
 
 			var exits = getScreenExits(sub[j], rom);
-			for (var k = 0; k < exits.length; ++k) if (getSublevelFromExit(exits[k], rom))
-				e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' is x000/x100');
+			for (var k = 0; k < exits.length; ++k)
+			{
+				var dest = getSublevelFromExit(exits[k], rom);
+				if (dest & 0xFF == 0) e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' is ' + dest.toPrintHex(3));
+			}
 		}
 	}
 
