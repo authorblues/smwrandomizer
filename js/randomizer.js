@@ -94,6 +94,9 @@ function randomizeROM(buffer, seed)
 	// change switch palaces to use higher event numbers
 	fixSwitchPalaceEventNumbers(stages, rom);
 
+	// update sublevels and exits to canonical representation
+	canonicalizeBaseRom(stages, rom);
+
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, rom);
 
@@ -101,10 +104,14 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_autoscrollers').is(':checked'))
 		randomizeAutoscrollers(random, rom);
 
+	// randomize the sublevels inside each level
+	if ($('#randomize_sublevels').is(':checked'))
+		swapSublevels(stages, random, rom);
+
 	// NOTE: MAKE SURE ANY TABLES BACKED UP BY THIS ROUTINE ARE GENERATED *BEFORE*
 	// THIS POINT. OTHERWISE, WE ARE BACKING UP UNINITIALIZED MEMORY!
 	backupData(stages, rom);
-	
+
 	if ($('#randomize_stages').is(':checked'))
 	{
 		// randomize the zero-exit stages
@@ -262,6 +269,55 @@ function shuffle(stages, random)
 	var rndstages = stages.slice(0).shuffle(random);
 	for (var i = 0; i < stages.length; ++i)
 		stages[i].copyfrom = rndstages[i];
+}
+
+function canonicalizeBaseRom(stages, rom)
+{
+	// remove the useless screen exit on vs1
+	var exits109 = getScreenExits(0x109, rom);
+	exits109.splice(1, 1);
+	writeExitList(exits109, rom);
+
+	// canonical version of CI1 is 0xF6
+	var ci1 = backupSublevel(0xF6, rom);
+	delete ci1['header1'];
+	delete ci1['header2'];
+	delete ci1['header3'];
+	delete ci1['header4'];
+	copyBackupToSublevel(0x22, ci1, rom);
+
+	// remove sublevel duplicates
+	for (var i = 0; i < stages.length; ++i)
+	{
+		var stage = stages[i], sublevels = getRelatedSublevels(stage.id, rom);
+		for (var j = 0; j < sublevels.length; ++j)
+		{
+			// rewrite the sublevel entrance as a secondary exit for the
+			// "original" copy of the sublevel
+			if (!(sublevels[j] in SUBLEVEL_DUPLICATES)) continue;
+			var sec = getPrimaryEntrance(sublevels[j], rom);
+			var orig = sec.target = SUBLEVEL_DUPLICATES[sublevels[j]];
+			writeSecondaryExit(sec, rom);
+
+			// redirect all screen exits to use this secondary exit
+			for (var k = 0; k < sublevels.length; ++k)
+			{
+				var exits = getScreenExits(sublevels[k], rom);
+				for (var z = 0; z < exits.length; ++z)
+				{
+					if (exits[z].target == sublevels[j])
+					{
+						exits[z].issecx = true;
+						exits[z].target = sec.id;
+						writeExit(exits[z], rom);
+					}
+				}
+			}
+
+			// this room is unused now, so delete it
+			clearSublevel(sublevels[j], rom);
+		}
+	}
 }
 
 function fixSwitchPalaceEventNumbers(stages, rom)
@@ -603,6 +659,23 @@ function randomizeEnemyProperties(mode, stages, random, rom)
 	else if (mode == 'chaos') rom.set(Array.prototype.shuffle.call(table, random), 0x0F137);
 }
 
+/*
+	Entrance types:
+		0 - nothing (door, stage)
+		1 - horiz left (pipe)
+		2 - horiz right (pipe)
+		3 - vert up (pipe)
+		4 - vert down (pipe)
+		5 - nothing, slippery (door, stage)
+		6 - slanted cannon right (pipe)
+		7 - vert down, water (pipe)
+*/
+function isDoorEntrance(id, rom)
+{
+	var entr = (rom[0x2F200 + id] >> 3) & 0x7;
+	return (entr == 0x0 || entr == 0x5);
+}
+
 function getLevelMode(id, rom)
 {
 	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
@@ -670,6 +743,7 @@ function randomizeColorPalettes(stages, random, rom)
 	// randomize all standard sublevels
 	for (var id = 0; id < 0x200; ++id)
 	{
+		if (isSublevelFree(id, rom)) continue;
 		var layer1 = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
 		var layer2 = getPointer(LAYER2_OFFSET + 3 * id, 3, rom);
 		randomizeColorPaletteByAddr(random, layer1, layer2, rom);
@@ -1358,6 +1432,22 @@ function sameStageBucket(a, b)
 	return true;
 }
 
+function getPrimaryEntrance(id, rom)
+{
+	var entr = {};
+	entr.target = id;
+
+	entr.entrance = (rom[HEADER2_OFFSET + id] >> 3) & 0x07;
+	entr.bg = rom[HEADER3_OFFSET + id] & 0x03;
+	entr.fg = (rom[HEADER3_OFFSET + id] >> 2) & 0x03;
+
+	entr.y = rom[HEADER1_OFFSET + id] & 0x0F;
+	entr.x = rom[HEADER2_OFFSET + id] & 0x07;
+	entr.screen = rom[HEADER4_OFFSET + id] & 0x1F;
+
+	return entr;
+}
+
 /*
 	Secondary entrance table
 	VVVVVVVV ----LAAA BBFFYYYY XXXSSSSS
@@ -1390,16 +1480,27 @@ function getSecondaryExit(id, rom)
 
 function getSecondaryExitTarget(id, rom)
 {
-//	return rom[SEC_EXIT_OFFSET_LO + id] | ((rom[SEC_EXIT_OFFSET_HI + id] & 0x08) << 5);
-	return rom[SEC_EXIT_OFFSET_LO + id] | (id & 0x100);
+	return getSecondaryExit(id, rom).target;
+}
+
+function getIncomingSecondaryExits(id, rom)
+{
+	var exits = [];
+	for (var x = 1; x < 0x100; ++x)
+	{
+		var sec = getSecondaryExit(x | (id & 0x100), rom);
+		if (sec.target == id) exits.push(sec);
+	}
+
+	return exits;
 }
 
 function writeSecondaryExit(sec, rom)
 {
 	// if the target is in the wrong location, get a better slot
-	if ((sec.target & 0x100) != (sec.id & 0x100))
+	if (!sec.id || (sec.target & 0x100) != (sec.id & 0x100))
 	{
-		deleteSecondaryExit(sec.id, rom);
+		deleteSecondaryExit(sec.id || 0, rom);
 		sec.id = findOpenSecondaryExit(sec.target & 0x100, rom);
 	}
 
@@ -1408,6 +1509,8 @@ function writeSecondaryExit(sec, rom)
 	rom[SEC_EXIT_OFFSET_HI + sec.id] = ((sec.target & 0x100) >> 5) | sec.entrance;
 	rom[SEC_EXIT_OFFSET_X1 + sec.id] = ((sec.bg & 0x03) << 6) | ((sec.fg & 0x03) << 4) | (sec.y & 0x0F);
 	rom[SEC_EXIT_OFFSET_X2 + sec.id] = ((sec.x & 0x07) << 5) | (sec.screen & 0x1F);
+
+	return sec.id & 0xFF;
 }
 
 function deleteSecondaryExit(id, rom)
@@ -1436,10 +1539,11 @@ function fixSublevels(stage, rom)
 	}
 
 	// fix all screen exits
+	var secmap = {};
 	for (var i = 0; i < stage.copyfrom.allexits.length; ++i)
 	{
 		var x = stage.copyfrom.allexits[i], target = getSublevelFromExit(x, rom);
-		if (target in map) updateExitTarget(x, map[target], rom);
+		if (target in map) updateExitTarget(x, map[target], rom, secmap);
 	}
 }
 
@@ -1515,6 +1619,13 @@ function isSublevelFree(id, rom)
 	return rom[x] == 0x00 && rom[x+1] == 0x80 && rom[x+2] == 0x06;
 }
 
+function clearSublevel(id, rom)
+{
+	rom.set([0x00, 0x80, 0x06], LAYER1_OFFSET + 3 * id);
+	rom.set([0x00, 0xD9, 0xFF], LAYER2_OFFSET + 3 * id);
+	rom.set([0x6D, 0xE7],       SPRITE_OFFSET + 2 * id);
+}
+
 function backupSublevel(id, rom)
 {
 	// copy all of the level pointers
@@ -1533,6 +1644,7 @@ function copyBackupToSublevel(id, data, rom)
 	for (var i = 0; i < LEVEL_OFFSETS.length; ++i)
 	{
 		var o = LEVEL_OFFSETS[i];
+		if (!(o.name in data)) continue;
 		rom.set(data[o.name], o.offset + id * o.bytes);
 	}
 }
@@ -1552,7 +1664,7 @@ function moveSublevel(to, fm, rom)
 	copySublevel(to, fm, rom);
 
 	// copy the TEST level into the now-freed sublevel slot
-	rom.set([0x00, 0x80, 0x06], LAYER1_OFFSET + 3 * fm);
+	clearSublevel(fm, rom);
 }
 
 function findOpenSublevel(bank, rom)
@@ -1645,14 +1757,42 @@ function writeExit(x, rom)
 	rom.set(x.data, x.addr);
 }
 
-function updateExitTarget(x, target, rom)
+function writeExitList(exits, rom)
 {
+	if (exits.length == 0) return;
+	exits = exits.sort(function(a,b){ return a.screen - b.screen; });
+
+	var addr = exits[0].addr;
+	for (var i = 0; i < exits.length; ++i, addr += 4)
+	{
+		exits[i].addr = addr;
+		writeExit(exits[i], rom);
+	}
+
+	// write end of list sentinel
+	rom[addr] = 0xFF;
+}
+
+function updateExitTarget(x, target, rom, map)
+{
+	map = map || {};
 	if (x.issecx)
 	{
 		var sec = getSecondaryExit(x.target, rom);
-		sec.target = target;
-		writeSecondaryExit(sec, rom);
-		x.target = sec.id & 0xFF;
+		var previd = sec.id;
+
+		// this secondary exit already got remapped once
+		if (previd in map)
+			x.target = map[previd];
+		else
+		{
+			// change the target and write out (might change sec exit id)
+			sec.target = target;
+			x.target = writeSecondaryExit(sec, rom);
+
+			// if this changed the sec exit id, record the change
+			if (sec.id != previd) map[previd] = sec.id;
+		}
 	}
 	else x.target = target;
 	writeExit(x, rom);
@@ -1906,6 +2046,18 @@ function setYoshiSwallowTimer(x, rom)
 	rom[0x0F35C] = ((x >> z) - 1) & 0xFF;
 }
 
+function getYoshiEntranceType(stage, force)
+{
+	var ug = getMapForStage(stage).ug;
+	if (stage.copyfrom) stage = stage.copyfrom;
+
+	// pick the appropriate flag
+	if (stage.ghost == 1) return NO_YOSHI_GHOST;
+	else if (stage.castle) return ug ? NO_YOSHI_CASTLE_NIGHT : NO_YOSHI_CASTLE_DAY;
+	else if (force) return ug ? NO_YOSHI_STARS : NO_YOSHI_PLAINS;
+	else return NO_YOSHI_DISABLED;
+}
+
 function randomizeNoYoshi(stages, random, rom)
 {
 	rom.set([0x20, 0x19, 0x8E, 0xAA, 0xE0, 0x06, 0x90, 0x04, 0xEA], 0x2DA2C);
@@ -1922,13 +2074,7 @@ function randomizeNoYoshi(stages, random, rom)
 	for (var i = 0; i < stages.length; ++i)
 	{
 		var stage = stages[i], trans = getTranslevel(stage.id);
-		var ug = getMapForStage(stage).ug, flag = NO_YOSHI_DISABLED;
-		var from = stage.copyfrom ? stage.copyfrom : stage;
-
-		// pick the appropriate flag
-		if (from.ghost == 1) flag = NO_YOSHI_GHOST;
-		else if (from.castle) flag = ug ? NO_YOSHI_CASTLE_NIGHT : NO_YOSHI_CASTLE_DAY;
-		else if (random.flipCoin(0.125)) flag = ug ? NO_YOSHI_STARS : NO_YOSHI_PLAINS;
+		var noyoshi = getYoshiEntranceType(stage, random.flipCoin(0.125));
 
 		// set "disable no-yoshi intro" to 0 for hijack
 		rom[HEADER4_OFFSET + trans] &= 0x7F;
@@ -1936,7 +2082,7 @@ function randomizeNoYoshi(stages, random, rom)
 		// populate table with entry
 		var shift = (trans & 1) ? 4 : 0;
 		rom[TABLE_BASE + (trans>>1)] &= ~(0xF << shift);
-		rom[TABLE_BASE + (trans>>1)] |= (flag << shift);
+		rom[TABLE_BASE + (trans>>1)] |= (noyoshi << shift);
 	}
 }
 
@@ -2060,9 +2206,14 @@ function findCandidateWings(rom, stage)
 		var addr = snesAddressToOffset(snes);
 		var objects = parseObjectList(addr, rom);
 
-		for (var j = 0; j < objects.length; ++j)
+		for (var j = 0; j < objects.length; ++j) if (objects[j].x % 4 == 1)
 		{
-			if (objects[j].extended && QUESTION_BLOCK_IDS.contains(objects[j].extra) && objects[j].x % 4 == 1)
+			// any extended-object question mark block
+			if (objects[j].extended && QUESTION_BLOCK_IDS.contains(objects[j].extra))
+				candidates.push({ sublevel: stage.sublevels[i], object: objects[j] });
+
+			// any 1x1 coin block should work as well
+			if (objects[j].id == 0x0A && objects[j].extra == combineNibbles(0, 0))
 				candidates.push({ sublevel: stage.sublevels[i], object: objects[j] });
 		}
 	}
@@ -2178,9 +2329,14 @@ function findKeyCandidates(stage, random, rom)
 		var addr = snesAddressToOffset(snes);
 		var objects = parseObjectList(addr, rom);
 
-		for (var j = 0; j < objects.length; ++j)
+		for (var j = 0; j < objects.length; ++j) if (objects[j].x % 4 == 0)
 		{
-			if (objects[j].extended && QUESTION_BLOCK_IDS.contains(objects[j].extra) && objects[j].x % 4 == 0)
+			// any extended-object question mark block
+			if (objects[j].extended && QUESTION_BLOCK_IDS.contains(objects[j].extra))
+				candidates.push({ sublevel: stage.sublevels[i], block: objects[j] });
+
+			// any 1x1 coin block should work as well
+			if (objects[j].id == 0x0A && objects[j].extra == combineNibbles(0, 0))
 				candidates.push({ sublevel: stage.sublevels[i], block: objects[j] });
 		}
 	}
@@ -2229,7 +2385,7 @@ function providesExits(id, rom)
 
 		// get the extra bits if we find a goal tape
 		if (sprites[i].spriteid == 0x7B)
-			exits |= (rom[sprites[i].addr+0] & 0x0C) ? SECRET_EXIT : NORMAL_EXIT;
+			exits |= sprites[i].extend ? SECRET_EXIT : NORMAL_EXIT;
 
 		if (sprites[i].spriteid == 0x0E) keyhole = true; // found keyhole
 	}
@@ -2499,6 +2655,10 @@ function validateROM(stages, rom)
 		{
 			if (isSublevelFree(sub[j], rom))
 				e.errors.push('Sublevel ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' (was ' + stage.name + ') is empty');
+
+			var exits = getScreenExits(sub[j], rom);
+			for (var k = 0; k < exits.length; ++k) if (getSublevelFromExit(exits[k], rom))
+				e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' is x000/x100');
 		}
 	}
 
@@ -2624,14 +2784,19 @@ function sameSublevelBucket(rom, a, b)
 	if (providesExits(a.id, rom) != providesExits(b.id, rom)) return false;
 
 	// if the stage doesn't provide the same number of exits
-	if (getScreenExits(a.id, rom).length != getScreenExits(b.id, rom).length) return false;
+	if (a.exits.length != b.exits.length) return false;
 
 	// check to see if the entrances are the same "type"
-	var entra = (rom[0x2F200+a.id] >> 3) & 0x7, entrb = (rom[0x2F200+b.id] >> 3) & 0x7;
-	if ((entra == 0x0 || entra == 0x5) != (entrb == 0x0 || entrb == 0x5)) return false;
+	if (isDoorEntrance(a.id, rom) != isDoorEntrance(b.id, rom)) return false;
+
+	// don't swap non-palace with castles
+	if (Math.sign(a.stage.palace) !== Math.sign(b.stage.palace)) return false;
+
+	// don't swap non-ghost with castles
+	if (Math.sign(a.stage.ghost) !== Math.sign(b.stage.ghost)) return false;
 
 	// don't swap non-castles with castles
-	if (!!a.stage.castle !== !!b.stage.castle) return false
+	if (Math.sign(a.stage.castle) !== Math.sign(b.stage.castle)) return false;
 
 	// TODO FIXME match on gfx set, no-yoshi entrance, entrance type?
 	return true;
