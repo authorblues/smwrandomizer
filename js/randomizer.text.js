@@ -87,7 +87,7 @@ var TEXT_MAPPING =
 	"\uE03B": 0x3b,
 	"\uE03C": 0x3c,
 };
- 
+
 var TITLE_STRINGS =
 [
 	["YOSHI'S ", "MARIO'S ", "LUIGI'S ", "DEATHLY ", "LEMMY'S ", "LARRY'S ", "WENDY'S ", "KOOPA'S "],
@@ -101,7 +101,7 @@ var TITLE_STRINGS =
 	"#7 LARRY'S ",
 	["DONUT ", "PIZZA ", "KUSO! ", "KOOPA ", "KAIZO ", "SUSHI ", "HORSE "],
 	"GREEN ",
-	["TOP SECRET AREA ", "TAKE A BREAK ", "WHY THE RUSH? ", "KEEP YOUR CAPES "],
+	["TOP SECRET AREA ", "TAKE A BREAK ", "WHY THE RUSH? ", "KEEP YOUR CAPES ", "MMMM GOOD SHIT "],
 	["VANILLA ", "DIAMOND ", "CALZONE ", "EMERALD "],
 	"\uE038\uE039\uE03A\uE03B\uE03C ", // YELLOW
 	"RED ",
@@ -160,7 +160,7 @@ function randomizeLevelNames(random, rom)
 			str = random.from(TITLE_STRINGS[i]);
 			while (str.length < TITLE_STRINGS[i][0].length) str += ' ';
 		}
-		
+
 		for (var j = 0; j < str.length; ++j, ++ndx)
 			rom[ndx] = TEXT_MAPPING[str[j]];
 		rom[ndx-1] |= 0x80;
@@ -178,10 +178,10 @@ function charToTitleNum(chr)
 		':': 0x78,
 		' ': 0xFC,
 	};
-	
+
 	var basechars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.,*-!".split('');
 	for (var i = 0; i < basechars.length; ++i) chars[basechars[i]] = i;
-	
+
 	if (chr in chars) return chars[chr];
 	return 0xFC;
 }
@@ -205,7 +205,7 @@ function writeToTitle(title, color, rom)
 	for (var i = 0; i < 19; ++i)
 	{
 		var num = charToTitleNum(title[i]);
-		
+
 		rom[0x2B6D7 + i * 2 + 0]  = num & 0xFF;
 		rom[0x2B6D7 + i * 2 + 1] &= 0xE0;
 		rom[0x2B6D7 + i * 2 + 1] |= (color << 2) | ((num >> 8) & 0x3);
@@ -215,10 +215,10 @@ function writeToTitle(title, color, rom)
 function updateIntroText(vseed, rom)
 {
 	// 7*18 + 1*15
-	var lines = 
+	var lines =
 	[
 	];
-	
+
 	var ndx = 0x2A5D9, off = 0;
 	for (var i = 0; i < 8; ++i)
 	{
@@ -231,7 +231,7 @@ function updateIntroText(vseed, rom)
 		}
 		rom[ndx+off-1] |= 0x80;
 	}
-	
+
 	if (off != 141) throw new Error('Invalid length for intro text cutscene: ' + off);
 }
 
@@ -241,12 +241,12 @@ var fileSelectOffsets =
 	marioB: { text: "MARIO B ...EMPTY", addr: [0x2b746, 0x2b811] },
 	marioC: { text: "MARIO C ...EMPTY", addr: [0x2b76a, 0x2b835] },
 	erase: { text: "ERASE DATA", addr: [0x2b859] },
-	
+
 	eraseA: { text: "ERASE", addr: [0x2b78e] },
 	eraseB: { text: "ERASE", addr: [0x2b79e] },
 	eraseC: { text: "ERASE", addr: [0x2b7ae] },
 	end: { text: "END", addr: [0x2b7be] },
-	
+
 	start1p: { text: "1 PLAYER GAME", addr: [0x2b88a] },
 	start2p: { text: "2 PLAYER GAME", addr: [0x2b8a8] },
 };
@@ -265,10 +265,10 @@ function updateFileSelect(texts, color, rom)
 	{
 		var text = texts[k], odata = fileSelectOffsets[k];
 		if (!odata) continue;
-		
+
 		if (text.length > odata.text.length)
 			throw new Error('Text "' + text + '" too long for location: ' + k)
-		
+
 		for (var i = 0; i < text.length; ++i)
 		{
 			var num = charToTitleNum(text[i]);
@@ -332,7 +332,7 @@ var EGTEXT_CHARACTERS =
 	"'": 0xBF,
 }
 
-var ENDGAME_TEXTS = 
+var ENDGAME_TEXTS =
 [
 	[
 		"You could start learning",
@@ -376,25 +376,25 @@ function processEndGameText(text)
 {
 	var textlength = 0, textdata = [], texttime = [];
 	if (text.length > 4) throw "updateEndGameText: too many lines";
-	
+
 	// for each line
 	for (var i = 0; i < text.length; ++i)
 	{
 		if (text[i].length > 26)
 			throw "updateEndGameText: line " + (i + 1) + " too long";
-		
+
 		// for each character in the line
 		for (var j = 0; j < text[i].length; ++j)
 		{
 			var ch = text[i][j], cc = 0x0E;
 			var nx = 0x18 + (j * 0x08), ny = 0x20 + (i * 0x10);
-			
+
 			// skip spaces (add delay to simulate typing the space)
 			if (ch == ' ') { texttime[textlength - 1] += FRAMES_PER_CHAR; continue; }
-			
+
 			// W is a modified, flipped M
 			if (ch == 'W') { cc |= 0xC0; ny--; }
-			
+
 			// gentle alert if we get an invalid character
 			if (ch in EGTEXT_CHARACTERS)
 			{
@@ -405,10 +405,10 @@ function processEndGameText(text)
 			else console.log("updateEndGameText: char not found: " + ch);
 		}
 	}
-	
+
 	// add a delay to the last character
 	texttime[textlength - 1] = 0x80;
-	
+
 	// only a max of 83 characters available
 	if (textlength > 84) throw "updateEndGameText: too many characters";
 	return { len: textlength, data: textdata, time: texttime };
@@ -419,7 +419,7 @@ function updateEndGameText(text, rom)
 	// this is factored out so that processEndGameText can
 	// be run exclusively as a validator for the text files
 	var res = processEndGameText(text);
-	
+
 	rom[0x1AEBB] = res.len;
 	rom.set(res.data, 0x1D524);
 	rom.set(res.time, 0x1AE5B);
@@ -432,13 +432,13 @@ function charToUpperNum(ch)
 {
 	var chars = {};
 	var basechars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-.".split('');
-	
+
 	for (var i = 0; i < basechars.length; ++i)
 		chars[basechars[i]] = i + (i < 0x10 ? 0xC0 : 0xD0);
-	
+
 	// adding the numbers to the upper list only (small numbers)
 	for (var i = 0; i < 10; ++i) chars[""+i] = i;
-	
+
 	if (ch in chars) return chars[ch];
 	return 0xFC;
 }
@@ -447,10 +447,10 @@ function charToLowerNum(ch)
 {
 	var chars = {};
 	var basechars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-.".split('');
-	
+
 	for (var i = 0; i < basechars.length; ++i)
 		chars[basechars[i]] = i + (i < 0x10 ? 0xD0 : 0xE0);
-	
+
 	if (ch in chars) return chars[ch];
 	return 0xFC;
 }
@@ -459,34 +459,34 @@ function writeCreditLine(str, meta, map, rom, ptr, x)
 {
 	// only deal with uppercase
 	str = str.toUpperCase();
-	
+
 	// x, len
 	rom[ptr++] = x || Math.round((0x20 - str.length) / 2);
 	rom[ptr++] = (str.length * 2) - 1;
-	
+
 	for (var i = 0; i < str.length; ++i)
 	{
 		var ch = str.charAt(i);
 		var c = map ? map(ch) : 0xFC;
-		
+
 		rom[ptr++] = c;
 		rom[ptr++] = c == 0xFC ? 0x00 : meta;
 	}
-	
+
 	return ptr;
 }
-	
+
 var DEVELOPERS = ['authorblues', 'Kaizoman666'];
 var SPECIAL_THANKS = ['Dotsarecool', 'MrCheeze'];
 
-var LONG_COPYPASTAS = 
+var LONG_COPYPASTAS =
 [
 	// SMW copypastas
 	"Hello, Mr. Lakitu here. I was just wondering what the hell you thought you were doing taking my cloud. Us Lakitus work day in and day out on these clouds, and since you had the cojones to think you could just take a cloud out of thin air one of my brethren is out of a job. Now they'll have to find work buttering bridges or filming go-karters. Thanks again LinkdeadxStalin",
 	"His YouTube name is PangaeaPanga. I assume this isn't his real name, but maybe it is. Whatever the case, PangaeaPanga is an accomplished video game speedrunner, and we should all hope to one day lack the responsibilities he does, so we too can successfully play video games blindfolded.",
 	"Our menboo in Japan, hallowed be your name. your kingdom come, your will be done, on nicovideo, as it is in heaven. Give us this day our WRs, and forgive us our game saving, as we also have forgiven our debtors. And lead us not into splicing, but deliver us from Volpe. Amen.",
 	"Aaron packed a bag with his Super Nintendo, SMW, and his greasy red shell before setting out on his journey on his majestic steed, Yoshi, which was the name he gave to his bicycle. He rode to the end of his driveway and fell over on his bike. \"Oh my god.\" He said as he reset. This repeated for the next few hours because he wanted green splits for the beginning of his adventure.",
-	
+
 	// general copypastas
 	"Hey guys, Reggie from Nintendo here. I'm glad to see that you are enjoying one of our finer games, Super Mario World, but I'm going to have to ask you to refrain from breaking it like you are. You are NOT playing it the way we wanted you to, and you are having a lot less fun than you could. Please consider or your body won't be ready for the Nintendo Lawyers. Thank you Mr. Randomizer, and Game on! - Regginator",
 	"This is rather impressive, even with cheats, however, in my opinion, I believe that a true \"speedrun\" should be done without cheats. I mean, I could no-clip through the entire game and call it speedrunning, but that wouldn't be fair. I am not saying I hate the game. The game is still awesome, I just believe that speedruns should be kept cheat-free and fair.﻿",
@@ -496,7 +496,7 @@ function chunkCreditsText(str)
 {
 	var words = str.split(' ');
 	var lines = [], line = words[0];
-	
+
 	for (var i = 1; i < words.length; ++i)
 	{
 		if (line.length + words[i].length + 1 > 28)
@@ -506,7 +506,7 @@ function chunkCreditsText(str)
 		}
 		else line += ' ' + words[i];
 	}
-	
+
 	lines.push(line);
 	return lines;
 }
@@ -515,104 +515,104 @@ function rewriteCredits(random, rom)
 {
 	// thanks BrunoValads for the suggested PI value #199
 	rom[0x61FF9] = random.from([0, 1, 2, 3, 199]);
-	
+
 	var CREDITS_TABLE_SIZE = 1873;
 	var CREDITS_TABLE_BASE = 0x615C7;
-	
+
 	var LINE_POINTER_BASE = 0x61D18;
 	var LINE_POINTER_END = LINE_POINTER_BASE + 404;
-	
+
 	var lineptr = LINE_POINTER_BASE;
 	var tblptr = CREDITS_TABLE_BASE;
-	
+
 	// setting up a blank line to be reused
 	var BLANK_LINE = 0x00;
 	rom[tblptr++] = 0xFF;
-	
-	var message = 
+
+	var message =
 	[
 		"SMW " + (EN_US ? 'Randomizer' : 'Randomiser') + " " + VERSION_STRING,
 		"Thanks so much for playing!",
 	];
-	
+
 	for (var i = 0; i < message.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(message[i], 0x38, charToTitleNum, rom, tblptr);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
 	}
-	
+
 	for (var i = 0; i < 2; ++i)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-	
+
 	lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 	tblptr = writeCreditLine("DEVELOPERS", 0x3C, charToTitleNum, rom, tblptr);
-	
+
 	for (var i = 0; i < DEVELOPERS.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(DEVELOPERS[i], 0x38, charToUpperNum, rom, tblptr);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(DEVELOPERS[i], 0x38, charToLowerNum, rom, tblptr);
 	}
-	
+
 	for (var i = 0; i < 3; ++i)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-	
+
 	lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 	tblptr = writeCreditLine("SPECIAL THANKS TO", 0x28, charToTitleNum, rom, tblptr);
-	
+
 	for (var i = 0; i < SPECIAL_THANKS.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(SPECIAL_THANKS[i], 0x38, charToUpperNum, rom, tblptr);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(SPECIAL_THANKS[i], 0x38, charToLowerNum, rom, tblptr);
 	}
-	
+
 	for (var i = 0; i < 8; ++i)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-	
+
 	lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 	tblptr = writeCreditLine("TESTERS", 0x2C, charToTitleNum, rom, tblptr);
-	
+
 	var TESTER_NAMES = Object.keys(TESTERS).shuffle(random).slice(0, 8);
 	TESTER_NAMES.push('AND OTHERS');
-	
+
 	for (var i = 0; i < TESTER_NAMES.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(TESTER_NAMES[i], 0x38, charToUpperNum, rom, tblptr);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(TESTER_NAMES[i], 0x38, charToLowerNum, rom, tblptr);
 	}
 	for (var i = 0; i < 8; ++i)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-	
+
 	var copypasta = random.from(LONG_COPYPASTAS);
 	message = chunkCreditsText(copypasta);
-	
+
 	for (var i = 0; i < message.length; ++i)
 	{
 		lineptr += rom.writeBytes(2, lineptr, tblptr - CREDITS_TABLE_BASE);
 		tblptr = writeCreditLine(message[i], 0x38, charToTitleNum, rom, tblptr, 2);
-		
+
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
 	}
-	
+
 	while (lineptr < LINE_POINTER_END)
 		lineptr += rom.writeBytes(2, lineptr, BLANK_LINE);
-	
+
 	if (tblptr > CREDITS_TABLE_BASE + CREDITS_TABLE_SIZE)
 		throw new Error('credits table pointer exceeded available size');
 }
