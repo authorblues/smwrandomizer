@@ -118,7 +118,7 @@ var TITLE_STRINGS =
 	["BACK DOOR ", "NO ENTRY ", "GO AWAY ", "LEAVE NOW "],
 	["FRONT DOOR ", "GET READY ", "FINAL BOSS "],
 	["GNARLY ", "WACKY ", "CRAZY ", "KOOKY ", "NUTTY "],
-	["TUBULAR ", "(-.-) "],
+	["TUBULAR ", "(-.-) ", "YATTA! "],
 	["WAY COOL ", "GLORIOUS ", "STYLISH ", "SUAVE "],
 	["HOUSE ", "ABODE ", "CONDO ", "TOWER "],
 	["ISLAND ", "MIRAGE ", "TUNNEL ", "CAVERN ", "BRIDGE ", "GALAXY "],
