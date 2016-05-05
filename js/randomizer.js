@@ -970,8 +970,10 @@ function parseObjectList(addr, rom)
 		var obj = { addr: addr, n: (rom[addr] & 0x80) };
 		obj.id = ((rom[addr] & 0x60) >> 1) | ((rom[addr+1] & 0xF0) >> 4);
 
-		if (obj.n) screen += 16;
-		obj.major = screen + (rom[addr+1] & 0x0F);
+		if (obj.n) ++screen;
+
+		obj.screen = screen;
+		obj.major = screen * 16 + (rom[addr+1] & 0x0F);
 		obj.minor = rom[addr] & 0x1F;
 
 		obj.x = horiz ? obj.major : obj.minor;
@@ -983,7 +985,7 @@ function parseObjectList(addr, rom)
 
 		// extended object 01 updates screen to YYYYY value
 		if (obj.extended && obj.extra == 0x01)
-			screen = 16 * obj.minor;
+			screen = obj.minor;
 	}
 
 	return objs;
@@ -1478,11 +1480,6 @@ function getSecondaryExit(id, rom)
 	return sec;
 }
 
-function getSecondaryExitTarget(id, rom)
-{
-	return getSecondaryExit(id, rom).target;
-}
-
 function getIncomingSecondaryExits(id, rom)
 {
 	var exits = [];
@@ -1495,39 +1492,12 @@ function getIncomingSecondaryExits(id, rom)
 	return exits;
 }
 
-function fixSecondaryExits(to, fm, rom)
+function writeSecondaryExit(sec, rom, changes)
 {
-	for (var id = 0; id < 0x200; ++id)
-	{
-		var sec = getSecondaryExit(id, rom);
-		if (sec.target == fm)
-		{
-			sec.target = to;
-			if ((fm & 0x100) != (to & 0x100))
-			{
-				var oldsecid = sec.id;
-				deleteSecondaryExit(sec.id, rom);
-				sec.id = findOpenSecondaryExit(to & 0x100, rom);
+	changes = changes || {};
+	for (var k in changes) if (changes.hasOwnProperty(k))
+		sec[k] = changes[k];
 
-				for (var j = 0; j < 0x200; ++j)
-				{
-					var exits = getScreenExits(j, rom);
-					for (var k = 0; k < exits.length; ++k)
-						if (exits[k].target == oldsecid)
-						{
-							exits[k].target = sec.id;
-							writeExit(exits[k], rom);
-						}
-				}
-			}
-
-			writeSecondaryExit(sec, rom);
-		}
-	}
-}
-
-function writeSecondaryExit(sec, rom)
-{
 	// if the target is in the wrong location, get a better slot
 	if (!sec.id || (sec.target & 0x100) != (sec.id & 0x100))
 	{
@@ -1552,6 +1522,42 @@ function deleteSecondaryExit(id, rom)
 	rom[SEC_EXIT_OFFSET_X2 + id] = 0x00;
 }
 
+function fixSecondaryExits(to, fm, rom)
+{ return fixAllSecondaryExits({fm: to}, rom); }
+
+function fixAllSecondaryExits(roommap, rom)
+{
+	var secmap = {}, fm, to;
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var sec = getSecondaryExit(id, rom);
+		if (sec.target in roommap)
+		{
+			to = sec.target = roommap[fm = sec.target];
+			if ((fm & 0x100) != (to & 0x100))
+			{
+				var oldsecid = sec.id;
+				deleteSecondaryExit(sec.id, rom);
+				sec.id = findOpenSecondaryExit(to & 0x100, rom);
+				secmap[oldsecid] = sec.id;
+			}
+
+			writeSecondaryExit(sec, rom);
+		}
+	}
+
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var exits = getScreenExits(id, rom);
+		for (var k = 0; k < exits.length; ++k)
+			if (exits[k].issecx && exits[k].target in secmap)
+			{
+				exits[k].target = secmap[exits[k].target];
+				writeExit(exits[k], rom);
+			}
+	}
+}
+
 // ASSUMES the layer1 pointer has already been copied to this stage
 function fixSublevels(stage, rom)
 {
@@ -1573,8 +1579,8 @@ function fixSublevels(stage, rom)
 	var secmap = {};
 	for (var i = 0; i < stage.copyfrom.allexits.length; ++i)
 	{
-		var x = stage.copyfrom.allexits[i], target = getSublevelFromExit(x, rom);
-		if (target in map) updateExitTarget(x, map[target], rom, secmap);
+		var x = stage.copyfrom.allexits[i];
+		if (x.sublevel in map) updateExitTarget(x, map[x.sublevel], rom, secmap);
 	}
 }
 
@@ -1644,10 +1650,17 @@ function swapExits(stage, rom)
 	rom.writeBytes(2, 0x26359 + ndxb * 2, offsetb);
 }
 
+function isTestPointer(p)
+{
+	return p[0] == 0x00 &&
+	       p[1] == 0x80 &&
+		   p[2] == 0x06;
+}
+
 function isSublevelFree(id, rom)
 {
 	var x = LAYER1_OFFSET + 3 * id;
-	return rom[x] == 0x00 && rom[x+1] == 0x80 && rom[x+2] == 0x06;
+	return isTestPointer(rom.slice(x, x+3));
 }
 
 function clearSublevel(id, rom)
@@ -1667,6 +1680,8 @@ function backupSublevel(id, rom)
 		data[o.name] = rom.slice(x, x + o.bytes);
 	}
 
+	if (DEVMODE && isTestPointer(data['layer1']))
+		console.log('Suspicious copy: ' + id.toPrintHex(3) + ' was TEST');
 	return data;
 }
 
@@ -1682,9 +1697,6 @@ function copyBackupToSublevel(id, data, rom)
 
 function copySublevel(to, fm, rom)
 {
-	// if copying from TEST, that is slightly suspicious
-	if (isSublevelFree(fm, rom)) console.log('Suspicious copy: ' + fm.toPrintHex(3) + ' was TEST');
-
 	// slower than doing it directly, but better for code maintenance
 	copyBackupToSublevel(to, backupSublevel(fm, rom), rom);
 }
@@ -1767,9 +1779,12 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 				x.water  =   (rom[addr+1] & 0x08);
 				x.issecx =   (rom[addr+1] & 0x02);
 
-				x.u =        (rom[addr+1] & 0x04);
-				x.h =        (rom[addr+1] & 0x01);
+				x.u      =   (rom[addr+1] & 0x04);
+				x.h      =   (rom[addr+1] & 0x01);
 				x.target =    rom[addr+3] | (id & 0x100);
+
+				// this is a piece of information that is useful to cache
+				x.sublevel = getSublevelFromExit(x, rom);
 
 				x.data = rom.slice(addr, addr+4);
 				exits.push(x);
@@ -1821,8 +1836,7 @@ function updateExitTarget(x, target, rom, map)
 		else
 		{
 			// change the target and write out (might change sec exit id)
-			sec.target = target;
-			x.target = writeSecondaryExit(sec, rom);
+			x.target = writeSecondaryExit(sec, rom, {target: target});
 
 			// if this changed the sec exit id, record the change
 			if (sec.id != previd) map[previd] = sec.id;
@@ -1847,7 +1861,7 @@ function getScreenExitListStart(addr, rom)
 function getSublevelFromExit(exit, rom)
 {
 	if (!exit.issecx) return exit.target;
-	return getSecondaryExitTarget(exit.target, rom);
+	return getSecondaryExit(exit.target, rom).target;
 }
 
 function getRelatedSublevels(baseid, rom)
@@ -1862,10 +1876,8 @@ function getRelatedSublevels(baseid, rom)
 		var exits = getScreenExits(id, rom);
 
 		for (var i = 0; i < exits.length; ++i)
-		{
-			var x = exits[i], next = getSublevelFromExit(x, rom);
-			if (!ids.contains(next)) todo.push(next);
-		}
+			if (!ids.contains(exits[i].sublevel))
+				todo.push(exits[i].sublevel);
 	}
 
 	return ids;
@@ -2681,25 +2693,32 @@ function validateROM(stages, rom)
 	var e = new ValidationError([]);
 	for (var i = 0; i < stages.length; ++i)
 	{
+		var stage = stages[i];
+
 		// skip warp entries
-		if (stages[i].copyfrom.warp) continue;
+		var copyfrom = stage.copyfrom ? stage.copyfrom : stage;
+		if (copyfrom && copyfrom.warp) continue;
 
 		var stage = stages[i], sub = getRelatedSublevels(stage.id, rom);
 		for (var j = 0; j < sub.length; ++j)
 		{
 			if (isSublevelFree(sub[j], rom))
-				e.errors.push('Sublevel ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' (was ' + stage.name + ') is empty');
+				e.errors.push('Sublevel ' + sub[j].toHex(3, 'x') + ' of ' + copyfrom.name + ' (was ' + stage.name + ') is empty');
 
 			var exits = getScreenExits(sub[j], rom);
 			for (var k = 0; k < exits.length; ++k)
 			{
-				var dest = getSublevelFromExit(exits[k], rom);
-				if (dest & 0xFF == 0) e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + stage.copyfrom.name + ' is ' + dest.toPrintHex(3));
+				var dest = exits[k].sublevel;
+				if (dest & 0xFF == 0) e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + copyfrom.name + ' is ' + dest.toPrintHex(3));
 			}
 		}
 	}
 
-	if (e.errors.length) throw e;
+	if (e.errors.length)
+	{
+		if (DEVMODE) console.log(e.errors.join('\n'));
+		else throw e;
+	}
 }
 
 function expandROM(rom)

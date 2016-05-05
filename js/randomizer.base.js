@@ -462,7 +462,7 @@ var SP4_SPRITES =
 	{ id: 0xBF, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
 	{ id: 0xC3, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
 	{ id: 0xC9, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[35, 22], [35, 23]], },
-	{ id: 0xCA, sp4: 0x06, mem: null, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 21]], },
+	{ id: 0xCA, sp4: 0x06, mem: null, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 20]], },
 	{ id: 0xCB, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
 	{ id: 0xCF, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
 	{ id: 0xD0, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
@@ -506,8 +506,8 @@ var SUBLEVEL_DUPLICATES =
 	0x0D0: 0x022,
 	0x1FB: 0x107, // vgh room 1
 	0x1D9: 0x114, // bgh room 1
-	0x1DC: 0x1DB, // bgh left room
+	0x1DB: 0x1DC, // bgh left room
 	0x1E8: 0x11D, // fgh room 1
 	0x1E9: 0x11D,
 	0x1C5: 0x1C4, // gnarly room 2
-}
+};

@@ -4,10 +4,14 @@ var BASEURL = window.location.origin + window.location.pathname;
 var EN_US = false;
 var __SMWC = true;
 
+var DEVMODE = window.location.href.indexOf('localhost') != -1;
+
 function doRandomize(buffer, seed)
 {
 	try
 	{
+		if (console.clear) console.clear();
+
 		var result = randomizeROM(buffer, seed);
 		var url = BASEURL + '#!/' + result.seed + '/' + result.preset;
 		var category = result.category || "No Starworld";
@@ -80,6 +84,9 @@ function _validateRandomizer(buffer, maxiter, iter, errors)
 
 function validateRandomizer(iter)
 {
+	// turn on error reporting
+	DEVMODE = false;
+
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', 'smw.sfc', true);
 	xhr.responseType = 'arraybuffer';
@@ -126,8 +133,7 @@ if (!__SMWC)
 	});
 
 	// i don't care if people find these, but they shouldn't be readily accessible
-	if (window.location.href.indexOf('localhost') != -1)
-		$('#cheatmenu').removeClass('hidden');
+	if (DEVMODE) $('#cheatmenu').removeClass('hidden');
 }
 
 function cleanCustomSeed(seed)
