@@ -95,7 +95,7 @@ function randomizeROM(buffer, seed)
 	fixSwitchPalaceEventNumbers(stages, rom);
 
 	// update sublevels and exits to canonical representation
-	canonicalizeBaseRom(stages, rom);
+//	canonicalizeBaseRom(stages, rom);
 
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, rom);
