@@ -1,55 +1,5 @@
 var VERSION_STRING = 'v1.4';
 
-function isPermanentTile(stage)
-{
-	// some specific tiles MUST be permanent tiles, since the game does not trigger the reveal
-	var PERMANENT_TILES = [ 'sw1', 'sw2', 'sw3', 'sw4', 'sw5', 'sp1', 'yi1', 'yi2', 'foi1', 'ffort', 'cfort', 'yhouse' ];
-	if (PERMANENT_TILES.contains(stage.name) || isCastle(stage) || isCastle(stage.copyfrom)) return true;
-
-	var REVEALED_TILES = [ 'ci1', 'ci2', 'ci5', 'bb1', 'bb2' ];
-	if (REVEALED_TILES.contains(stage.name)) return false;
-
-	// if this is in FOI, try to grab unrevealed tiles
-	if (getMapForStage(stage).name == 'FOI') return false;
-
-	// otherwise, only permanent if special tile
-	return stage.copyfrom.ghost == 1 || stage.copyfrom.castle;
-}
-
-function isCastle(stage)
-{ return stage.castle > 0; }
-
-function isSwitchPalace(stage, rom)
-{ return [0x76, 0x77, 0x78, 0x79].contains(rom[getOverworldOffset(stage)]); }
-
-function isSavePoint(stage)
-{
-	if (stage.castle || stage.ghost || stage.palace) return true;
-	return [ 'sp2', 'sp4', 'sp6', 'sp8', 'sgs' ].contains(stage.name);
-}
-
-function getStage(stages, name)
-{
-	for (var i = 0; i < stages.length; ++i)
-		if (stages[i].name == name) return stages[i];
-	return null;
-}
-
-function getCopiedStage(stages, name)
-{
-	for (var i = 0; i < stages.length; ++i)
-		if (stages[i].copyfrom.name == name) return stages[i];
-	return null;
-}
-
-// purely for debug purposes
-function forceSwap(stages, a, b)
-{
-	a = getStage(stages, a);
-	b = getStage(stages, b);
-	a.copyfrom = b; b.copyfrom = a;
-}
-
 function randomizeROM(buffer, seed)
 {
 	var ext = '.sfc';
@@ -262,6 +212,56 @@ function randomizeROM(buffer, seed)
 
 	// return the modified buffer
 	return { seed: vseed, preset: preset, buffer: rom.buffer, type: ext || '.sfc' };
+}
+
+// purely for debug purposes
+function forceSwap(stages, a, b)
+{
+	a = getStage(stages, a);
+	b = getStage(stages, b);
+	a.copyfrom = b; b.copyfrom = a;
+}
+
+function isPermanentTile(stage)
+{
+	// some specific tiles MUST be permanent tiles, since the game does not trigger the reveal
+	var PERMANENT_TILES = [ 'sw1', 'sw2', 'sw3', 'sw4', 'sw5', 'sp1', 'yi1', 'yi2', 'foi1', 'ffort', 'cfort', 'yhouse' ];
+	if (PERMANENT_TILES.contains(stage.name) || isCastle(stage) || isCastle(stage.copyfrom)) return true;
+
+	var REVEALED_TILES = [ 'ci1', 'ci2', 'ci5', 'bb1', 'bb2' ];
+	if (REVEALED_TILES.contains(stage.name)) return false;
+
+	// if this is in FOI, try to grab unrevealed tiles
+	if (getMapForStage(stage).name == 'FOI') return false;
+
+	// otherwise, only permanent if special tile
+	return stage.copyfrom.ghost == 1 || stage.copyfrom.castle;
+}
+
+function isCastle(stage)
+{ return stage.castle > 0; }
+
+function isSwitchPalace(stage, rom)
+{ return [0x76, 0x77, 0x78, 0x79].contains(rom[getOverworldOffset(stage)]); }
+
+function isSavePoint(stage)
+{
+	if (stage.castle || stage.ghost || stage.palace) return true;
+	return [ 'sp2', 'sp4', 'sp6', 'sp8', 'sgs' ].contains(stage.name);
+}
+
+function getStage(stages, name)
+{
+	for (var i = 0; i < stages.length; ++i)
+		if (stages[i].name == name) return stages[i];
+	return null;
+}
+
+function getCopiedStage(stages, name)
+{
+	for (var i = 0; i < stages.length; ++i)
+		if (stages[i].copyfrom.name == name) return stages[i];
+	return null;
 }
 
 function shuffle(stages, random)
