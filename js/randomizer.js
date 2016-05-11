@@ -2123,7 +2123,7 @@ function randomizeNoYoshi(stages, random, rom)
 		var noyoshi = getYoshiEntranceType(stage, random.flipCoin(0.125));
 
 		// set "disable no-yoshi intro" to 0 for hijack
-		rom[HEADER4_OFFSET + trans] &= 0x7F;
+		rom[HEADER4_OFFSET + stage.id] &= 0x7F;
 
 		// populate table with entry
 		var shift = (trans & 1) ? 4 : 0;
