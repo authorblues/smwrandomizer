@@ -140,6 +140,12 @@ if (!__SMWC)
 	if (DEVMODE) $('#cheatmenu').removeClass('hidden');
 }
 
+$('#view-changelog').click(function(e)
+{
+	$('#modal-changelog-win .modal-body').load('changelog.html');
+	$('#modal-changelog-win').modal('show');
+});
+
 function cleanCustomSeed(seed)
 { return seed.replace(/[^a-fA-F0-9]+/g, '').substr(0, 8); }
 

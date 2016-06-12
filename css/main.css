@@ -39,7 +39,22 @@ p
 	margin-top: 20px;
 }
 
-#custom-seed 
+#custom-seed
 {
 	text-align: center;
+}
+
+.float-left { float: left; }
+.float-right { float: right; }
+
+#modal-changelog-win .modal-body ul
+{
+	margin-top: 5px;
+	margin-bottom: 15px;
+}
+
+#modal-changelog-win .modal-body li
+{
+	font-size: 80%;
+	line-height: 160%;
 }

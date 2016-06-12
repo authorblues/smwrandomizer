@@ -34,10 +34,19 @@
 
 		<!-- Main jumbotron for a primary marketing message or call to action -->
 		<div class="container">
-			<h2 class="header">Super Mario World
-				<span data-en_us="Randomizer" data-en_gb="Randomiser">Randomizer</span>
-				<span class="version-number"></span> <span class="beta">BETA</span></h2>
-			<p>by <span id="authorblues">authorblues</span> + kaizoman666</p>
+			<div class="float-left">
+				<h2 class="header">Super Mario World
+					<span data-en_us="Randomizer" data-en_gb="Randomiser">Randomizer</span>
+					<span class="version-number"></span> <span class="beta">BETA</span></h2>
+				<p>by <span id="authorblues">authorblues</span> + kaizoman666</p>
+			</div>
+
+			<div class="float-right">
+				<button class="btn btn-info btn-lg" id="view-changelog">
+					<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+					View Changelog
+				</button>
+			</div>
 		</div>
 
 		<div class="container">
@@ -439,6 +448,24 @@
 					<div class="modal-body">
 						<p id="modal-error-text"></p>
 						<ul id="modal-error-list"></ul>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="modal-changelog-win" tabindex="-1" role="dialog" aria-labelledby="modal-changelog-label" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="modal-changelog-label">
+							SMW Randomizer Changelog
+						</h4>
+					</div>
+					<div class="modal-body">
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
