@@ -74,6 +74,7 @@ $('#generate-param-rom').click(function(e)
 
 function _validateRandomizer(buffer, maxiter, iter, errors)
 {
+	console.log(Math.floor(100 * (maxiter - iter) / maxiter) + '%...');
 	for (var i = 0; i < 100 && iter > 0; ++i, --iter)
 	{
 		var copy = new ArrayBuffer(buffer.byteLength);
@@ -338,6 +339,9 @@ function hexToBits(x)
 	return a;
 }
 
+function bitset(x, mask)
+{ return (x & mask) == mask; }
+
 function Random(seed)
 { this.seed = Math.floor(seed || (Math.random() * 0xFFFFFFFF)) % 0xFFFFFFFF; }
 
@@ -393,6 +397,14 @@ Array.prototype.shuffle = function(random)
 
 Array.prototype.contains = function(x)
 { return this.indexOf(x) != -1; }
+
+Number.prototype.toBin = function(p)
+{
+	var s = p || 'b#', x = (this & 0xFF);
+	for (var i = 0x80; i > 0; i >>= 1)
+		s += (x & i) ? '1' : '0';
+	return s;
+}
 
 Number.prototype.toHex = function(n, p)
 {

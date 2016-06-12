@@ -1,6 +1,8 @@
+var FRONTDOOR, BACKDOOR;
+
 var bowserentrances = [
-	{"name": "frontdoor", "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10D, "cpath": NORTH_CLEAR, "tile": [0x18, 0x23], "out": []}, 
-	{"name": "backdoor",  "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10E, "cpath": NORTH_CLEAR, "tile": [0x1A, 0x23], "out": []}, 
+	FRONTDOOR = {"name": "frontdoor", "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10D, "cpath": NORTH_CLEAR, "tile": [0x18, 0x23], "out": []},
+	 BACKDOOR = {"name": "backdoor",  "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10E, "cpath": NORTH_CLEAR, "tile": [0x1A, 0x23], "out": []},
 ];
 
 var BOWSER_DARKROOM_ID = 0x1BD;
@@ -9,12 +11,12 @@ function randomizeBowserEntrances(random, rom)
 {
 	backupData(bowserentrances, rom);
 	shuffle(bowserentrances, random);
-	
+
 	for (var i = 0; i < bowserentrances.length; ++i)
 	{
 		var b = bowserentrances[i];
 		performCopy(b, rom);
-		
+
 		// reset the overworld tile
 		rom[getOverworldOffset(b)] = b.data.owtile;
 	}
@@ -31,13 +33,13 @@ function randomizeBowser8Doors(random, rom)
 		// get the location that this room exits to
 		var id = bowser8doors[i];
 		var exits = getScreenExits(id, rom);
-		
+
 		// save this information
 		rooms.push({ out: exits[0], sublevel: id, data: backupSublevel(id, rom) });
 	}
-	
+
 	rooms.shuffle(random);
-	
+
 	for (var i = 0; i < rooms.length; ++i)
 	{
 		rom[rooms[i].out.addr+3] = [ 0x1D0, 0x1BD ][(i/4)|0] & 0xFF;
@@ -48,15 +50,15 @@ function randomizeBowser8Doors(random, rom)
 function generateGauntlet(random, len, rom)
 {
 	if (len > bowser8doors.length) len = bowser8doors.length;
-	
+
 	// get a list of rooms
 	var rooms = bowser8doors.slice(bowser8doors.length - len).shuffle(random), numrooms = rooms.length;
 	rooms.push(BOWSER_DARKROOM_ID);
-	
+
 	// copy the first room into both castle entrances
 	for (var i = 0; i < bowserentrances.length; ++i)
 		copySublevel(bowserentrances[i].id, rooms[0], rom);
-		
+
 	// chain together all the rooms \("v")/
 	for (var i = 0; i < numrooms; ++i)
 	{

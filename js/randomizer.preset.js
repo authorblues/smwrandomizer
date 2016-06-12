@@ -6,8 +6,10 @@ function updatePreset(val)
 	if (preset == 0) return;
 
 	$('#randomize_stages').prop('checked', true);
+	$('#randomize_sublevels').prop('checked', preset > 4);
 	$('#randomize_exits').prop('checked', preset > 2);
 	$('#randomize_warps').prop('checked', preset > 3);
+
 	$('#randomize_sameworld').prop('checked', preset < 2);
 	$('#randomize_sametype').prop('checked', preset < 2);
 
@@ -28,7 +30,7 @@ function updatePreset(val)
 	$('#powerup_default').prop('checked', true);
 	if (preset > 3) $('#powerup_randomize').prop('checked', true);
 
-	$('#slippery').prop('checked', preset > 4);
+	$('#slippery').prop('checked', preset > 3);
 	$('#addwater').prop('checked', preset > 3);
 	$('#delwater').prop('checked', preset > 7);
 

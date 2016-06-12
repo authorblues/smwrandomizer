@@ -1,4 +1,4 @@
-var VERSION_STRING = 'v1.4';
+var VERSION_STRING = 'v2.0';
 
 function randomizeROM(buffer, seed)
 {
@@ -34,10 +34,6 @@ function randomizeROM(buffer, seed)
 
 	replaceFileSelect(TITLE_TEXT_COLOR, rom);
 
-	// fix some base tiles for consistency -- get your shit together Nintendo
-	rom[0x679F1] = 0x78; // ysp - is green, but gets fixed by offscreen event
-	rom[0x67D51] = 0x5A; // thanks for leaving an old switch just laying around
-
 	// in randomizer, "bonus star" counter shows completed exits instead
 	rom.set([0xAD, 0x2E, 0x1F], 0x00F8F);
 
@@ -45,7 +41,7 @@ function randomizeROM(buffer, seed)
 	fixSwitchPalaceEventNumbers(stages, rom);
 
 	// update sublevels and exits to canonical representation
-//	canonicalizeBaseRom(stages, rom);
+	canonicalizeBaseRom([].concat(stages, bowserentrances), rom);
 
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, rom);
@@ -53,6 +49,17 @@ function randomizeROM(buffer, seed)
 	// randomize autoscroller sprites and update v-scroll, if checked
 	if ($('#randomize_autoscrollers').is(':checked'))
 		randomizeAutoscrollers(random, rom);
+
+	// (☆^O^☆)
+	// (☆^O^☆) (☆^O^☆)
+	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
+	if ($('#pogyo_mode').is(':checked')) pogyo(stages, random, rom);
+	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
+	// (☆^O^☆) (☆^O^☆)
+	// (☆^O^☆)
+
+	if ($('#randomize_bossdiff').is(':checked'))
+		randomizeBossDifficulty(random, rom);
 
 	// randomize the sublevels inside each level
 	if ($('#randomize_sublevels').is(':checked'))
@@ -138,12 +145,6 @@ function randomizeROM(buffer, seed)
 	var saveprop = $('input[name="saving"]:checked').val();
 	fixSaveLocations(saveprop, stages, rom);
 
-	if ($('#randomize_bossdiff').is(':checked'))
-		randomizeBossDifficulty(random, rom);
-
-	// disable the forced no-yoshi intro on moved stages
-	rom[0x2DA1D] = 0x60;
-
 	if ($('#randomize_noyoshi').is(':checked'))
 		randomizeNoYoshi([].concat(stages, bowserentrances), random, rom);
 
@@ -163,14 +164,6 @@ function randomizeROM(buffer, seed)
 		randomizeEndGameText(newrandom, rom);
 	}
 
-	// (☆^O^☆)
-	// (☆^O^☆) (☆^O^☆)
-	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
-	if ($('#pogyo_mode').is(':checked')) pogyo(stages, random, rom);
-	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
-	// (☆^O^☆) (☆^O^☆)
-	// (☆^O^☆)
-
 	// mess with the overworld layer2 table
 	updateOverworldLayer2(random, rom);
 
@@ -182,7 +175,8 @@ function randomizeROM(buffer, seed)
 	cheatOptions(rom);
 
 	// validate the rom before we spit it out
-	validateROM(stages, rom);
+	var errors = validateROM([].concat(stages, [FRONTDOOR]), rom);
+	if (errors.length) throw new ValidationError(errors);
 
 	// write version number and the randomizer seed to the rom
 	var checksum = getChecksum(rom).toHex(4);
@@ -271,12 +265,97 @@ function shuffle(stages, random)
 		stages[i].copyfrom = rndstages[i];
 }
 
+function getSublevelData(id, rom)
+{
+	// get address for layer 1 header
+	var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
+
+	var data =
+	{
+		// PRIMARY HEADER DATA
+		bgp:      (rom[addr  ] >> 5) & 0x07, // BG palette
+		screens:  (rom[addr  ]     ) & 0x1F, // number of screens
+		bgc:      (rom[addr+1] >> 5) & 0x07, // BG color
+		lmode:    (rom[addr+1]     ) & 0x1F, // level mode
+		l3prio:   (rom[addr+2] >> 7) & 0x01, // layer 3 priority
+		music:    (rom[addr+2] >> 4) & 0x03, // music settings
+		stileset: (rom[addr+2]     ) & 0x0F, // sprite tileset
+		_time:    (rom[addr+3] >> 6) & 0x03, // time settings
+		sp:       (rom[addr+3] >> 3) & 0x07, // sprite palette
+		fgp:      (rom[addr+3]     ) & 0x07, // foreground palette
+		imem:     (rom[addr+4] >> 6) & 0x03, // item memory
+		_vscroll: (rom[addr+4] >> 4) & 0x03, // vertical scroll
+		tileset:  (rom[addr+4]     ) & 0x0F, // fg/bg tileset
+
+		// SECONDARY HEADER DATA
+		l2scroll:   (rom[HEADER1_OFFSET+id] >> 4) & 0x0F, // layer 2 scroll
+		y:          (rom[HEADER1_OFFSET+id]     ) & 0x0F, // level entrance y
+		l3:         (rom[HEADER2_OFFSET+id] >> 6) & 0x03, // layer 3 settings
+		entrance:   (rom[HEADER2_OFFSET+id] >> 3) & 0x07, // entrance type
+		x:          (rom[HEADER2_OFFSET+id]     ) & 0x07, // level entrance x
+		midscreen:  (rom[HEADER3_OFFSET+id] >> 4) & 0x0F, // midway entrance screen
+		fg:         (rom[HEADER3_OFFSET+id] >> 2) & 0x03, // entrance fg pos
+		bg:         (rom[HEADER3_OFFSET+id]     ) & 0x03, // entrance bg pos
+		yoshi:      (rom[HEADER4_OFFSET+id] >> 7) & 0x01, // disable no yoshi
+		uvp:        (rom[HEADER4_OFFSET+id] >> 6) & 0x01, // unknown vpos flag
+		vpos:       (rom[HEADER4_OFFSET+id] >> 5) & 0x01, // vertical pos flag
+		mainscreen: (rom[HEADER4_OFFSET+id]     ) & 0x1F, // main entrance screen
+	};
+
+	data.time = [0, 200, 300, 400][data._time];
+	data.vscroll = ['no-v', 'always', 'locked', 'no-v/h'][data._vscroll];
+	data.layer3 = ['none', 'tide', 'mondo', '???'][data.l3];
+
+	return data;
+}
+
 function canonicalizeBaseRom(stages, rom)
 {
+	// fix some base tiles for consistency -- get your shit together Nintendo
+	rom[0x679F1] = 0x78; // ysp - is green, but gets fixed by offscreen event
+	rom[0x67D51] = 0x5A; // thanks for leaving an old switch just laying around
+
+	// disable the forced no-yoshi intro on moved stages
+	rom[0x2DA1D] = 0x60;
+
+	// make WUSH format work for mixing primary and secondary exits
+	rom.set([0x9D, 0xD8, 0x19, 0x60], 0x6A531);
+	rom.set([0xAD, 0x93, 0x1B], 0x2D94C);
+	rom.set([0x20, 0x67, 0x8E], 0x2D7D4);
+	rom.set([0xBD, 0xD8, 0x19, 0x29, 0x02, 0x8D, 0x93, 0x1B, 0x60], 0x28E67);
+
+	// fix layer2 reset when changing rooms
+	rom.set([0x20, 0x4D, 0xBA], 0x0259F);
+	rom.set([0x20, 0x2D, 0xF6, 0xA2, 0x03, 0x74, 0x26, 0xCA, 0x10, 0xFB, 0x60], 0x03A4D);
+
+	// set dsh translevel to 0 to make big boo act as the normal exit
+	// copy DGH's secret goal tape sublevel into DSH's goaltape (to make secret exit)
+	rom[0x04A0C] = 0;
+	copySublevel(0xF0, 0xEB, rom);
+
+	// stages with exits "backwards" by default, we should fix all the
+	// associated exits since they have their exits unintuitively reversed
+	var BASE_SWAP_EXITS = ['fgh', 'dgh', 'dsh'];
+	for (var i = 0; i < stages.length; ++i)
+		if (BASE_SWAP_EXITS.contains(stages[i].name))
+			swapExits(stages[i], rom);
+
+	// repair U/H for all of the stages
+	for (var id = 0; id < 0x200; ++id)
+		writeExitList(getScreenExits(id, rom), rom);
+
 	// remove the useless screen exit on vs1
 	var exits109 = getScreenExits(0x109, rom);
 	exits109.splice(1, 1);
 	writeExitList(exits109, rom);
+
+	// fix vs1 pipe (move it down)
+	var stage109 = parseObjectList(snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * 0x109, 3, rom)), rom);
+	stage109[55].major += 1; // pipe moved down
+	stage109[56].major += 1; // platform moved down
+	stage109[57].extra = combineNibbles(3, 0xE);
+	stage109[59].major += 1;
+	writeObjectList(stage109, rom);
 
 	// canonical version of CI1 is 0xF6
 	var ci1 = backupSublevel(0xF6, rom);
@@ -306,11 +385,7 @@ function canonicalizeBaseRom(stages, rom)
 				for (var z = 0; z < exits.length; ++z)
 				{
 					if (exits[z].target == sublevels[j])
-					{
-						exits[z].issecx = true;
-						exits[z].target = sec.id;
-						writeExit(exits[z], rom);
-					}
+						writeExit(exits[z], rom, {issecx: true, target: sec.id});
 				}
 			}
 
@@ -318,6 +393,18 @@ function canonicalizeBaseRom(stages, rom)
 			clearSublevel(sublevels[j], rom);
 		}
 	}
+
+	// remove unreachable sublevels
+	var reachable = [0x000, 0x100, 0x0C5, 0x0C8, 0x1C8, 0x104, 0x0C7];
+	for (var i = 0; i < stages.length; ++i)
+	{
+		var sub = getRelatedSublevels(stages[i].id, rom);
+		for (var j = 0; j < sub.length; ++j)
+			if (!reachable.contains(sub[j])) reachable.push(sub[j]);
+	}
+
+	for (var i = 0; i < 0x200; ++i)
+		if (!reachable.contains(i)) clearSublevel(i, rom);
 }
 
 function fixSwitchPalaceEventNumbers(stages, rom)
@@ -394,7 +481,6 @@ function performCopy(stage, rom)
 	if (stage.copyfrom.castle > 0 && stage.copyfrom.castle < 8)
 		rom[0x049A7 + stage.copyfrom.castle - 1] = stage.translevel;
 
-	if (stage.copyfrom.id == 0x013) rom[0x04A0C] = stage.translevel; // dsh translevel
 	if (stage.copyfrom.id == 0x024) rom[0x2DAE5] = stage.translevel; // ci2 translevel
 	if (stage.copyfrom.id == 0x018) rom[0x20DD8] = stage.translevel; // sgs translevel
 
@@ -403,14 +489,6 @@ function performCopy(stage, rom)
 	{
 		rom.set([0xAC, 0xBF, 0x13, 0xEA], 0x0E2F6);
 		rom[0x0E2FD] = stage.translevel;
-	}
-
-	// if the stage we are copying from is default "backwards", we should fix all the
-	// associated exits since they have their exits unintuitively reversed
-	if ([0x004, 0x11D].contains(stage.copyfrom.id))
-	{
-		swapExits(stage.copyfrom, rom);
-		swapExits(stage, rom);
 	}
 
 	// update the overworld tile
@@ -672,14 +750,14 @@ function randomizeEnemyProperties(mode, stages, random, rom)
 */
 function isDoorEntrance(id, rom)
 {
-	var entr = (rom[0x2F200 + id] >> 3) & 0x7;
+	var entr = getSublevelData(id, rom).entrance;
 	return (entr == 0x0 || entr == 0x5);
 }
 
 function getLevelMode(id, rom)
 {
-	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
-	return LEVEL_MODES[rom[snesAddressToOffset(snes)+1] & 0x1F];
+	// this code used to be so much more complicated :\
+	return LEVEL_MODES[getSublevelData(id, rom).lmode];
 }
 
 function randomizeColorPalettes(stages, random, rom)
@@ -965,7 +1043,7 @@ function parseObjectList(addr, rom)
 		if (rom[addr] === 0xFF) break;
 
 		// pattern looks like the start of the screen exits list
-		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) break;
+		if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] === 0x00) break;
 
 		var obj = { addr: addr, n: (rom[addr] & 0x80) };
 		obj.id = ((rom[addr] & 0x60) >> 1) | ((rom[addr+1] & 0xF0) >> 4);
@@ -1019,6 +1097,12 @@ function writeObject(obj, rom, changes)
 	obj.addr);
 }
 
+function writeObjectList(obj, rom)
+{
+	for (var i = 0; i < obj.length; ++i)
+		writeObject(obj[i], rom);
+}
+
 function combineNibbles(a, b)
 { return ((a & 0xF) << 4) | (b & 0xF); }
 
@@ -1032,9 +1116,11 @@ function randomizeSwitchRooms(stages, random, rom)
 	rom[0x028F2] = sp4;
 	for (var i = 0; i < switches.length; ++i)
 	{
-		var id = switches[i].sublevels[1];
+		var id = getRelatedSublevels(switches[i].id, rom)[1];
 		var sprites = getSpritesBySublevel(id, rom);
-		if (sprites.length !== 1) continue;
+
+		if (sprites.length !== 1 || sprites[0].spriteid !== 0x6D)
+			console.log('Trying to modify a non-switch room like a switch room.');
 
 		var oldsprite = sprites[0];
 		var newsprite = random.from(candidates);
@@ -1057,7 +1143,7 @@ function randomizeSwitchRooms(stages, random, rom)
 			rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
 
 			// get address of sprite table and setup buoyancy default
-			var buoyancy = getLevelMode(id, rom).layer2inter ? 0x80 : 0x40;
+			var buoyancy = getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40;
 
 			// if buoyancy was already set, just leave it as it was
 			if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
@@ -1094,6 +1180,86 @@ function randomizeSwitchRooms(stages, random, rom)
 	}
 }
 
+var PIPE_DATA =
+[
+	{ h: 0, extra: 0x21, minor: 20, spawn: 0x50, next: [0] },
+	{ h: 1, extra: 0x31, minor: 19, spawn: 0x40, next: [0,1,2] },
+	{ h: 2, extra: 0x41, minor: 18, spawn: 0x30, next: [1,3] },
+	{ h: 3, extra: 0x51, minor: 17, spawn: 0x20, next: [2] },
+];
+
+function randomizePipeBosses(random, rom)
+{
+	var addr, obj;
+	var LEMMY_ROOM = KOOPA_KID_SUBLEVELS[2];
+	var WENDY_ROOM = KOOPA_KID_SUBLEVELS[5];
+
+	var pipes = [], plast = random.from(PIPE_DATA);
+	while (pipes.length < 7)
+	{
+		pipes.push(plast);
+		plast = PIPE_DATA[random.from(plast.next)];
+	}
+
+	pipes.push(pipes[3]);
+	rom.set($.map(pipes, function(x){ return x.spawn; }),
+		snesAddressToOffset(0x03CC40));
+
+	addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * LEMMY_ROOM, 3, rom));
+	obj = parseObjectList(addr, rom);
+
+	for (var i = 0, a = 0; i < obj.length; ++i)
+	{
+		if (obj[i].id != 0x34) continue;
+
+		var p = pipes[a++];
+		obj[i].extra = p.extra;
+		obj[i].minor = p.minor;
+
+		writeObject(obj[i], rom);
+	}
+}
+
+function randomizeStageEffects(stages, random, rom)
+{
+	var can_vscroll = [];
+	for (var id = 0; id < 0x200; ++id)
+	{
+		if (isSublevelFree(id, rom)) continue;
+		var l2 = getPointer(LAYER2_OFFSET + 3 * id, 3, rom);
+		if (BG_CAN_VSCROLL[l2]) can_vscroll.push(id);
+	}
+
+	can_vscroll.shuffle(random);
+	var c = random.nextIntRange(1,4);
+
+	var prio = REPLACEABLE_SPRITES.slice(0).reverse();
+	for (var i = 0; c && i < can_vscroll.length; ++i)
+	{
+		var id = can_vscroll[i];
+		var data = getSublevelData(id, rom);
+		var mode = getLevelMode(id, rom);
+
+		// bg setting 00 requires 12-tile scroll, which is fucky
+		if (data.bg == 0x3) continue;
+
+		var sprites = getSpritesBySublevel(id, rom);
+		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.spriteid) - prio.indexOf(a.spriteid); })[0];
+
+		if (best && REPLACEABLE_SPRITES.contains(best.spriteid)) --c;
+		else continue;
+
+		best.screen = data.mainscreen;
+		best.major = best.minor = 0;
+
+		best.spriteid = 0xEA;
+		best.extend = random.from([0x1, 0x2, 0x3]);
+
+		updateSprite(best, rom);
+		sortSprites(sprites, rom);
+	}
+}
+
 function pogyo(stages, random, rom)
 {
 	// randomize hammer bro thrown item
@@ -1119,6 +1285,9 @@ function pogyo(stages, random, rom)
 	// change some sound effects, because fun...
 	changeSound(SOUND_EFFECT_TRIGGER.NINTENDO_PRESENTS, SOUND_EFFECT.YOSHI_OW, rom);
 	changeSound(SOUND_EFFECT_TRIGGER.OVERWORLD_MOVE, SOUND_EFFECT.YOSHI_OW, rom);
+
+	// add random stage effects
+	randomizeStageEffects(stages, random, rom);
 
 	// https://twitter.com/Dotsarecool/status/714639606696771589
 	detuneMusic(rom, random);
@@ -1323,18 +1492,14 @@ function backupStage(stage, rom)
 		$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
 
 	// ci2 - need to add the exits from the additional tables
-	if (stage.id === 0x024)
+	if (stage.id === 0x024) for (var j = 0; j < CI2_ROOM_OFFSETS.length; ++j)
 	{
-		// coins - room 2
-		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06E9FB, rom));
-		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EAB0, rom));
+		var addr = 0x060000 | getPointer(CI2_LAYER_OFFSETS.layer1 + CI2_ROOM_OFFSETS[j], 2, rom);
+		var exits = getScreenExitsByAddr(addr, rom);
 
-		// time - room 3
-		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EB72, rom));
-		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EBBE, rom));
-
-		// yoshi coins - room 4
-		Array.prototype.push.apply(stage.allexits, getScreenExitsByAddr(0x06EC7E, rom));
+		for (var k = 0; k < exits.length; ++k)
+			if (!$.map(stage.allexits, function(x){ return x.addr; }).contains(addr))
+				stage.allexits.push(exits[k]);
 	}
 
 	// store the overworld tile
@@ -1436,18 +1601,15 @@ function sameStageBucket(a, b)
 
 function getPrimaryEntrance(id, rom)
 {
-	var entr = {};
-	entr.target = id;
+	var meta = getSublevelData(id, rom);
 
-	entr.entrance = (rom[HEADER2_OFFSET + id] >> 3) & 0x07;
-	entr.bg = rom[HEADER3_OFFSET + id] & 0x03;
-	entr.fg = (rom[HEADER3_OFFSET + id] >> 2) & 0x03;
+	// add a few details to help combine this
+	// with secondary exits (identifiably)
+	meta.target = id;
+	meta.primary = true;
 
-	entr.y = rom[HEADER1_OFFSET + id] & 0x0F;
-	entr.x = rom[HEADER2_OFFSET + id] & 0x07;
-	entr.screen = rom[HEADER4_OFFSET + id] & 0x1F;
-
-	return entr;
+	meta.screen = meta.mainscreen;
+	return meta;
 }
 
 /*
@@ -1482,10 +1644,10 @@ function getSecondaryExit(id, rom)
 
 function getIncomingSecondaryExits(id, rom)
 {
-	var exits = [];
-	for (var x = 1; x < 0x100; ++x)
+	var exits = [], bank = id & 0x100;
+	for (var x = 0; x < 0x100; ++x)
 	{
-		var sec = getSecondaryExit(x | (id & 0x100), rom);
+		var sec = getSecondaryExit(x | bank, rom);
 		if (sec.target == id) exits.push(sec);
 	}
 
@@ -1501,7 +1663,8 @@ function writeSecondaryExit(sec, rom, changes)
 	// if the target is in the wrong location, get a better slot
 	if (!sec.id || (sec.target & 0x100) != (sec.id & 0x100))
 	{
-		deleteSecondaryExit(sec.id || 0, rom);
+		var previd;
+		deleteSecondaryExit(previd = sec.id || 0, rom);
 		sec.id = findOpenSecondaryExit(sec.target & 0x100, rom);
 	}
 
@@ -1511,7 +1674,7 @@ function writeSecondaryExit(sec, rom, changes)
 	rom[SEC_EXIT_OFFSET_X1 + sec.id] = ((sec.bg & 0x03) << 6) | ((sec.fg & 0x03) << 4) | (sec.y & 0x0F);
 	rom[SEC_EXIT_OFFSET_X2 + sec.id] = ((sec.x & 0x07) << 5) | (sec.screen & 0x1F);
 
-	return sec.id & 0xFF;
+	return sec.id;
 }
 
 function deleteSecondaryExit(id, rom)
@@ -1520,6 +1683,26 @@ function deleteSecondaryExit(id, rom)
 	rom[SEC_EXIT_OFFSET_HI + id] = 0x00;
 	rom[SEC_EXIT_OFFSET_X1 + id] = 0x00;
 	rom[SEC_EXIT_OFFSET_X2 + id] = 0x00;
+}
+
+function isSecondaryExitOpen(id, rom)
+{
+	return !(rom[SEC_EXIT_OFFSET_LO + id] || rom[SEC_EXIT_OFFSET_HI + id]
+	      || rom[SEC_EXIT_OFFSET_X1 + id] || rom[SEC_EXIT_OFFSET_X2 + id]);
+}
+
+function validateSecondaryExits(rom)
+{
+	for (var i = 0; i < 0x200; ++i)
+	{
+		if (isSecondaryExitOpen(i, rom)) continue;
+		var sec = getSecondaryExit(i, rom);
+
+		if (isSublevelFree(sec.target, rom))
+			console.log('Secondary exit ' + i.toPrintHex(3) + ' appears to be pointing to a TEST level');
+		else if (sec.target & 0xFF == 0x00)
+			console.log('Secondary exit ' + i.toPrintHex(3) + ' appears to be pointing to ' + sec.target.toPrintHex(3));
+	}
 }
 
 function fixSecondaryExits(to, fm, rom)
@@ -1551,10 +1734,7 @@ function fixAllSecondaryExits(roommap, rom)
 		var exits = getScreenExits(id, rom);
 		for (var k = 0; k < exits.length; ++k)
 			if (exits[k].issecx && exits[k].target in secmap)
-			{
-				exits[k].target = secmap[exits[k].target];
-				writeExit(exits[k], rom);
-			}
+				writeExit(exits[k], rom, {target: secmap[exits[k].target]});
 	}
 }
 
@@ -1680,8 +1860,6 @@ function backupSublevel(id, rom)
 		data[o.name] = rom.slice(x, x + o.bytes);
 	}
 
-	if (DEVMODE && isTestPointer(data['layer1']))
-		console.log('Suspicious copy: ' + id.toPrintHex(3) + ' was TEST');
 	return data;
 }
 
@@ -1717,8 +1895,8 @@ function findOpenSublevel(bank, rom)
 {
 	bank &= 0x100;
 
-	var start = [0x025, 0x13C][bank >> 16], x;
-	for (var i = start; i <= 0xFF; ++i)
+	var start = [0x025, 0x13C][bank >> 16];
+	for (var i = start, x; i <= 0xFF; ++i)
 		if (isSublevelFree(x = bank | i, rom))
 			if (!PRIMARY_SUBLEVEL_IDS.contains(x)) return x;
 
@@ -1729,9 +1907,9 @@ function findOpenSublevel(bank, rom)
 function findOpenSecondaryExit(bank, rom)
 {
 	bank &= 0x100;
-	for (var i = 0x01; i <= 0xFF; ++i)
-		if (rom[SEC_EXIT_OFFSET_LO + (bank | i)] == 0x00)
-			return (bank | i);
+
+	for (var i = 0x01, x; i <= 0xFF; ++i)
+		if (isSecondaryExitOpen(x = bank | i, rom)) return x;
 
 	// please god, this should never happen!
 	throw new Error('No free secondary exits in bank ' + bank.toHex(3));
@@ -1766,7 +1944,7 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 		if (rom[addr] === 0xFF) break;
 
 		// pattern looks like the start of the screen exits list
-		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00)
+		if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] === 0x00)
 		{
 			for (;; addr += 4)
 			{
@@ -1779,8 +1957,8 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 				x.water  =   (rom[addr+1] & 0x08);
 				x.issecx =   (rom[addr+1] & 0x02);
 
-				x.u      =   (rom[addr+1] & 0x04);
-				x.h      =   (rom[addr+1] & 0x01);
+				x._u     =   (rom[addr+1] & 0x04);
+				x._h     =   (rom[addr+1] & 0x01);
 				x.target =    rom[addr+3] | (id & 0x100);
 
 				// this is a piece of information that is useful to cache
@@ -1796,10 +1974,18 @@ function getScreenExitsByAddr(snes, rom, /*optional*/ id)
 	return exits;
 }
 
-function writeExit(x, rom)
+function writeExit(x, rom, changes)
 {
+	changes = changes || {};
+	for (var k in changes) if (changes.hasOwnProperty(k))
+		x[k] = changes[k];
+
+	// set u/h correctly even though vanilla smw doesn't
+	x._u = 1;
+	x._h = (x.target & 0x100) >> 8;
+
 	x.data[0] = x.screen & 0x1F;
-	x.data[1] = (x.water ? 0x08 : 0x00) | (x.u ? 0x04 : 0x00) | (x.issecx ? 0x02 : 0x00) | (x.h ? 0x01 : 0x00);
+	x.data[1] = (x.water ? 0x08 : 0x00) | (x._u ? 0x04 : 0x00) | (x.issecx ? 0x02 : 0x00) | (x._h ? 0x01 : 0x00);
 	x.data[2] = 0;
 	x.data[3] = x.target & 0xFF;
 
@@ -1813,10 +1999,7 @@ function writeExitList(exits, rom)
 
 	var addr = exits[0].addr;
 	for (var i = 0; i < exits.length; ++i, addr += 4)
-	{
-		exits[i].addr = addr;
-		writeExit(exits[i], rom);
-	}
+		writeExit(exits[i], rom, {addr: addr});
 
 	// write end of list sentinel
 	rom[addr] = 0xFF;
@@ -1846,18 +2029,6 @@ function updateExitTarget(x, target, rom, map)
 	writeExit(x, rom);
 }
 
-function getScreenExitListStart(addr, rom)
-{
-	addr += 5;
-	for (;; addr += 3)
-	{
-		// 0xFF sentinel represents end of level data
-		if (rom[addr] === 0xFF) return -1;
-
-		// pattern looks like the start of the screen exits list
-		if ((rom[addr] & 0xE0) === 0x00 && (rom[addr+1] & 0xF5) === 0x00 && rom[addr+2] === 0x00) return addr;
-	}
-}
 function getSublevelFromExit(exit, rom)
 {
 	if (!exit.issecx) return exit.target;
@@ -1866,6 +2037,9 @@ function getSublevelFromExit(exit, rom)
 
 function getRelatedSublevels(baseid, rom)
 {
+	// probably not a real level we are checking here
+	if (isSublevelFree(baseid, rom)) return [];
+
 	var id, ids = [], todo = [baseid];
 	while (todo.length)
 	{
@@ -1973,28 +2147,15 @@ function sortSprites(sprites, rom, addr)
 	rom[addr] = 0xFF;
 }
 
-var AUTOSCROLL_ROOMS =
-[
-	// good rooms
-	0x011, 0x111, 0x12D, 0x1CD,
-
-	// maybe less good rooms?
-	0x126, 0x1CC, 0x01B, 0x11C,
-];
-
-var REPLACEABLE_SPRITES =
-[ 0x02, 0x03, 0xAB, 0x1D, 0x50, 0x4C, 0x33, 0xBC, 0x93, 0xB3, 0xC2, 0x6D, ];
-
 function randomizeAutoscrollers(random, rom)
 {
 	for (var id = 0; id < 0x200; ++id)
 	{
-		// don't remove autoscroller for DP2 due to issues with the
-		// layer 2 movement. sorry, but this is a wontfix issue.
-		if (id == 0x009) continue;
-		
 		// don't ALWAYS remove autoscrollers :^)
 		if (!random.flipCoin(0.8)) continue;
+
+		// temporary FIXME FIXME FIXME
+		if (id == 0x009) continue;
 
 		var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
 		var addr = snesAddressToOffset(snes);
@@ -2017,7 +2178,8 @@ function randomizeAutoscrollers(random, rom)
 			}
 
 		// remove the actual autoscroller sprites
-		deleteSprites([0xE8, 0xF3], sprites, rom);
+		if (id == 0x009) rewriteDP2(rom);
+		else deleteSprites([0xE8, 0xF3], sprites, rom);
 	}
 
 	var newauto = AUTOSCROLL_ROOMS.slice(0).shuffle(random);
@@ -2043,6 +2205,29 @@ function randomizeAutoscrollers(random, rom)
 		updateSprite(best, rom);
 		sortSprites(sprites, rom);
 	}
+}
+
+function rewriteDP2(rom)
+{
+	return;
+	var id = 0x009;
+
+	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
+	var addr = snesAddressToOffset(snes);
+
+	var sprites = getSpritesBySublevel(id, rom);
+	for (var i = 0; i < sprites.length; ++i)
+		if (sprites[i].spriteid === 0xE8)
+		{
+			sprites[i].spriteid = 0xEA;
+			sprites[i].extend = 0x03;
+			updateSprite(sprites[i], rom);
+		}
+
+	var objlist = parseObjectList(addr, rom);
+	objlist[5].extra = combineNibbles(3, 0);
+
+	writeObjectList(objlist, rom);
 }
 
 function bytesToLittleEndian(arr)
@@ -2147,6 +2332,9 @@ function randomizeBossDifficulty(random, rom)
 	rom[0x1CE1A] = whp;
 	rom[0x1CED4] = whp - 1;
 
+	// randomize lemmy/wendy room
+	randomizePipeBosses(random, rom);
+
 	// health of bowser phase1, and phases2+3
 	var bhp = random.nextIntRange(1,6);
 	rom[0x1A10B] = bhp;
@@ -2159,6 +2347,15 @@ function randomizeBossDifficulty(random, rom)
 	// randomize reznor
 	if (random.flipCoin(0.33)) rom.set([0x38, 0xE9], 0x198C7);
 	rom[0x198C9] = random.nextIntRange(0x01, 0x04);
+}
+
+function isBossRoom(id, rom)
+{
+	var sprites = getSpritesBySublevel(id, rom);
+	for (var i = 0; i < sprites.length; ++i)
+		if (sprites[i].spriteid == 0x29 && sprites[i].x == 12)
+			return ['morton', 'roy', 'ludwig', 'iggy', 'larry', 'lemmy', 'wendy'][sprites[i].y];
+	return false;
 }
 
 function randomizeKoopaKids(random, rom)
@@ -2306,8 +2503,16 @@ function findKeyBySublevel(id, rom)
 {
 	// find key sprite
 	var sprites = getSpritesBySublevel(id, rom);
-	for (var i = 0; i < sprites.length; ++i) if (sprites[i].spriteid == 0x80)
-		return { sublevel: id, sprite: sprites[i] };
+	for (var i = 0; i < sprites.length; ++i)
+	{
+		// just a normal key
+		if (sprites[i].spriteid == 0x80)
+			return { sublevel: id, sprite: sprites[i] };
+
+		// bubble/exploding block with extra bits set (contains key)
+		if ([0x9D, 0x4C].contains(sprites[i].spriteid) && sprites[i].extend)
+			return { sublevel: id, sprite: sprites[i] };
+	}
 
 	// ...otherwise, look for key block
 	var start = LAYER1_OFFSET + 3 * id;
@@ -2325,37 +2530,6 @@ function findKeyBySublevel(id, rom)
 	// nothing
 	return null;
 }
-
-var KEY_CAN_REPLACE = [
-	// koopas and goombas (not flying to avoid dropping in a pit)
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0C, 0xBD, 0x0F, 0x10,
-	0xDA, 0xDB, 0xDC, 0xDD, 0xDF,
-
-	// chucks
-	0x91, 0x92, 0x93, 0x94, 0x95, 0x97, 0x98,
-
-	// other enemies (some tileset specific)
-	0x0D, 0x11, 0x13, 0x26, 0x27, 0x46, 0x4E, 0x51, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73,
-	0x86, 0x99, 0x9F, 0xAB, 0xBE, 0xBF, 0x3D,
-
-	// powerups
-	0x74, 0x75, 0x76, 0x77, 0x78,
-
-	// other
-	0x2C, 0x2D, 0x2F,
-];
-
-var KEY_REPLACEMENTS = [
-	// koopas and goombas
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0C, 0xBD, 0x0F, 0x10,
-	0xDA, 0xDB, 0xDC, 0xDD, 0xDF,
-
-	// powerups
-	0x78,
-
-	// other
-	0x21,
-];
 
 function findKeyCandidates(stage, random, rom)
 {
@@ -2412,16 +2586,80 @@ function randomizeKeyLocations(stages, random, rom)
 			// find a place to put the key
 			key = random.from(candidates);
 
-			if (key.sprite) updateSprite(key.sprite, rom, {spriteid: 0x80});
+			if (key.sprite)
+			{
+				// bubbles and exploding blocks only need their extra bits set
+				if ([0x9D, 0x4C].contains(key.sprite.spriteid))
+					updateSprite(key.sprite, rom, {extend: 0x1});
+
+				// otherwise, rewrite the sprite id
+				else updateSprite(key.sprite, rom, {spriteid: 0x80});
+			}
 			else if (key.block) writeObject(key.block, rom, {id: 0x00, extra: 0x35});
 		}
 	}
+
+	// hijack for keys appearing in bubbles / exploding blocks
+	rom.set([
+		0x0F, 0x0D, 0x15, 0x74, 0x80, // sprite ids
+		0x84, 0x85, 0x05, 0x08, 0x00, // YXPPCCCT
+		0xA8, 0xCA, 0x67, 0x24, 0xEC, // Tile (1)
+		0xAA, 0xCC, 0x69, 0x24, 0xEC, // Tile (2)
+
+		0xBD, 0xD4, 0x14, 0x29, 0x0C, 0xF0, 0x04, 0xA0,
+		0x04, 0x80, 0x09, 0xB5, 0xE4, 0x4A, 0x4A, 0x4A,
+		0x4A, 0x29, 0x03, 0xA8, 0xBD, 0xD4, 0x14, 0x29,
+		0x01, 0x9D, 0xD4, 0x14, 0x6B, 0xC9, 0x80, 0xD0,
+		0x05, 0xA9, 0x09, 0x9D, 0xC8, 0x14, 0x22, 0xD2,
+		0xF7, 0x07, 0x6B,
+	],
+	0x14BFE);
+
+	// repoint tables
+	rom.set([0xB9, 0xFE, 0xCB], 0x1597A);
+	rom.set([0xBD, 0x08, 0xCC], 0x158DC);
+	rom.set([0xBD, 0x0D, 0xCC], 0x158E1);
+	rom.set([0xBD, 0x03, 0xCC], 0x158CF);
+
+	rom.set([
+		0x22, 0x12, 0xCC, 0x02, 0xB9, 0xAE, 0x83, 0x95,
+		0xC2, 0x60, 0x15, 0x0F, 0x00, 0x04, 0x80,
+	],
+	0x083A4);
+
+	rom.set([0x22, 0x2F, 0xCC, 0x02], 0x16467);
+	rom.set([0x22, 0x2F, 0xCC, 0x02], 0x15980);
+
+	// prevent key despawning
+	rom.set([0x20, 0xEC, 0xB5, 0xEA], 0x12922);
+	rom.set([0xA5, 0x05, 0xC9, 0x7B, 0xF0, 0x02, 0xC9, 0x80, 0x60], 0x135EC);
+}
+
+function checkExits(stage, rom)
+{
+	var sub = getRelatedSublevels(stage.id, rom), exits = 0;
+	for (var i = 0; i < sub.length; ++i)
+		exits |= providesExits(sub[i], rom);
+
+	// if the stage is ci2, it provides a secret exit, trust me :^)
+	if (stage.translevel == rom[0x2DAE5]) exits |= SECRET_EXIT;
+
+	// if this stage provides both a key and keyhole
+	if (bitset(exits, KEY|KEYHOLE))
+		exits = (exits ^ (KEY|KEYHOLE)) | SECRET_EXIT;
+
+	// what types and how many exits does this stage provide
+	exits &= 0x3;
+	return { types: exits, count: [0, 1, 'invalid', 2][exits] };
 }
 
 function providesExits(id, rom)
 {
 	// returned exits
-	var exits = 0, keyhole = false;
+	var exits = 0;
+
+	// look for a key
+	if (findKeyBySublevel(id, rom)) exits |= KEY;
 
 	var sprites = getSpritesBySublevel(id, rom);
 	for (var i = 0; i < sprites.length; ++i)
@@ -2429,15 +2667,20 @@ function providesExits(id, rom)
 		// orb always provides the normal exit
 		if (sprites[i].spriteid == 0x4A) exits |= NORMAL_EXIT;
 
+		// big boo boss usually counts as the stage's secret exit in vanilla
+		// SMW, but we use it for normal exit here
+		if ([0xC5, 0x29, 0xA9].contains(sprites[i].spriteid)) exits |= NORMAL_EXIT;
+
 		// get the extra bits if we find a goal tape
 		if (sprites[i].spriteid == 0x7B)
-			exits |= sprites[i].extend ? SECRET_EXIT : NORMAL_EXIT;
+			exits |= (sprites[i].extend ? SECRET_EXIT : NORMAL_EXIT);
 
-		if (sprites[i].spriteid == 0x0E) keyhole = true; // found keyhole
+		if (sprites[i].spriteid == 0x0E) exits |= KEYHOLE; // found keyhole
 	}
 
 	// if this room provides both a key and keyhole
-	if (findKeyBySublevel(id, rom) && keyhole) exits |= SECRET_EXIT;
+	if (bitset(exits, KEY|KEYHOLE))
+		exits = (exits ^ (KEY|KEYHOLE)) | SECRET_EXIT;
 
 	return exits;
 }
@@ -2463,14 +2706,6 @@ function fixDemo(rom)
 		rom[0x01C1F + i * 2] = 0x00;
 	rom[0x01C1F + 34] = 0xFF;
 }
-
-var NO_WATER_STAGES = [
-	// do not add water to these stages
-	0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0D3, 0x0CC,
-
-	// do not remove water from these stages
-
-];
 
 // randomizes slippery/water/tide flags
 function randomizeFlags(random, rom)
@@ -2502,23 +2737,17 @@ function randomizeFlags(random, rom)
 
 	for (var id = 0; id < 0x200; ++id)
 	{
-		var start = LAYER1_OFFSET + 3 * id;
-		var snes = getPointer(start, 3, rom);
-		var addr = snesAddressToOffset(snes);
-
-		var numscreens = rom[addr] & 0x1F;
-		var entr = (rom[0x2F200+id] >> 3) & 0x7;
-		var tide = (rom[0x2F200+id] >> 6) & 0x3;
+		var meta = getSublevelData(id, rom);
 
 		// get default flag setting for the sublevel
-		var flag = (entr == 5 ? 0x80 : 0) | (entr == 7 ? 0x01 : 0);
+		var flag = (meta.entrance == 5 ? 0x80 : 0) | (meta.entrance == 7 ? 0x01 : 0);
 
 		// base water on how many screens the stage has
-		if (0 == random.nextInt(Math.max(numscreens*1.5, 8)|0) && !NO_WATER_STAGES.contains(id)
+		if (0 == random.nextInt(Math.max(meta.screens*1.5, 8)|0) && !NO_WATER_STAGES.contains(id)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked')) flag ^= 0x01;
 
 		// force certain stages to not have water
-		if ([0x1, 0x2].contains(tide)) flag &= 0xF0;
+		if ([0x1, 0x2].contains(meta.l3)) flag &= 0xF0;
 
 		if ($('#slippery').is(':checked'))
 		{
@@ -2535,12 +2764,26 @@ function randomizeFlags(random, rom)
 		rom[FLAGBASE+id] = flag;
 
 		// get address of sprite table and setup buoyancy default
-		addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
-		var buoyancy = (flag & 0x01) ? (getLevelMode(id, rom).layer2inter ? 0x80 : 0x40) : 0x00;
+		var addr = snesAddressToOffset(0x70000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+		var buoyancy = (flag & 0x01) ? (getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40) : 0x00;
 
 		// if buoyancy was already set, just leave it as it was
 		if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
 		rom[addr] = (rom[addr] & 0x3F) | buoyancy;
+	}
+
+	// transfer the buoyancy info to the secret CI2 sublevels as well
+	for (var i = 0; i < CI2_ROOM_OFFSETS.length; ++i)
+	{
+		var addr = snesAddressToOffset(0x70000 | getPointer(CI2_ROOM_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][0], 2, rom));
+		var buoyancy = rom[addr] & 0xC0;
+
+		var rooms = CI2_ROOM_OFFSETS[i].slice(1);
+		for (var j = 0; j < rooms.length; ++j)
+		{
+			addr = snesAddressToOffset(0x70000 | getPointer(CI2_ROOM_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][j], 2, rom));
+			rom[addr] = (rom[addr] & 0x3F) | buoyancy;
+		}
 	}
 }
 
@@ -2561,64 +2804,6 @@ function coordsToLayer2Position(x, y)
 
 	return bn * 0x400 + oy * 0x20 + ox;
 }
-
-var STAR_PATTERNS =
-[
-	[ // credit: Dotsarecool
-		" x  xxxx        xxxx  x  ",
-		"x  x x  x  x   x x  x  x ",
-		"x   xx     x    xx     x ",
-		"x           x          x ",
-		"x          xx          x ",
-		"x       x      x       x ",
-		" x       xxxxxx       x  ",
-	],
-	[ // credit: Dotsarecool
-		"                         ",
-		"  xx                  xx ",
-		"xx  x  xx       xx  xx  x",
-		"    x xx x     xx x     x",
-		"   x  xxxx     xxxx    x ",
-		" xx    xx       xx   xx  ",
-		"          xxxxx          ",
-	],
-	[ // credit: Dotsarecool
-		"   x x  x  xx  xx   x    ",
-		"   x x x x x x x x x x   ",
-		"   x x x x x x x x x x   ",
-		"   xx  xxx xx  xx  xxx   ",
-		"   x x x x x   x   x x   ",
-		"   x x x x x   x   x x   ",
-		"   x x x x x   x   x x   ",
-	],
-	[ // credit: Dotsarecool
-		"    x x       xxxxxxxx   ",
-		"   x x xxx      x  x     ",
-		"   xxxx   x    xxx x     ",
-		"  xx    x x   x  x xxx   ",
-		"   x      x     xx x     ",
-		"  xx      x      x x x   ",
-		"   x  xxxx    xxx   xx   ",
-	],
-	[ // credit: Dotsarecool
-		" x       x     x       x ",
-		"x   x   x x   x x   x   x",
-		"x xxxxx    xxx    xxxxx x",
-		"x  xxx    x   x    xxx  x",
-		"x  xxx    x   x    xxx  x",
-		"x x   x   x   x   x   x x",
-		" x         xxx         x ",
-	],
-	[
-		"         x   xxxx        ",
-		"        x      x         ",
-		"       x      x          ",
-		"      x     xxxxxx       ",
-		"       x      xx         ",
-		"        x    x           ",
-		"         x    xxx        ",
-	],
-];
 
 function updateOverworldLayer2(random, rom)
 {
@@ -2690,7 +2875,9 @@ ValidationError.prototype = new Error();
 
 function validateROM(stages, rom)
 {
-	var e = new ValidationError([]);
+	var errors = [];
+	var reachable = new Array(0x200);
+
 	for (var i = 0; i < stages.length; ++i)
 	{
 		var stage = stages[i];
@@ -2699,26 +2886,36 @@ function validateROM(stages, rom)
 		var copyfrom = stage.copyfrom ? stage.copyfrom : stage;
 		if (copyfrom && copyfrom.warp) continue;
 
+		var location = copyfrom.name + '(@' + stage.name + ')';
+
+		var exitinfo = checkExits(stage, rom);
+		if (stage.castle !== 8 && exitinfo.count != stage.exits)
+			errors.push(location + ' has ' + exitinfo.count + ' exit(s) (' + stage.exits + ' expected)');
+		if (exitinfo.types == SECRET_EXIT)
+			errors.push(location + ' has only secret exit ???');
+
 		var stage = stages[i], sub = getRelatedSublevels(stage.id, rom);
 		for (var j = 0; j < sub.length; ++j)
 		{
 			if (isSublevelFree(sub[j], rom))
-				e.errors.push('Sublevel ' + sub[j].toHex(3, 'x') + ' of ' + copyfrom.name + ' (was ' + stage.name + ') is empty');
+				errors.push('Sublevel ' + sub[j].toPrintHex(3) + ' of ' + location + ' is empty');
 
 			var exits = getScreenExits(sub[j], rom);
 			for (var k = 0; k < exits.length; ++k)
 			{
 				var dest = exits[k].sublevel;
-				if (dest & 0xFF == 0) e.errors.push('Exit in ' + sub[j].toHex(3, 'x') + ' of ' + copyfrom.name + ' is ' + dest.toPrintHex(3));
+				if (dest & 0xFF == 0) errors.push('Exit in ' + sub[j].toPrintHex(3) + ' of ' + location + ' is ' + dest.toPrintHex(3));
 			}
+
+			if (!reachable[sub[j]])
+				reachable[sub[j]] = [];
+			reachable[sub[j]].push(location);
 		}
 	}
 
-	if (e.errors.length)
-	{
-		if (DEVMODE) console.log(e.errors.join('\n'));
-		else throw e;
-	}
+	for (var i = 0; i < 0x200; ++i) if (reachable[i] && reachable[i].length > 1)
+		errors.push('Sublevel ' + i.toPrintHex(3) + ' reachable from ' + reachable[i].length + ' stages: ' + reachable[i].join(', '));
+	return errors;
 }
 
 function expandROM(rom)
@@ -2834,6 +3031,15 @@ function remapScreenExits(stages, random, rom)
 	}
 }
 
+function getUniqueSublevels(exits)
+{
+	var sublevels = [];
+	for (var i = 0; i < exits.length; ++i)
+		if (!sublevels.contains(exits[i].sublevel))
+			sublevels.push(exits[i].sublevel);
+	return sublevels;
+}
+
 function sameSublevelBucket(rom, a, b)
 {
 	// if the sublevels don't provide the same types of stage exits
@@ -2843,76 +3049,157 @@ function sameSublevelBucket(rom, a, b)
 	if (a.exits.length != b.exits.length) return false;
 
 	// check to see if the entrances are the same "type"
-	if (isDoorEntrance(a.id, rom) != isDoorEntrance(b.id, rom)) return false;
+//	if (isDoorEntrance(a.id, rom) != isDoorEntrance(b.id, rom)) return false;
 
-	// don't swap non-palace with castles
-	if (Math.sign(a.stage.palace) !== Math.sign(b.stage.palace)) return false;
-
-	// don't swap non-ghost with castles
-	if (Math.sign(a.stage.ghost) !== Math.sign(b.stage.ghost)) return false;
+	// don't swap non-ghost with ghost
+	if ((a.stage.ghost == GHOST_HOUSE) !== (b.stage.ghost == GHOST_HOUSE)) return false;
 
 	// don't swap non-castles with castles
-	if (Math.sign(a.stage.castle) !== Math.sign(b.stage.castle)) return false;
+	if (!!a.stage.castle !== !!b.stage.castle) return false;
+
+	// don't swap palace rooms
+	if (Math.sign(a.stage.palace) || Math.sign(b.stage.palace)) return false;
+
+	// short room vs long room
+	if (a.long !== b.long) return false;
 
 	// TODO FIXME match on gfx set, no-yoshi entrance, entrance type?
 	return true;
 }
 
+function makeSublevelObject(stage, id, random, rom, n)
+{
+	var rdata = { id: id, stage: stage, n: n };
+	rdata.exits = getScreenExits(id, rom).shuffle(random);
+	rdata.entrs = getIncomingSecondaryExits(id, rom);
+	rdata.links = getUniqueSublevels(rdata.exits);
+
+	// this is a bit of a hack to keep from needing
+	// to cache some of this data
+	rdata._exits = deepClone(rdata.exits);
+
+	rdata.copyfrom = rdata;
+	rdata.ptrs = backupSublevel(id, rom);
+	rdata.long = getSublevelData(id, rom).screens > 4;
+
+	rdata.msgboxes = [];
+
+	// all this just to get the message boxes and their ids...
+	var trans = getTranslevel(stage.id);
+	var sprites = getSpritesBySublevel(id, rom);
+	for (var i = 0; i < sprites.length; ++i)
+		if (sprites[i].spriteid == 0xB9)
+		{
+			var ident = trans | ((sprites[i].x & 1) << 7);
+			for (var j = 0; j < 23; ++j)
+				if (rom[0x2A590+j] == ident)
+					sprites[i].msgboxid = j;
+			rdata.msgboxes.push(sprites[i]);
+		}
+
+	return rdata;
+}
+
 function swapSublevels(stages, random, rom)
 {
-	var sublevels = [];
-	for (var i = 0; i < stages.length; ++i)
+	var _stages = stages.slice(0);
+	var subleveldata = $.map(stages, function(stage)
 	{
-		var stage = stages[i];
-		if (stage.exits == 0) continue;
+		// don't include stages with no exits
+		if (!stage.exits) return;
 
-		// remove problem stages from the swapping
-		if (['ci1', 'ci2'].contains(stage.name)) continue;
+		// don't include ci2 sublevels
+		if (stage.name == 'ci2') return;
 
-		var sub = $.map(getRelatedSublevels(stage.id, rom),
-			function(x, i){ return { id: x, stage: stage, n: i, exits: getScreenExits(x, rom).shuffle(random) }; });
-		sublevels = sublevels.concat(sub.slice(1));
+		// get metadata for every sublevel
+		return $.map(getRelatedSublevels(stage.id, rom),
+			function(x, i){ return makeSublevelObject(stage, x, random, rom, i); });
+	});
+
+	// add the 8 bowser doors to the rotation :^)
+	_stages.push(FRONTDOOR);
+	for (var i = 0; i < bowser8doors.length; ++i)
+	{
+		// saving the sublevel object for the bowser rooms so we can tinker
+		var subdata = makeSublevelObject(FRONTDOOR, bowser8doors[i], random, rom, i+1);
+
+		// consider these rooms to be "long" rooms, even though many don't qualify conventionally
+		subdata.long = true;
+		subleveldata.push(subdata);
 	}
 
-	// go through and remove boss rooms. we handle these differently
-	for (var i = sublevels.length - 1; i >= 0; --i)
-		if (sublevels[i].stage.castle || sublevels[i].stage.ghost)
-			if (!sublevels[i].exits.length) sublevels.splice(i, 1);
+	// make a list of just the swappable levels
+	var swappable = $.grep(subleveldata, function(x)
+	{
+		// delete the first room of the stage
+		if (x.n == 0) return true;
 
-	var buckets = makeBuckets(sublevels, sameSublevelBucket.bind(null, rom));
+		// delete boss rooms for castles
+		if (x.stage.castle && !x.exits.length) return true;
+	},
+	true);
+
+	var sublevelmap = {}, msgboxes = {};
+	for (var i = 0; i < subleveldata.length; ++i)
+	{
+		var id = subleveldata[i].id;
+		sublevelmap[id] = subleveldata[i];
+	}
+
+	// this should get overwritten when the actual backup routine is run
+	for (var i = 0; i < stages.length; ++i)
+		stages[i].sublevels = getRelatedSublevels(stages[i].id, rom);
+
+	var buckets = makeBuckets(swappable, sameSublevelBucket.bind(null, rom));
 	for (var i = 0; i < buckets.length; ++i)
 	{
 		var b1 = buckets[i], b2 = b1.slice(0).shuffle(random);
 		for (var j = 0; j < b1.length; ++j)
 		{
 			b1[j].copyfrom = b2[j];
-			b1[j].ptrs     = backupSublevel(b2[j].id, rom);
+
+			// copy level data over and redirect all secondary entrances
+			copyBackupToSublevel(b1[j].id, b2[j].ptrs, rom);
+			for (var k = 0; k < b2[j].entrs.length; ++k)
+				writeSecondaryExit(b2[j].entrs[k], rom, { target: b1[j].id });
+
+			for (var k = 0; k < b2[j].msgboxes.length; ++k)
+				rom[0x2A590+b2[j].msgboxes[k].msgboxid] = getTranslevel(b1[j].stage.id) | ((b2[j].msgboxes[k].x & 1) << 7);
 		}
 	}
 
-	for (var i = 0; i < sublevels.length; ++i)
+	for (var i = 0; i < _stages.length; ++i)
 	{
-		var sub = sublevels[i];
-		if (sub.copyfrom == sub) continue;
-		copyBackupToSublevel(sub.id, sub.ptrs, rom);
+		// get all associated sublevels for this stage
+		var stage = _stages[i], sublevelid;
+		var sublevels = stage.sublevels || [];
 
-		var snes = bytesToLittleEndian(sub.ptrs['layer1']);
-		var newexits = getScreenExitsByAddr(snes, rom, sub.id);
-
-		for (var j = 0; j < sub.exits.length; ++j)
+		// for each sublevel
+		for (var j = 0; j < sublevels.length; ++j)
 		{
-			var oldexit = sub.exits[j];
-			var newexit = newexits[j];
+			var sublevelid = sublevels[j];
+			var sub = sublevelmap[sublevelid];
 
-			if (newexit.issecx = oldexit.issecx)
+			if (!sub || !sub.copyfrom) continue;
+
+			var oldexits = sub._exits;
+			var newexits = sub.copyfrom.exits;
+
+			for (var k = 0; k < newexits.length; ++k)
 			{
-				var sec = getSecondaryExit(oldexit.target, rom);
-				deleteSecondaryExit(sec.id, rom);
-				newexit.target = sec.id = findOpenSecondaryExit(sec.target & 0x100, rom);
-				writeSecondaryExit(sec, rom);
+				// if this exit goes to the same stage, don't change it (usually only for "cannons")
+				if (oldexits[k].sublevel == sublevelid) continue;
+
+				// if the exit is a secondary exit, link it to a random
+				// secondary entrance in the new sublevel. otherwise, primary entrance
+				var entrances = sublevelmap[oldexits[k].sublevel].copyfrom.entrs;
+				if (newexits[k].issecx = (entrances.length && oldexits[k].issecx))
+					newexits[k].target = random.from(entrances).id;
+				else newexits[k].target = oldexits[k].sublevel;
+
+				// write the exit back out
+				writeExit(newexits[k], rom);
 			}
-			else newexit.target = oldexit.target;
-			writeExit(newexit, rom);
 		}
 	}
 }
