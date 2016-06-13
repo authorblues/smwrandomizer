@@ -2812,13 +2812,13 @@ function randomizeFlags(random, rom)
 	// transfer the buoyancy info to the secret CI2 sublevels as well
 	for (var i = 0; i < CI2_ROOM_OFFSETS.length; ++i)
 	{
-		var addr = snesAddressToOffset(0x70000 | getPointer(CI2_ROOM_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][0], 2, rom));
+		var addr = snesAddressToOffset(0x70000 | getPointer(CI2_LAYER_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][0], 2, rom));
 		var buoyancy = rom[addr] & 0xC0;
 
 		var rooms = CI2_ROOM_OFFSETS[i].slice(1);
 		for (var j = 0; j < rooms.length; ++j)
 		{
-			addr = snesAddressToOffset(0x70000 | getPointer(CI2_ROOM_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][j], 2, rom));
+			addr = snesAddressToOffset(0x70000 | getPointer(CI2_LAYER_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][j], 2, rom));
 			rom[addr] = (rom[addr] & 0x3F) | buoyancy;
 		}
 	}
