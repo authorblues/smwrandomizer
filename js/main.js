@@ -116,8 +116,12 @@ $('#select-original-rom').click(
 
 $('#original-rom').change(function(e)
 {
-	getMD5(e.target.files[0], function(x)
-		{ checkRomResult(x in ORIGINAL_MD5, e.target.files[0]); });
+	var file = e.target.files[0];
+	getMD5(file, function(x)
+	{
+		if (!checkRomResult(x in ORIGINAL_MD5, file));
+			console.info('md5', x, file.size.toPrintHex());
+	});
 });
 
 $('form').submit(function(e)
@@ -164,6 +168,7 @@ function checkRomResult(valid, file)
 	$('#generate-randomized-rom').prop('disabled', !valid);
 
 	if (valid) ORIGINAL_ROM = file;
+	return valid;
 }
 
 function checkHash()

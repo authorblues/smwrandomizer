@@ -2,6 +2,7 @@
 var ORIGINAL_MD5 =
 {
 	"cdd3c8c37322978ca8669b34bc89c804": 0x80000,
+	"519284ab26396a84ab0c2db86e50121c": 0x80200,
 	"dbe1f3c8f3a0b2db52b7d59417891117": 0x80200,
 };
 
@@ -340,28 +341,28 @@ var LEVEL_MODES =
 
 var VALID_FGP_BY_TILESET =
 {
-	0x0: [0, 1,    3, 4, 5, 6, 7], // Normal 1
-	0x1: [         3, 4, 5, 6, 7], // Castle 1
+	0x0: [0, 1,    3, 4, 5,    7], // Normal 1
+	0x1: [         3, 4, 5,    7], // Castle 1
 	0x2: [   1, 2, 3, 4, 5,    7], // Rope 1
-	0x3: [      2, 3, 4, 5, 6, 7], // Underground 1
-	0x4: [   1, 2, 3, 4, 5, 6, 7], // Switch Palace 1
+	0x3: [      2, 3, 4, 5,    7], // Underground 1
+	0x4: [   1, 2, 3, 4, 5,    7], // Switch Palace 1
 	0x5: [            4, 5,     ], // Ghost House 1
 	0x6: [   1, 2, 3, 4, 5,    7], // Rope 2
-	0x7: [0, 1,    3, 4, 5, 6, 7], // Normal 2
+	0x7: [0, 1,    3, 4, 5,    7], // Normal 2
 	0x8: [   1, 2, 3, 4, 5,    7], // Rope 3
-	0x9: [   1, 2, 3, 4, 5, 6, 7], // Underground 2
-	0xA: [   1, 2, 3, 4, 5, 6, 7], // Switch Palace 2
-	0xB: [         3, 4, 5, 6, 7], // Castle 2
+	0x9: [   1, 2, 3, 4, 5,    7], // Underground 2
+	0xA: [   1, 2, 3, 4, 5,    7], // Switch Palace 2
+	0xB: [         3, 4, 5,    7], // Castle 2
 	0xC: [                      ], // Cloud/Forest
 	0xD: [            4, 5,     ], // Ghost House 2
-	0xE: [      2, 3, 4, 5, 6, 7], // Underground 3
+	0xE: [      2, 3, 4, 5,    7], // Underground 3
 };
 
 var VALID_BGP_BY_LAYER2 =
 {
 	0xFFDD44: [0, 1, 2, 3,    5, 6, 7], // Clouds
 	0xFFEC82: [0,    2, 3,    5, 6, 7], // Bushes
-	0xFFEF80: [   1,    3,    5, 6, 7], // Ghost House
+	0xFFEF80: [   1,    3,    5, 6   ], // Ghost House
 	0xFFDE54: [0, 1, 2, 3,    5, 6, 7], // Small Hills
 	0xFFF45A: [   1,    3,       6,  ], // Castle
 	0xFFE674: [0, 1, 2, 3,    5, 6, 7], // Bonus
@@ -374,7 +375,7 @@ var VALID_BGP_BY_LAYER2 =
 	0xFFD900: [   1,                 ], // P. Hills
 	0xFFE472: [0, 1, 2, 3,    5, 6, 7], // Big Hills
 	0xFFE684: [   1,    3,    5, 6,  ], // Stars
-	0xFFF175: [0, 1, 2, 3,    5, 6, 7], // Ghost Ship
+	0xFFF175: [0, 1, 2, 3,    5, 6   ], // Ghost Ship
 	0xFFDC71: [0, 1, 2, 3,    5, 6, 7], // Hills & Clouds
 	0x06861B: [0, 1, 2, 3, 4, 5, 6, 7], // Ghost House Exit
 };
@@ -483,7 +484,7 @@ var SP4_SPRITES =
 	{ id: 0xBE, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
 	{ id: 0xBF, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
 	{ id: 0xC3, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
-	{ id: 0xC9, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[35, 22], [35, 23]], },
+	{ id: 0xC9, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[39, 22], [39, 23]], },
 	{ id: 0xCA, sp4: 0x06, mem: null, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 20]], },
 	{ id: 0xCB, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
 	{ id: 0xCF, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },

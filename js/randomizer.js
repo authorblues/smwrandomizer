@@ -806,6 +806,9 @@ function randomizeColorPalettes(stages, random, rom)
 			'normal':    { addr: [0x032C8, 0x032DC], size: 20 },
 			'fire':      { addr: [0x032F0, 0x03304], size: 20 },
 			'overworld': { addr: [0x0359C, 0x035AA], size:  4 },
+
+			// not strictly a "palette", but this code works well :^)
+			'lifeswap':  { addr: [0x274B6, 0x274C4], size: 10 },
 		};
 
 		for (var k in palettes) if (palettes.hasOwnProperty(k))
@@ -827,6 +830,15 @@ function randomizeColorPalettes(stages, random, rom)
 			0x00, 0x80, 0x03, 0xA9, 0x08, 0x00, 0x38, 0xE9, 0x04, 0x00, 0x6B
 		],
 		0x0FFC7);
+
+		// and this remaps the switch palace colors to fix that irregularity
+		rom.set([0xDA, 0x20, 0xA6, 0xBB, 0xFA], 0x2B1C9);
+		rom.set(
+		[
+			0xE0, 0x03, 0xF0, 0x06, 0xE0, 0x02, 0xD0, 0x01, 0xE8, 0xE8, 0x8E, 0xD2,
+			0x13, 0x60
+		],
+		0x2BBA6);
 
 		// flip names
 		rom[0x00FCB] = 0xD0; // player name in on-screen display
@@ -2114,12 +2126,15 @@ function getSpritesBySublevel(id, rom)
 	var start = SPRITE_OFFSET + 2 * id;
 	var snes = 0x070000 | getPointer(start, 2, rom);
 
-	var addr = snesAddressToOffset(snes) + 1;
-	var sprites = [];
-
+	var addr = snesAddressToOffset(snes);
 	var horiz = getLevelMode(id, rom).horiz;
+	return getSpritesByAddr(addr, horiz, rom, id);
+}
 
-	for (;; addr += 3)
+function getSpritesByAddr(addr, horiz, rom, id)
+{
+	var sprites = [];
+	for (addr += 1;; addr += 3)
 	{
 		// 0xFF sentinel represents end of level data
 		if (rom[addr] === 0xFF) break;
@@ -2810,7 +2825,7 @@ function randomizeFlags(random, rom)
 	}
 
 	// transfer the buoyancy info to the secret CI2 sublevels as well
-	for (var i = 0; i < CI2_ROOM_OFFSETS.length; ++i)
+	if (0) for (var i = 0; i < CI2_ROOM_OFFSETS.length; ++i)
 	{
 		var addr = snesAddressToOffset(0x70000 | getPointer(CI2_LAYER_OFFSETS.sprite + CI2_ROOM_OFFSETS[i][0], 2, rom));
 		var buoyancy = rom[addr] & 0xC0;
@@ -2870,7 +2885,7 @@ function cheatOptions(rom)
 	if ($('#cheat_infinitelives').is(':checked'))
 	{
 		rom.set([0xEA, 0xEA, 0xEA], 0x050D8);
-		rom[0x01E25] = 99;
+		rom[0x01E25] = 98;
 	}
 
 	// developer mode
@@ -2885,6 +2900,12 @@ function cheatOptions(rom)
 
 		// free roam overworld
 		rom.set([0x4C, 0xAF, 0x92], snesAddressToOffset(0x049291));
+
+		// enable paths
+		rom.set([0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA], 0x25A5C);
+		rom.set([0x80, 0x08], 0x26460);
+		rom.set([0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA, 0xEA], 0x26611);
+		rom.set([0xEA, 0xEA, 0xEA], 0x25A9F);
 	}
 
 	// if any of the cheat options are set, update file select
