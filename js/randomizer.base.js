@@ -527,6 +527,8 @@ var CI2_ROOM_OFFSETS =
 	[0x00, 0x02], // room 3
 ];
 
+var CI2_ALL_OFFSETS = $.map(CI2_ROOM_OFFSETS, function(x){ return x; });
+
 var CI2_LAYER_OFFSETS =
 {
 	'layer1': snesAddressToOffset(0x05DB08),
@@ -552,6 +554,8 @@ var SUBLEVEL_DUPLICATES =
 	0x1E9: 0x11D,
 	0x1C5: 0x1C4, // gnarly room 2
 };
+
+var DONT_SHUFFLE_EXITS = [ 0x11D, ];
 
 var STAR_PATTERNS =
 [
@@ -669,6 +673,9 @@ var REPLACEABLE_SPRITES =
 var NO_WATER_STAGES = [
 	// do not add water to these stages
 	0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0D3, 0x0CC,
+
+	// this is blacklisted in the first pass (water bowser)
+	0x1C7,
 
 	// do not remove water from these stages
 

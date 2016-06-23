@@ -409,6 +409,12 @@ Array.prototype.shuffle = function(random)
 Array.prototype.contains = function(x)
 { return this.indexOf(x) != -1; }
 
+function __range(n)
+{
+	for (var x = [], i = 0; i < n; ++i) x.push(i);
+	return x;
+}
+
 Number.prototype.toBin = function(p)
 {
 	var s = p || 'b#', x = (this & 0xFF);
