@@ -4,7 +4,8 @@ var POWERUP_CAPE = { tweaker: 0x20 };
 function randomizePowerups(random, rom, stages)
 {
 	var powerups = [ 0x74, 0x75, 0x77 ];
-	var blockmap = {
+	var blockmap =
+	{
 		0x28: [0x28, 0x29],
 		0x29: [0x28, 0x29],
 
@@ -14,28 +15,26 @@ function randomizePowerups(random, rom, stages)
 
 	for (var id = 0; id < 0x200; ++id)
 	{
-		var sprites = getSpritesBySublevel(id, rom);
+		var data = getSprites(id, rom);
+		var sprites = data.sprites;
+
 		for (var i = 0; i < sprites.length; ++i)
 		{
 			// if we find a bare powerup, replace it with a random powerup
 			if (powerups.contains(sprites[i].spriteid))
-				rom[sprites[i].addr+2] = random.from(powerups);
+				writeSprite(sprites[i], rom, { spriteid: random.from(powerups) });
 
 			// if we find a flying [?], adjust X value (to change its contents)
 			if ([0x83, 0x84].contains(sprites[i].spriteid) &&
-				[0x10, 0x20].contains(rom[sprites[i].addr+1] & 0x30) && random.nextInt(2))
-					rom[sprites[i].addr+1] ^= 0x30;
+				[1, 2].contains(sprites[i].x % 4) && random.nextInt(2))
+					writeSprite(sprites[i], rom, { x: sprites[i].x ^ 3 })
 		}
 
 		// FIND AND REPLACE ?/TURN BLOCKS
-		var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
-		var layer1 = parseObjectList(snesAddressToOffset(snes), rom);
-
-		for (var i = 0; i < layer1.length; ++i)
-			if (layer1[i].extended && layer1[i].extra in blockmap)
-				writeObject(layer1[i], rom, { extra: random.from(blockmap[layer1[i].extra]) });
-
-		if (rom[0x33CF3] != 0x31) debugger;
+		var objects = parseLayer1(id, rom).objs;
+		for (var i = 0; i < objects.length; ++i)
+			if (objects[i].extended && objects[i].extra in blockmap)
+				writeObject(objects[i], rom, { extra: random.from(blockmap[objects[i].extra]) });
 	}
 
 	// speed up roulette sprite (remove 0xEAs to slow down)
@@ -149,8 +148,8 @@ function removeCape(rom, stages)
 	// remove all fixed capes in every sublevel
 	for (var id = 0; id < 0x200; ++id)
 	{
-		var sprites = getSpritesBySublevel(id, rom);
-		deleteSprites([0x77], sprites, rom);
+		var sprites = getSprites(id, rom);
+		deleteSprites(sprites, function(x){ return x.spriteid == 0x77; }, rom);
 	}
 
 	// change contents of flying [?]s
@@ -179,8 +178,8 @@ function removeAllPowerups(rom, stages)
 	// remove all fixed powerups in every sublevel
 	for (var id = 0; id < 0x200; ++id)
 	{
-		var sprites = getSpritesBySublevel(id, rom);
-		deleteSprites(powerups, sprites, rom);
+		var sprites = getSprites(id, rom);
+		deleteSprites(sprites, function(x){ return powerups.contains(x.spriteid); }, rom);
 	}
 
 	// change contents of flying [?]s
@@ -217,7 +216,7 @@ function hasCape(baseid, rom)
 	var sublevels = getRelatedSublevels(baseid, rom);
 	for (var i = 0; i < sublevels.length; ++i)
 	{
-		var sprites = getSpritesBySublevel(sublevels[i], rom);
+		var sprites = getSprites(sublevels[i], rom).sprites;
 		for (var j = 0; j < sprites.length; ++j)
 		{
 			if (sprites[j].spriteid == 0x77) return true;
@@ -228,19 +227,17 @@ function hasCape(baseid, rom)
 			}
 		}
 
-		var snes = getPointer(LAYER1_OFFSET + 3 * sublevels[i], 3, rom);
-		var layer1 = parseObjectList(snesAddressToOffset(snes), rom);
-
-		for (var j = 0; j < layer1.length; ++j)
+		var objects = parseLayer1(sublevels[i], rom).objs;
+		for (var j = 0; j < objects.length; ++j)
 		{
 			// turn/? block containing a cape
-			if (layer1[j].extended && [0x29, 0x31].contains(layer1[j].extra)) return true;
+			if (objects[j].extended && [0x29, 0x31].contains(objects[j].extra)) return true;
 
 			// note block containing a cape
-			if (layer1[j].extended && layer1[j].extra == 0x23 && (layer1[j].x % 3) == 1) return true;
+			if (objects[j].extended && objects[j].extra == 0x23 && (objects[j].x % 3) == 1) return true;
 
 			// green switch block (and green switch blocks provide a cape)
-			if (layer1[j].extended && layer1[j].extra == 0x87 && [0x08, 0x09].contains(rom[0x070A2])) return true;
+			if (objects[j].extended && objects[j].extra == 0x87 && [0x08, 0x09].contains(rom[0x070A2])) return true;
 		}
 	}
 

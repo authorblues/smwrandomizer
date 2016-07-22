@@ -17,7 +17,8 @@ var HEADER4_OFFSET;
 
 var FLAGBASE;
 
-var LEVEL_OFFSETS = [
+var LEVEL_OFFSETS =
+[
 	// layer data
 	{"name": "layer1", "bytes": 3, "offset": LAYER1_OFFSET = 0x2E000},
 	{"name": "layer2", "bytes": 3, "offset": LAYER2_OFFSET = 0x2E600},
@@ -102,6 +103,8 @@ var NO_GHOST    = 0,
 	0x7 = Green/Black*
 */
 var TITLE_TEXT_COLOR = 0x4;
+
+var TITLE_DEMO_LEVEL = 0xC7;
 
 var SMW_STAGES =
 [
@@ -275,30 +278,6 @@ var OFFSCREEN_EVENT_TILES =
 	'vd1': 0x26,
 };
 
-var KOOPA_SETS =
-[
-	[0x00, 0x01, 0x02, 0x03], // shell-less
-	[0x04, 0x05, 0x06, 0x07], // shelled
-	[0x08, 0x0A, 0x0B],       // flying
-	[0x09, 0x0C],             // winged, not flying
-	[0x22, 0x23, 0x24, 0x25], // net koopas
-];
-
-// when koopa type K is jumped on,
-// the result is koopa type V
-var KOOPA_STOMP =
-{
-	0x04: 0x00,
-	0x05: 0x01,
-	0x06: 0x02,
-	0x07: 0x03,
-	0x08: 0x04,
-	0x09: 0x04,
-	0x0A: 0x05,
-	0x0B: 0x05,
-	0x0C: 0x07,
-};
-
 var LAYER2_NONE = 0,
     LAYER2_BACKGROUND = 1,
 	LAYER2_INTERACT = 2;
@@ -338,6 +317,10 @@ var LEVEL_MODES =
 	0x1E: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND }, // trans (layer1) horiz
 	0x1F: { maxscreens: 0x10, horiz: 1, layer2: LAYER2_NONE }, // trans (layer2) horiz
 };
+
+// sprite page settings indexed by sprite tileset value
+var SP3_SETTINGS = [0x13, 0x12, 0x13, 0x13, 0x13, 0x13, 0x13, 0x06, 0x13, 0x13, 0x13, 0x0D, 0x24, 0x0A, 0x13, 0x13];
+var SP4_SETTINGS = [0x02, 0x03, 0x05, 0x04, 0x06, 0x09, 0x04, 0x11, 0x20, 0x0F, 0x23, 0x14, 0x0E, 0x22, 0x0E, 0x14];
 
 var VALID_FGP_BY_TILESET =
 {
@@ -438,67 +421,219 @@ var BG_CAN_VSCROLL =
 	0xFFF175: true,
 };
 
+var UNUSED_LEVELS =
+[
+	// names and data taken from https://tcrf.net/Super_Mario_World_(SNES)/Unused_levels
+	{ layer1: 0x0302BD, layer2: 0xFFD900, sprite: 0x03C50E, name: 'Mushroom Scales' },
+	{ layer1: 0x0304EB, layer2: 0x030464, sprite: 0x03C575, name: 'Lava Cave' },
+	{ layer1: 0x030263, layer2: 0xFFDD44, sprite: 0x03C500, name: 'Ride Among the Clouds' }, // SMB3 1-4
+];
+
 var SWITCH_OBJECTS = [ null, 0x8B, 0x8C, 0x8D, 0x8A ];
 
 var SP4_SPRITES =
 [
-	{ id: 0x09, sp4: null, mem: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
-	{ id: 0x1C, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
-	{ id: 0x0D, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bob-omb', pos: [[32, 23]], },
-	{ id: 0x13, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Spiny', pos: [[32, 23]], },
-	{ id: 0x1B, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Football', pos: [[32, 23]], },
-	{ id: 0x1D, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bouncing Fire', pos: [[32, 23], [22, 23], [12, 23]], },
-	{ id: 0x1F, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
-	{ id: 0x26, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
-	{ id: 0x27, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
-	{ id: 0x28, sp4: 0x11, mem: 0x09, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
-	{ id: 0x37, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
-	{ id: 0x3A, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
-	{ id: 0x3B, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
-	{ id: 0x3D, sp4: 0x06, mem: null, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 23], [39, 21]], },
-	{ id: 0x3F, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
-	{ id: 0x40, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
-	{ id: 0x4B, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
-	{ id: 0x4D, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Ground Mole', pos: [[24, 23], [28, 23], [32, 23], [36, 23]], },
-//	{ id: 0x4E, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Wall Mole', pos: [[24, 25], [28, 25], [32, 25], [36, 25]], },
-	{ id: 0x51, sp4: 0x0E, mem: null, water: 0, tide: 0, name: 'Ninji', pos: [[34, 23], [35, 23], [36, 23], [37, 23]], },
-//	{ id: 0x52, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Moving Hole', pos: [[12, 24], [12, 24], [24, 24]], },
-	{ id: 0x6E, sp4: 0x23, mem: null, water: 0, tide: 0, name: 'Dino Rhino (Big)', pos: [[28, 22], [36, 22]], },
-	{ id: 0x6F, sp4: 0x23, mem: null, water: 0, tide: 0, name: 'Dino Torch (Small)', pos: [[37, 23], [34, 23], [31, 23]], },
-	{ id: 0x70, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Pokey', pos: [[37, 19], [35, 19]], },
-	{ id: 0x71, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Red)', pos: [[34, 18], [24, 18]], },
-	{ id: 0x72, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Yellow)', pos: [[34, 18], [24, 18]], },
-	{ id: 0x73, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa (Feather)', pos: [[32, 23], [30, 23], [30, 23], [31, 23]], },
-	{ id: 0x86, sp4: 0x02, mem: 0x0A, water: 0, tide: 0, name: 'Wiggler', pos: [[29, 23], [27, 23], [25, 23]], },
-	{ id: 0x90, sp4: 0x11, mem: 0x0D, water: 0, tide: 0, name: 'Green Gas Bubble', pos: [[35, 18]], },
-	{ id: 0x99, sp4: 0x0E, mem: null, water: 0, tide: 0, name: 'Volcano Lotus', pos: [[36, 23], [37, 23]], },
-	{ id: 0x9E, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Ball n Chain', pos: [[32, 19]], },
-	{ id: 0x9F, sp4: 0x20, mem: 0x04, water: 0, tide: 0, name: 'Banzai Bill', pos: [[38, 19], [41, 19]], },
-	{ id: 0xA4, sp4: 0x05, mem: null, water: 0, tide: 1, name: 'Floating Spike Ball', pos: [[36, 23], [35, 23]], },
-	{ id: 0xA8, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Blargg', pos: [[33, 24], [31, 24]], },
-	{ id: 0xAA, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Fishbone', pos: [[30, 21], [30, 22], [30, 23]], },
-	{ id: 0xAB, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Rex', pos: [[27, 22], [29, 22], [37, 22]], },
-	{ id: 0xB0, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Buddy Boo Line', pos: [[31, 21]], },
-	{ id: 0xB2, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Falling Spike', pos: [[33, 14], [35, 14], [37, 14]], },
-	{ id: 0xBB, sp4: 0x03, mem: null, water: 0, tide: 0, name: 'Moving Grey Block', pos: [[14, 24], [30, 24]], }, // SPECIAL
-	{ id: 0xBE, sp4: 0x04, mem: null, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
-	{ id: 0xBF, sp4: 0x20, mem: null, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
-	{ id: 0xC3, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
-	{ id: 0xC9, sp4: null, mem: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[39, 22], [39, 23]], },
-	{ id: 0xCA, sp4: 0x06, mem: null, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 20]], },
-	{ id: 0xCB, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
-	{ id: 0xCF, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
-	{ id: 0xD0, sp4: 0x06, mem: null, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
-	{ id: 0xD3, sp4: 0x09, mem: null, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
-//	{ id: 0xD4, sp4: 0x02, mem: null, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
-	{ id: 0xD5, sp4: 0x05, mem: null, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
-	{ id: 0xD6, sp4: null, mem: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
-	{ id: 0xD7, sp4: 0x05, mem: null, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
-	{ id: 0xE1, sp4: 0x11, mem: 0x07, water: 0, tide: 0, name: 'Boo Ceiling', pos: [[1, 0]], },
-	{ id: 0xE5, sp4: 0x11, mem: 0x07, water: 0, tide: 0, name: 'Boo Cloud (SGS room2)', pos: [[1, 0]], },
-	{ id: 0xE2, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo Ring CCW', pos: [[26, 20], [10, 20], [39, 21]], },
-	{ id: 0xE3, sp4: 0x11, mem: null, water: 0, tide: 0, name: 'Boo Ring CW', pos: [[26, 20], [10, 20], [39, 21]], },
+	{ id: 0x09, sp4: null, water: 0, tide: 0, name: 'Green Parakoopa', pos: [[43, 21], [30, 22], [20, 22]], },
+	{ id: 0x1C, sp4: null, water: 0, tide: 0, name: 'Bullet Bill', pos: [[32, 23], [32, 22], [32, 21]], },
+	{ id: 0x0D, sp4: 0x02, water: 0, tide: 0, name: 'Bob-omb', pos: [[32, 23]], },
+	{ id: 0x13, sp4: 0x02, water: 0, tide: 0, name: 'Spiny', pos: [[32, 23]], },
+	{ id: 0x1B, sp4: 0x04, water: 0, tide: 0, name: 'Football', pos: [[32, 23]], },
+	{ id: 0x1D, sp4: 0x02, water: 0, tide: 0, name: 'Bouncing Fire', pos: [[32, 23], [22, 23], [12, 23]], },
+	{ id: 0x1F, sp4: 0x03, water: 0, tide: 0, name: 'Magikoopa', pos: [[7, 22]], },
+	{ id: 0x26, sp4: 0x03, water: 0, tide: 0, name: 'Thwomp', pos: [[33, 14], [36, 14], [39, 14]], },
+	{ id: 0x27, sp4: 0x03, water: 0, tide: 0, name: 'Thwimp', pos: [[14, 21], [33, 14]], },
+	{ id: 0x28, sp4: 0x11, water: 0, tide: 0, name: 'Big Boo', pos: [[38, 21]], },
+	{ id: 0x37, sp4: 0x11, water: 0, tide: 0, name: 'Boo', pos: [[35, 21], [14, 21], [38, 19]], },
+	{ id: 0x3A, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Short)', pos: [[29, 21], [34, 21]], },
+	{ id: 0x3B, sp4: 0x06, water: 1, tide: 0, name: 'Urchin (Full)', pos: [[39, 19], [34, 22]], },
+	{ id: 0x3D, sp4: 0x06, water: 1, tide: 0, name: 'Rip Van Fish', pos: [[14, 23], [39, 21]], },
+	{ id: 0x3F, sp4: 0x02, water: 0, tide: 0, name: 'Para-Goomba', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x40, sp4: 0x02, water: 0, tide: 0, name: 'Para-Bomb', pos: [[33, 14], [35, 15], [37, 14], [37, 15]], },
+	{ id: 0x4B, sp4: 0x02, water: 0, tide: 0, name: 'Pipe Lakitu', pos: [[35, 23]], },
+	{ id: 0x4D, sp4: 0x09, water: 0, tide: 0, name: 'Ground Mole', pos: [[24, 23], [28, 23], [32, 23], [36, 23]], },
+//	{ id: 0x4E, sp4: 0x09, water: 0, tide: 0, name: 'Wall Mole', pos: [[24, 25], [28, 25], [32, 25], [36, 25]], },
+	{ id: 0x51, sp4: 0x0E, water: 0, tide: 0, name: 'Ninji', pos: [[34, 23], [35, 23], [36, 23], [37, 23]], },
+//	{ id: 0x52, sp4: 0x11, water: 0, tide: 0, name: 'Moving Hole', pos: [[12, 24], [12, 24], [24, 24]], },
+	{ id: 0x6E, sp4: 0x23, water: 0, tide: 0, name: 'Dino Rhino (Big)', pos: [[28, 22], [36, 22]], },
+	{ id: 0x6F, sp4: 0x23, water: 0, tide: 0, name: 'Dino Torch (Small)', pos: [[37, 23], [34, 23], [31, 23]], },
+	{ id: 0x70, sp4: 0x09, water: 0, tide: 0, name: 'Pokey', pos: [[37, 19], [35, 19]], },
+	{ id: 0x71, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Red)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x72, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Yellow)', pos: [[34, 18], [24, 18]], },
+	{ id: 0x73, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa (Feather)', pos: [[32, 23], [30, 23], [30, 23], [31, 23]], },
+	{ id: 0x86, sp4: 0x02, water: 0, tide: 0, name: 'Wiggler', pos: [[29, 23], [27, 23], [25, 23]], },
+	{ id: 0x90, sp4: 0x11, water: 0, tide: 0, name: 'Green Gas Bubble', pos: [[35, 18]], },
+	{ id: 0x99, sp4: 0x0E, water: 0, tide: 0, name: 'Volcano Lotus', pos: [[36, 23], [37, 23]], },
+	{ id: 0x9E, sp4: 0x03, water: 0, tide: 0, name: 'Ball n Chain', pos: [[32, 19]], },
+	{ id: 0x9F, sp4: 0x20, water: 0, tide: 0, name: 'Banzai Bill', pos: [[38, 19], [41, 19]], },
+	{ id: 0xA4, sp4: 0x05, water: 0, tide: 1, name: 'Floating Spike Ball', pos: [[36, 23], [35, 23]], },
+	{ id: 0xA8, sp4: 0x04, water: 0, tide: 0, name: 'Blargg', pos: [[33, 24], [31, 24]], },
+	{ id: 0xAA, sp4: 0x03, water: 0, tide: 0, name: 'Fishbone', pos: [[30, 21], [30, 22], [30, 23]], },
+	{ id: 0xAB, sp4: 0x20, water: 0, tide: 0, name: 'Rex', pos: [[27, 22], [29, 22], [37, 22]], },
+	{ id: 0xB0, sp4: 0x11, water: 0, tide: 0, name: 'Buddy Boo Line', pos: [[31, 21]], },
+	{ id: 0xB2, sp4: 0x03, water: 0, tide: 0, name: 'Falling Spike', pos: [[33, 14], [35, 14], [37, 14]], },
+	{ id: 0xBB, sp4: 0x03, water: 0, tide: 0, name: 'Moving Grey Block', pos: [[14, 24], [30, 24]], }, // SPECIAL
+	{ id: 0xBE, sp4: 0x04, water: 0, tide: 0, name: 'Swoop', pos: [[29, 21], [31, 21], [37, 14]], },
+	{ id: 0xBF, sp4: 0x20, water: 0, tide: 0, name: 'Mega Mole', pos: [[24, 22], [30, 22], [36, 22]], },
+	{ id: 0xC3, sp4: 0x06, water: 0, tide: 1, name: 'Porcu-Puffer', pos: [[14, 24], [30, 24], [37, 24]], },
+	{ id: 0xC9, sp4: null, water: 0, tide: 0, name: 'Bullet Bill Generator', pos: [[39, 22], [39, 23]], },
+	{ id: 0xCA, sp4: 0x06, water: 0, tide: 0, name: 'Torpedo Ted Generator', pos: [[30, 20]], },
+	{ id: 0xCB, sp4: 0x11, water: 0, tide: 0, name: 'Eerie Generator', pos: [[1, 0]], },
+	{ id: 0xCF, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Left Generator', pos: [[1, 0]], },
+	{ id: 0xD0, sp4: 0x06, water: 0, tide: 1, name: 'Dolphin Right Generator', pos: [[1, 0]], },
+	{ id: 0xD3, sp4: 0x09, water: 0, tide: 0, name: 'Super Koopa Generator', pos: [[1, 0]], },
+//	{ id: 0xD4, sp4: 0x02, water: 0, tide: 0, name: 'Bubble Generator', pos: [[1, 0]], },
+	{ id: 0xD5, sp4: 0x05, water: 0, tide: 0, name: 'Bullet Bill L/R Generator', pos: [[1, 0]], },
+	{ id: 0xD6, sp4: null, water: 0, tide: 0, name: 'Multi Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xD7, sp4: 0x05, water: 0, tide: 0, name: 'Diagonal Bullet Generator', pos: [[1, 0]], },
+	{ id: 0xE1, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ceiling', pos: [[1, 0]], },
+	{ id: 0xE5, sp4: 0x11, water: 0, tide: 0, name: 'Boo Cloud (SGS room2)', pos: [[1, 0]], },
+	{ id: 0xE2, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CCW', pos: [[26, 20], [10, 20], [39, 21]], },
+	{ id: 0xE3, sp4: 0x11, water: 0, tide: 0, name: 'Boo Ring CW', pos: [[26, 20], [10, 20], [39, 21]], },
 ];
+
+var SPRITE_MEMORY =
+{
+	0x5F: 0x01,
+	0x64: 0x01,
+	0x54: 0x02,
+	0x5E: 0x03,
+	0x60: 0x04,
+	0x9F: 0x04,
+	0x28: 0x05,
+	0x88: 0x06,
+	0xC5: 0x09,
+	0x86: 0x0A,
+	0x28: 0x0B,
+	0x90: 0x0D,
+	0xAE: 0x11,
+}
+
+var TILESET_SPECIFIC_SPRITES =
+[
+	0x0D, 0x11, 0x13, 0x14, 0x15, 0x16, 0x18, 0x1B, 0x1D, 0x1E, 0x1F, 0x20,
+	0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2E,
+	0x30, 0x31, 0x32, 0x33, 0x34, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+	0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B,
+	0x4C, 0x4D, 0x4E, 0x51, 0x52, 0x54, 0x55, 0x56, 0x57, 0x58, 0x5B, 0x5C,
+	0x5D, 0x5E, 0x5F, 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,
+	0x6A, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x7A, 0x7D, 0x86, 0x87, 0x8A,
+	0x8B, 0x8D, 0x8F, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x97, 0x98, 0x99,
+	0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6,
+	0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF, 0xB0, 0xB2, 0xB3, 0xB4,
+	0xB6, 0xB7, 0xB8, 0xBA, 0xBB, 0xBC, 0xBE, 0xBF, 0xC0, 0xC2, 0xC3, 0xC4,
+	0xC5, 0xC6, 0xDE, 0xE0, 0xE2, 0xE3,
+
+	0x8C, 0xA0, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD0, 0xD1, 0xD3, 0xD4,
+	0xD6, 0xD7, 0xD8, 0xE1, 0xE5, 0xE6,
+];
+
+var SPRITE_SETS =
+[
+	{ // on ground
+		0x00: { origin: [0,0], },
+		0x01: { origin: [0,0], },
+		0x02: { origin: [0,0], },
+		0x03: { origin: [0,0], },
+		0x04: { origin: [0,0], },
+		0x05: { origin: [0,0], },
+		0x06: { origin: [0,0], },
+		0x07: { origin: [0,0], },
+		0x09: { origin: [0,0], },
+		0x0C: { origin: [0,0], },
+		0x0F: { origin: [0,0], },
+		0x10: { origin: [0,0], },
+		0x0D: { origin: [0,0], sp4: [0x02], },
+		0x11: { origin: [0,0], sp4: [0x04], },
+		0x13: { origin: [0,0], sp4: [0x02], },
+		0x1D: { origin: [0,0], sp4: [0x02], weight: 2, },
+		0x2E: { origin: [0,0], sp4: [0x04], },
+		0x30: { origin: [0,0], sp3: [0x12], sp4: [0x03], weight: 3, },
+		0x31: { origin: [0,0], sp3: [0x12], sp4: [0x03], weight: 2, },
+		0x32: { origin: [0,0], sp3: [0x12], weight: 3, },
+		0x3D: { origin: [0,0], sp4: [0x06], weight: 2, },
+		0x46: { origin: [0,0], sp3: [0x13], sp4: [0x05], weight: 3, },
+		0x51: { origin: [0,0], sp4: [0x0E], weight: 3, },
+		0x6E: { origin: [0,0], sp4: [0x23], weight: 2, },
+		0x6F: { origin: [0,0], sp4: [0x23], weight: 2, },
+		0x70: { origin: [0,4], sp4: [0x09], weight: 2, },
+		0x73: { origin: [0,0], sp4: [0x09], weight: 2, },
+		0x86: { origin: [0,0], sp4: [0x02], weight: 3, },
+		0x91: { origin: [0,0], sp3: [0x13], weight: 3, },
+		0x92: { origin: [0,0], sp3: [0x13], },
+		0x93: { origin: [0,0], sp3: [0x13], weight: 2, },
+		0x94: { origin: [0,0], sp3: [0x13], sp4: [0x06, 0x09], },
+		0x97: { origin: [0,0], sp3: [0x13], sp4: [0x04, 0x0E], },
+		0x98: { origin: [0,0], sp3: [0x13], sp4: [0x09, 0x0E], },
+		0x99: { origin: [0,0], sp4: [0x09, 0x0E], weight: 2, },
+		0x9A: { origin: [0,0], sp4: [0x09], },
+		0xA2: { origin: [0,0], sp3: [0x24], weight: 4, },
+		0xAB: { origin: [0,0], sp4: [0x20], weight: 4, },
+		0xBC: { origin: [0,0], sp3: [0x12], weight: 4, },
+	},
+	{ // flying/swimming (not on ground, whatever!)
+		0x08: { origin: [0,0], },
+		0x0A: { origin: [0,1], },
+		0x0B: { origin: [0,1], },
+		0x1C: { origin: [0,1], },
+		0x15: { origin: [0,0], sp3: [0x13], water: 1, weight: 2, },
+		0x16: { origin: [0,0], sp3: [0x13], water: 1, weight: 2, },
+		0x18: { origin: [0,0], sp3: [0x13], water: 2, },
+		0x28: { origin: [1,1], sp4: [0x11], weight: 3, },
+		0x33: { origin: [0,2], sp4: [0x03], },
+		0x37: { origin: [0,0], sp4: [0x11], weight: 3, },
+		0x38: { origin: [0,0], sp3: [0x06], sp4: [0x11], weight: 3, },
+		0x39: { origin: [0,0], sp3: [0x06], sp4: [0x11], weight: 3, },
+	//	0x3A: { origin: [0,0], sp4: [0x06], },
+	//	0x3B: { origin: [0,0], sp4: [0x06], },
+	//	0x3C: { origin: [0,0], sp4: [0x06], },
+		0x3F: { origin: [0,1], sp4: [0x02], weight: 2, },
+		0x40: { origin: [0,0], sp4: [0x02], weight: 2, },
+		0x71: { origin: [0,0], sp4: [0x09], weight: 2, },
+		0x72: { origin: [0,0], sp4: [0x09], weight: 2, },
+		0x90: { origin: [1,1], sp4: [0x11], },
+		0x9D: { origin: [0,0], sp3: [0x13], sp4: [0x02], weight: 3, },
+		0xAA: { origin: [0,0], sp4: [0x03], weight: 3, },
+		0xAF: { origin: [0,0], sp4: [0x11], weight: 2, },
+		0xB0: { origin: [0,0], sp4: [0x11], weight: 3, },
+		0xB3: { origin: [0,0], sp3: [0x12], },
+		0xB6: { origin: [0,0], sp4: [0x03], weight: 2, },
+	},
+	{ // flying lakitu
+		0x1E: { origin: [0,0], sp3: [0x13], sp4: [0x02], },
+		0xAE: { origin: [0,0], sp3: [0x06], sp4: [0x11], weight: 5, },
+	},
+	{ // from a pipe
+		0x4B: { origin: [0,0], sp4: [0x02], weight: 3, },
+		0x4F: { origin: [0,0], },
+		0x50: { origin: [0,0], weight: 2, },
+	},
+	{ // kinda... stationary stuff
+		0x1B: { origin: [0,0], sp4: [0x04, 0x0E], },
+		0x20: { origin: [0,0], sp4: [0x03], weight: 2, },
+		0x48: { origin: [0,0], sp4: [0x05], },
+		0xDA: { origin: [0,0], },
+		0xDB: { origin: [0,0], },
+		0xDC: { origin: [0,0], },
+		0xDD: { origin: [0,0], },
+	},
+	{ // line-guided
+		0x65: { origin: [0,0], sp4: [0x05], },
+		0x66: { origin: [0,0], sp4: [0x05], },
+		0x67: { origin: [0,0], sp3: [0x12], },
+		0x68: { origin: [0,0], sp4: [0x05], },
+	},
+];
+
+var BIG_BOO_SPRITES =
+[
+	{ id: 0xCB, x: 0, y: 0 },
+//	{ id: 0xE1, x: 0, y: 0 },
+	{ id: 0xB0 },
+	{ id: 0xB0 },
+	{ id: 0xB0 },
+];
+
+var GOOD_SPRITE_TILESETS = [0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0xA, 0xC, 0xE];
 
 var QUESTION_BLOCK_IDS = [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38];
 
@@ -508,7 +643,7 @@ var HAMMER_CAN_KILL =
 	0x26, 0x27,
 
 	// water enemies
-	0xC3, 0x44, 0x3A, 0x3B, 0x3C, 0x41, 0x42, 0x43,
+	0xC3, 0x44, 0x3A, 0x3B, 0x3C,
 
 	// ghost enemies
 	0x37, 0x38, 0x39, 0x28,
@@ -615,7 +750,8 @@ var STAR_PATTERNS =
 	],
 ];
 
-var KEY_CAN_REPLACE = [
+var KEY_CAN_REPLACE =
+[
 	// koopas and goombas (not flying to avoid dropping in a pit)
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0C, 0xBD, 0x0F, 0x10,
 	0xDA, 0xDB, 0xDC, 0xDD, 0xDF,
@@ -637,7 +773,8 @@ var KEY_CAN_REPLACE = [
 	0x2C, 0x2D, 0x2F,
 ];
 
-var KEY_REPLACEMENTS = [
+var KEY_REPLACEMENTS =
+[
 	// koopas and goombas
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0C, 0xBD, 0x0F, 0x10,
 	0xDA, 0xDB, 0xDC, 0xDD, 0xDF,
@@ -670,7 +807,8 @@ var REPLACEABLE_SPRITES =
 	0x4C, 0x33, 0xBC, 0x93, 0xB3, 0xAA, 0xAB, 0xC2, 0x6D,
 ];
 
-var NO_WATER_STAGES = [
+var NO_WATER_STAGES =
+[
 	// do not add water to these stages
 	0x01A, 0x0DC, 0x111, 0x1CF, 0x134, 0x1F8, 0x0C7, 0x1E3, 0x1E2, 0x1F2, 0x0D3, 0x0CC,
 
@@ -680,6 +818,14 @@ var NO_WATER_STAGES = [
 	// do not remove water from these stages
 
 ];
+
+var BOSSES =
+{
+	0x29: 'koopa kid',
+	0xA9: 'reznor',
+	0xA0: 'bowser',
+	0xC5: 'big boo',
+};
 
 var TIME_VALUES = [0, 200, 300, 400];
 var VSCROLL_TYPE = ['no-v', 'always', 'locked', 'no-v/h'];

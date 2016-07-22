@@ -10,6 +10,7 @@ function doRandomize(buffer, seed)
 {
 	try
 	{
+		var __start = +new Date();
 		if (console.clear) console.clear();
 
 		var result = randomizeROM(buffer, seed);
@@ -20,6 +21,12 @@ function doRandomize(buffer, seed)
 
 		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' ' + category + ' - ' + url);
 		saveAs(new Blob([result.buffer], {type: "octet/stream"}), prefix + '-' + result.seed + result.type);
+
+        $('#generation-time').remove();
+        $('body').append($('<div id="generation-time">').html('&Delta;' + (+new Date() - __start) + "ms"));
+
+		var issuebody = encodeURIComponent('ROM: ' + url + ' (' + result.checksum + ')');
+		$('#bugreport').attr('href', 'http://github.com/authorblues/smwrandomizer/issues/new?body=' + issuebody);
 	}
 	catch (e)
 	{
@@ -74,7 +81,6 @@ $('#generate-param-rom').click(function(e)
 
 function _validateRandomizer(buffer, maxiter, iter, errors)
 {
-	console.log(Math.floor(100 * (maxiter - iter) / maxiter) + '%...');
 	for (var i = 0; i < 100 && iter > 0; ++i, --iter)
 	{
 		var copy = new ArrayBuffer(buffer.byteLength);
@@ -82,7 +88,11 @@ function _validateRandomizer(buffer, maxiter, iter, errors)
 		try { randomizeROM(copy); } catch (e) { ++errors; }
 	}
 
-	if (iter) setTimeout(_validateRandomizer.bind(this, buffer, maxiter, iter, errors), 100);
+	if (iter)
+	{
+		console.log(Math.floor(100 * (maxiter - iter) / maxiter) + '%... ' + errors + ' (' + Math.round(errors*100/(maxiter-iter)) + '%)');
+		setTimeout(_validateRandomizer.bind(this, buffer, maxiter, iter, errors), 100);
+	}
 	else console.log('Validation complete: ' + errors + ' errors (' + Math.round(errors*100/maxiter) + '%)'); // FIXME
 }
 
@@ -388,6 +398,21 @@ Random.prototype.nextIntRange = function(a, b)
 Random.prototype.from = function(arr)
 { return arr[this.nextInt(arr.length)]; }
 
+Random.prototype.fromWeighted = function(arr)
+{
+	if (!arr._weight)
+	{
+		arr._weight = 0;
+		for (var i = 0; i < arr.length; ++i)
+			arr._weight += arr[i].weight || 1;
+	}
+
+	var x = this.nextFloat() * arr._weight;
+	for (var i = 0; i < arr.length; ++i)
+		if ((x -= arr[i].weight || 1) < 0.0) return arr[i];
+	return arr[0];
+}
+
 Random.prototype.draw = function(arr)
 {
 	var which = this.nextInt(arr.length);
@@ -408,6 +433,9 @@ Array.prototype.shuffle = function(random)
 
 Array.prototype.contains = function(x)
 { return this.indexOf(x) != -1; }
+
+Array.prototype.uniq = function()
+{ return this.filter(function(a){ return !this[a] ? this[a] = true : false; }, {}); }
 
 function __range(n)
 {
@@ -440,13 +468,14 @@ ROMLogger.prototype.start = function()
 {
 	this.orig = new Uint8Array(this.rom.byteLength);
 	this.orig.set(this.rom);
+	return this;
 }
 
 ROMLogger.prototype.print = function()
 {
 	for (var i = 0; i < this.rom.length; ++i)
 	{
-		if (this.rom[i] !== this.orig[i]) continue;
+		if (this.rom[i] == this.orig[i]) continue;
 		console.log(i.toHex(6, '0x') + ' - ' + this.orig[i].toHex(2) + '->' + this.rom[i].toHex(2));
 	}
 }
@@ -487,7 +516,10 @@ var TESTERS =
 	'GDF': 'greendeathflavor',
 	'PangaeaPanga': 'pangaeapanga',
 	'linkdeadx2': 'linkdeadx2',
-	"Aetyate": "aetyate",
+	'Aetyate': 'aetyate',
+	'patrick': 'patpower2013',
+	'mgl': 'matthewgaminglive',
+	'slashinfty': 'slashinfty',
 }
 
 $('#tester-list').html(

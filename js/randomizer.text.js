@@ -112,7 +112,7 @@ var TITLE_STRINGS =
 	["COOKIE MOUNTAIN ", "GREEN HILL ZONE ", "WALUIGI LAND ", "PRINCESS VALLEY ", "DINO-RHINO LAND ", "IT'S LIT FAM "],
 	["FOREST ", "CANOPY ", "JUNGLE "],
 	["CHOCOLATE ", "CHEEZCAKE ", "PEPPERONI "],
-	["CHOCO-GHOST HOUSE ", "HAUNTED MANSION ", "HOUSE OF HORROR ", "HOUSE OF TERROR "],
+	["CHOCO-GHOST HOUSE ", "HAUNTED MANSION ", "HOUSE OF HORROR ", "HOUSE OF TERROR ", "STARWORLD1.ZIP "],
 	["SUNKEN GHOST SHIP ", "GHOSTS OF YOSHI ", "SMB3 AIRSHIP ", "STREAMBIG.NET "],
 	["VALLEY ", "SUMMIT ", "RIVERS ", "THREAT ", "WOUNDS ", "GALAXY "],
 	["BACK DOOR ", "NO ENTRY ", "GO AWAY ", "LEAVE NOW "],
@@ -368,6 +368,10 @@ var ENDGAME_TEXTS =
 		"the demoness Peach and",
 		"sentenced the kingdom to",
 		"generations of torture.",
+	],
+	[
+		"You can't speedrun a",
+		"randomizer.",
 	],
 ];
 

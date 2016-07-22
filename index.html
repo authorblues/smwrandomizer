@@ -134,12 +134,6 @@
 							Keep Same Type (Ghost, Water, Normal)
 						</label>
 					</div>
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" id="randomize_95exit" class="presetoption">
-							95 Exit Mode (Don't move </i>Donut Ghost House</i>)
-						</label>
-					</div>
 
 					<h3>Overworld Level Names</h3>
 					<div class="radio">
@@ -178,6 +172,12 @@
 						<label>
 							<input type="radio" name="enemyprop" value="chaos" id="enemyprop_chaos" class="presetoption">
 							<span data-en_us="Randomize" data-en_gb="Randomise">Randomize</span> Chaotically
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="randomize_enemies" class="presetoption">
+							Shuffle Enemies
 						</label>
 					</div>
 					<div class="checkbox">
@@ -389,7 +389,7 @@
 			<div class="row">
 				<div class="col-md-6">
 					<div>
-						<a class="btn btn-default btn-full-width" href="http://github.com/authorblues/smwrandomizer/issues">
+						<a class="btn btn-default btn-full-width" href="http://github.com/authorblues/smwrandomizer/issues" id="bugreport">
 							<span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
 							Report a Bug
 						</a>
@@ -480,6 +480,7 @@
 
 		<script src="js/randomizer.js"></script>
 		<script src="js/randomizer.base.js"></script>
+		<script src="js/randomizer.lunarmagic.js"></script>
 		<script src="js/randomizer.patch.js"></script>
 		<script src="js/randomizer.preset.js"></script>
 		<script src="js/randomizer.powerup.js"></script>

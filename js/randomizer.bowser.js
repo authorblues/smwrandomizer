@@ -32,7 +32,7 @@ function randomizeBowser8Doors(random, rom)
 	{
 		// get the location that this room exits to
 		var id = bowser8doors[i];
-		var exits = getScreenExits(id, rom);
+		var exits = parseExits(id, rom);
 
 		// save this information
 		rooms.push({ out: exits[0], sublevel: id, data: backupSublevel(id, rom) });
@@ -62,8 +62,12 @@ function generateGauntlet(random, len, rom)
 	// chain together all the rooms \("v")/
 	for (var i = 0; i < numrooms; ++i)
 	{
-		var exits = getScreenExits(rooms[i], rom);
+		var exits = parseExits(rooms[i], rom);
 		for (var j = 0; j < exits.length; ++j)
 			rom[exits[j].addr+3] = rooms[i+1] & 0xFF;
 	}
+
+	// i think these might actually be the same(?)
+	getSublevelData(FRONTDOOR.id, rom).time = 0;
+	getSublevelData( BACKDOOR.id, rom).time = 0;
 }

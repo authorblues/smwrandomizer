@@ -1,16 +1,9 @@
-var VERSION_STRING = 'v2.1';
+var VERSION_STRING = 'v2.2';
 
 function randomizeROM(buffer, seed)
 {
 	var ext = '.sfc';
 	var stages = deepClone(SMW_STAGES);
-
-	if ($('#randomize_95exit').is(':checked'))
-	{
-		// remove dgh and topsecret from rotation
-		var toremove = [0x003, 0x004];
-		stages = $.grep(stages, function(x){ return !toremove.contains(x.id); });
-	}
 
 	// if we aren't randomizing the warps, remove them from the stage list
 	if (!$('#randomize_warps').is(':checked'))
@@ -92,6 +85,9 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_bowserdoors').is(':checked'))
 		randomizeBowser8Doors(random, rom);
 
+	if ($('#randomize_enemies').is(':checked'))
+		randomizeEnemies(stages, random, rom);
+
 	if ($('#randomize_levelexits').is(':checked'))
 	{
 		randomizeYoshiWings(stages, random, rom);
@@ -151,6 +147,8 @@ function randomizeROM(buffer, seed)
 	var enemyprop = $('input[name="enemyprop"]:checked').val();
 	randomizeEnemyProperties(enemyprop, stages, random, rom);
 
+	fixCastleDoors(rom);
+
 	if ($('#randomize_colors').is(':checked'))
 	{
 		randomizeBackgrounds(random, rom);
@@ -192,8 +190,8 @@ function randomizeROM(buffer, seed)
 	//updateIntroText(vseed, rom);
 
 	updateFileSelect({
-		start1p: "1P " + (EN_US ? 'RANDOMIZER' : 'RANDOMISER'),
-		start2p: "2P " + (EN_US ? 'RANDOMIZER' : 'RANDOMISER'),
+		start1p: "1P RANDOMIZER",
+		start2p: "2P RANDOMIZER",
 	},
 	TITLE_TEXT_COLOR, rom);
 
@@ -204,8 +202,16 @@ function randomizeROM(buffer, seed)
 	var preset = +$('#preset').val();
 	if (!preset) preset = 'x' + getRandomizerSettings();
 
-	// return the modified buffer
-	return { seed: vseed, preset: preset, buffer: rom.buffer, type: ext || '.sfc' };
+	return {
+		// return the modified buffer
+		buffer: rom.buffer,
+		type: ext || '.sfc',
+
+		// all of the data needed to recreate (or validate) a ROM
+		seed: vseed,
+		checksum: checksum,
+		preset: preset,
+	};
 }
 
 // purely for debug purposes
@@ -265,46 +271,82 @@ function shuffle(stages, random)
 		stages[i].copyfrom = rndstages[i];
 }
 
-function getSublevelData(id, rom)
+function getSublevelData(id, rom, header)
 {
+	function generateSubHeaderProperty(off, start, size)
+	{
+		var mask = (1 << size) - 1;
+		return {
+			enumerable: true,
+			get: function( ){ return (rom[off+id] >> start) & mask; },
+			set: function(x){ rom[off+id] = (((mask << start) ^ 0xFF) & rom[off+id]) | ((x & mask) << start); },
+		}
+	}
+
 	// get address for layer 1 header
 	var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
-
-	var data =
+	var data = getObjectHeaderData(header || new Uint8Array(rom.buffer, addr, 5));
+	Object.defineProperties(data,
 	{
-		// PRIMARY HEADER DATA
-		bgp:      (rom[addr  ] >> 5) & 0x07, // BG palette
-		screens:  (rom[addr  ]     ) & 0x1F, // number of screens
-		bgc:      (rom[addr+1] >> 5) & 0x07, // BG color
-		lmode:    (rom[addr+1]     ) & 0x1F, // level mode
-		l3prio:   (rom[addr+2] >> 7) & 0x01, // layer 3 priority
-		music:    (rom[addr+2] >> 4) & 0x03, // music settings
-		stileset: (rom[addr+2]     ) & 0x0F, // sprite tileset
-		_time:    (rom[addr+3] >> 6) & 0x03, // time settings
-		sp:       (rom[addr+3] >> 3) & 0x07, // sprite palette
-		fgp:      (rom[addr+3]     ) & 0x07, // foreground palette
-		imem:     (rom[addr+4] >> 6) & 0x03, // item memory
-		_vscroll: (rom[addr+4] >> 4) & 0x03, // vertical scroll
-		tileset:  (rom[addr+4]     ) & 0x0F, // fg/bg tileset
+		l2scroll:   generateSubHeaderProperty(HEADER1_OFFSET, 4, 4), // layer 2 scroll
+		l3:         generateSubHeaderProperty(HEADER2_OFFSET, 6, 2), // layer 3 settings
+		entrance:   generateSubHeaderProperty(HEADER2_OFFSET, 3, 3), // entrance type
+		yoshi:      generateSubHeaderProperty(HEADER4_OFFSET, 7, 1), // disable no yoshi
+		uvp:        generateSubHeaderProperty(HEADER4_OFFSET, 6, 1), // unknown vpos flag
+		vpos:       generateSubHeaderProperty(HEADER4_OFFSET, 5, 1), // vertical pos flag
 
-		// SECONDARY HEADER DATA
-		l2scroll:   (rom[HEADER1_OFFSET+id] >> 4) & 0x0F, // layer 2 scroll
-		y:          (rom[HEADER1_OFFSET+id]     ) & 0x0F, // level entrance y
-		l3:         (rom[HEADER2_OFFSET+id] >> 6) & 0x03, // layer 3 settings
-		entrance:   (rom[HEADER2_OFFSET+id] >> 3) & 0x07, // entrance type
-		x:          (rom[HEADER2_OFFSET+id]     ) & 0x07, // level entrance x
-		midscreen:  (rom[HEADER3_OFFSET+id] >> 4) & 0x0F, // midway entrance screen
-		fg:         (rom[HEADER3_OFFSET+id] >> 2) & 0x03, // entrance fg pos
-		bg:         (rom[HEADER3_OFFSET+id]     ) & 0x03, // entrance bg pos
-		yoshi:      (rom[HEADER4_OFFSET+id] >> 7) & 0x01, // disable no yoshi
-		uvp:        (rom[HEADER4_OFFSET+id] >> 6) & 0x01, // unknown vpos flag
-		vpos:       (rom[HEADER4_OFFSET+id] >> 5) & 0x01, // vertical pos flag
-		mainscreen: (rom[HEADER4_OFFSET+id]     ) & 0x1F, // main entrance screen
-	};
+		fg:         generateSubHeaderProperty(HEADER3_OFFSET, 2, 2), // entrance fg pos
+		bg:         generateSubHeaderProperty(HEADER3_OFFSET, 0, 2), // entrance bg pos
+		mainscreen: generateSubHeaderProperty(HEADER4_OFFSET, 0, 5), // main entrance screen
+		midscreen:  generateSubHeaderProperty(HEADER3_OFFSET, 4, 4), // midway entrance screen
+		x:          generateSubHeaderProperty(HEADER2_OFFSET, 0, 3), // level entrance x
+		y:          generateSubHeaderProperty(HEADER1_OFFSET, 0, 4), // level entrance y
 
-	data.time = [0, 200, 300, 400][data._time];
-	data.vscroll = ['no-v', 'always', 'locked', 'no-v/h'][data._vscroll];
-	data.layer3 = ['none', 'tide', 'mondo', '???'][data.l3];
+		// pure getters for some properties
+		layer3:  { get: function(){ return ['none', 'tide', 'mondo', '???'][this.l3]; } },
+		tide:    { get: function(){ return this.l3 == 0x1 || this.l3 == 0x2; } },
+	});
+
+	return data;
+}
+
+function getObjectHeaderData(header)
+{
+	function generateHeaderProperty(byte, start, size)
+	{
+		var mask = (1 << size) - 1;
+		return {
+			enumerable: true,
+			get: function( ){ return (this._data[byte] >> start) & mask; },
+			set: function(x){ this._data[byte] = (((mask << start) ^ 0xFF) & this._data[byte]) | ((x & mask) << start); },
+		}
+	}
+
+	var data = { _data: header, };
+	Object.defineProperties(data,
+	{
+		bgp:      generateHeaderProperty(0, 5, 3), // BG palette
+		screens:  generateHeaderProperty(0, 0, 5), // number of screens
+		bgc:      generateHeaderProperty(1, 5, 3), // BG color
+		lmode:    generateHeaderProperty(1, 0, 5), // level mode
+		l3prio:   generateHeaderProperty(2, 7, 1), // layer 3 priority
+		music:    generateHeaderProperty(2, 4, 3), // music settings
+		sprite:   generateHeaderProperty(2, 0, 4), // sprite tileset
+		time:     generateHeaderProperty(3, 6, 2), // time settings
+		sp:       generateHeaderProperty(3, 3, 3), // sprite palette
+		fgp:      generateHeaderProperty(3, 0, 3), // foreground palette
+		imem:     generateHeaderProperty(4, 6, 2), // item memory
+		_vscroll: generateHeaderProperty(4, 4, 2), // vertical scroll
+		tileset:  generateHeaderProperty(4, 0, 4), // fg/bg tileset
+
+		// pure getters for some properties
+		seconds: { get: function(){ return [0, 200, 300, 400][this.time]; } },
+		vscroll: { get: function(){ return ['no-v', 'always', 'locked', 'no-v/h'][this._vscroll]; } },
+
+		// pure getters for sprite page metadata
+		sp3: { get: function(){ return SP3_SETTINGS[this.sprite]; } },
+		sp4: { get: function(){ return SP4_SETTINGS[this.sprite]; } },
+	});
 
 	return data;
 }
@@ -318,15 +360,20 @@ function canonicalizeBaseRom(stages, rom)
 	// disable the forced no-yoshi intro on moved stages
 	rom[0x2DA1D] = 0x60;
 
-	// make WUSH format work for mixing primary and secondary exits
-	rom.set([0x9D, 0xD8, 0x19, 0x60], 0x6A531);
-	rom.set([0xAD, 0x93, 0x1B], 0x2D94C);
-	rom.set([0x20, 0x67, 0x8E], 0x2D7D4);
-	rom.set([0xBD, 0xD8, 0x19, 0x29, 0x02, 0x8D, 0x93, 0x1B, 0x60], 0x28E67);
-
-	// fix layer2 reset when changing rooms
-	rom.set([0x20, 0x4D, 0xBA], 0x0259F);
-	rom.set([0x20, 0x2D, 0xF6, 0xA2, 0x03, 0x74, 0x26, 0xCA, 0x10, 0xFB, 0x60], 0x03A4D);
+	// disable "TIME UP" screen when dying in a stage with a 0 second timer
+	rom.set([0x22, 0xAC, 0xD6, 0x03, 0xEA], 0x00E21);
+	rom.set([0xD0, 0x1E], 0x00E4F);
+	rom.set([0xAD, 0x32, 0x0F, 0x0D, 0x33, 0x0F, 0xD0, 0x07, 0xA9, 0xFF, 0xEA, 0x22, 0xBE, 0xD6, 0x03], 0x00E60);
+	rom.set([0x22, 0xC5, 0xD6, 0x03, 0xEA], 0x050E6);
+	rom.set(
+	[
+		0xAD, 0x9B, 0x0D, 0xC9, 0xC1, 0xF0, 0x08, 0xAD,
+		0x30, 0x0F, 0x30, 0x03, 0xA9, 0x01, 0x6B, 0xA9,
+		0x00, 0x6B, 0x8D, 0x30, 0x0F, 0x5C, 0x06, 0xF6,
+		0x00, 0xA0, 0x0B, 0xAD, 0x31, 0x0F, 0xAE, 0x30,
+		0x0F, 0x30, 0x01, 0x1A, 0x6B
+	],
+	0x1D6AC);
 
 	// set dsh translevel to 0 to make big boo act as the normal exit
 	// copy DGH's secret goal tape sublevel into DSH's goaltape (to make secret exit)
@@ -340,22 +387,38 @@ function canonicalizeBaseRom(stages, rom)
 		if (BASE_SWAP_EXITS.contains(stages[i].name))
 			swapExits(stages[i], rom);
 
+	// make WUSH format work for mixing primary and secondary exits
+	rom.set([0x9D, 0xD8, 0x19, 0x60], 0x6A531);
+	rom.set([0xAD, 0x93, 0x1B], 0x2D94C);
+	rom.set([0x20, 0x67, 0x8E], 0x2D7D4);
+	rom.set([0xBD, 0xD8, 0x19, 0x29, 0x02, 0x8D, 0x93, 0x1B, 0x60], 0x28E67);
+
 	// repair U/H for all of the stages
 	for (var id = 0; id < 0x200; ++id)
-		writeExitList(getScreenExits(id, rom), rom);
+	{
+		var exits = parseExits(id, rom);
+		for (var i = 0; i < exits.length; ++i)
+			writeExit(exits[i], rom);
+	}
 
-	// remove the useless screen exit on vs1
-	var exits109 = getScreenExits(0x109, rom);
-	exits109.splice(1, 1);
-	writeExitList(exits109, rom);
+	// fix layer2 reset when changing rooms
+	rom.set([0x20, 0x4D, 0xBA], 0x0170F);
+	rom.set([0xEE, 0x04, 0x14, 0xA2, 0x03, 0x74, 0x26, 0xCA, 0x10, 0xFB, 0x9C, 0x12, 0x14, 0x60], 0x03A4D);
 
-	// fix vs1 pipe (move it down)
-	var stage109 = parseObjectList(snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * 0x109, 3, rom)), rom);
-	stage109[55].major += 1; // pipe moved down
-	stage109[56].major += 1; // platform moved down
-	stage109[57].extra = combineNibbles(3, 0xE);
-	stage109[59].major += 1;
-	writeObjectList(stage109, rom);
+	// set fg position for horizontal levels to fix layer1 glitch caused by layer2 hijack
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var meta = getSublevelData(id, rom);
+		if (!LEVEL_MODES[meta.lmode].horiz) meta.fg = 0x0;
+	}
+
+	var stage109 = parseLayer1(0x109, rom);
+	stage109.objs[55].major += 1; // fix vs1 pipe (move it down)
+	stage109.objs[56].major += 1; // platform moved down
+	stage109.objs[57].extra = combineNibbles(3, 0xE);
+	stage109.objs[59].major += 1;
+	stage109.exits.splice(1, 1); // remove the useless screen exit on vs1
+	writeLayer(stage109, rom);
 
 	// canonical version of CI1 is 0xF6
 	var ci1 = backupSublevel(0xF6, rom);
@@ -381,12 +444,10 @@ function canonicalizeBaseRom(stages, rom)
 			// redirect all screen exits to use this secondary exit
 			for (var k = 0; k < sublevels.length; ++k)
 			{
-				var exits = getScreenExits(sublevels[k], rom);
+				var exits = parseExits(sublevels[k], rom);
 				for (var z = 0; z < exits.length; ++z)
-				{
 					if (exits[z].target == sublevels[j])
 						writeExit(exits[z], rom, {issecx: true, target: sec.id});
-				}
 			}
 
 			// this room is unused now, so delete it
@@ -626,18 +687,10 @@ function fixSaveLocations(mode, stages, rom)
 	else
 	{
 		var savestages = [];
-
-		if (mode == 'default')
+		for (var i = 0; i < stages.length; ++i)
 		{
-			for (var i = 0; i < stages.length; ++i)
-				if (isSavePoint(stages[i].copyfrom) || FORCE_SAVE.contains(stages[i].name))
-					savestages.push(stages[i]);
-		}
-		else if (mode == 'original')
-		{
-			for (var i = 0; i < stages.length; ++i)
-				if (isSavePoint(stages[i]) || FORCE_SAVE.contains(stages[i].name))
-					savestages.push(stages[i]);
+			var stage = stages[i], c = mode == 'default' ? stage.copyfrom : stage;
+			if (isSavePoint(c) || FORCE_SAVE.contains(stage.name)) savestages.push(stage);
 		}
 
 		var hijack = [
@@ -667,44 +720,151 @@ function fixSaveLocations(mode, stages, rom)
 	}
 }
 
-function randomizeEnemyProperties(mode, stages, random, rom)
+function randomizeEnemies(stages, random, rom)
 {
-	// my favorite :)
-	if (mode == 'default') return;
-
-	// randomize color palettes for koopas
-	var __ka = {}, __kb = {};
-	for (var i = 0; i < KOOPA_SETS.length; ++i)
+	var spritemap = {}, spritedata = {};
+	for (var i = 0; i < SPRITE_SETS.length; ++i)
 	{
-		var koopaset = KOOPA_SETS[i];
-		var kooprand = koopaset.slice(0).shuffle(random);
-
-		var palettes = {};
-		for (var j = 0; j < koopaset.length; ++j)
-			palettes[koopaset[j]] = rom[0x3F3FE + koopaset[j]] & 0x0E;
-
-		for (var j = 0; j < koopaset.length; ++j)
+		var set = [];
+		for (var k in SPRITE_SETS[i])
 		{
-			rom[0x3F3FE + koopaset[j]] &= 0xF1;
-			rom[0x3F3FE + koopaset[j]] |= palettes[kooprand[j]];
-
-			__ka[koopaset[j]] = kooprand[j];
-			__kb[kooprand[j]] = koopaset[j];
+			spritemap[+k] = set;
+			set.push(spritedata[+k] = SPRITE_SETS[i][k])
+			SPRITE_SETS[i][k].id = +k;
 		}
 	}
 
-	// make sure koopas produce like-colored koopas when stunned
-	if (mode == 'normal')
+	var FIXED_SPRITE_MEM = $.grep(TILESET_SPECIFIC_SPRITES,
+		function(x){ return x in SPRITE_MEMORY && !(x in spritemap); });
+
+	for (var i = 0; i < stages.length; ++i)
 	{
-		// fix shell koopas (04-07)
-		for (var id = 0x04; id <= 0x07; ++id)
-			rom[0x0961C + __ka[id]] = __kb[KOOPA_STOMP[id]];
+		var sub = getRelatedSublevels(stages[i].id, rom);
+		for (var j = 0; j < sub.length; ++j)
+		{
+			var sprites = getSprites(sub[j], rom);
+			var meta = getSublevelData(sub[j], rom);
 
-		// fix wing koopas (08-0C)
-		for (var id = 0x08; id <= 0x0C; ++id)
-			rom[0x0A7C9 + __ka[id]] = __kb[KOOPA_STOMP[id]];
+			// if this is a boss room, leave it alone
+			if (sprites.sprites.some(function(s){ return s.id in BOSSES; })) continue;
+
+			var fixed = $.grep(sprites.sprites, function(x){ return FIXED_SPRITE_MEM.contains(x.id); })
+			var smem = fixed.length ? SPRITE_MEMORY[fixed[0].id] : null;
+
+			if (random.flipCoin(0.6) && !sprites.sprites.some(function(x)
+			{
+				if (x.id in spritemap) return false;
+				return TILESET_SPECIFIC_SPRITES.contains(x.id);
+			}))
+			{
+				var usprites = $.map(sprites.sprites, function(x){ return x.id; }).uniq();
+				var valid_sprite_sets = $.grep(GOOD_SPRITE_TILESETS, function(x)
+				{
+					for (var k = 0; k < usprites.length; ++k)
+					{
+						var sid = usprites[k];
+						for (var z = 0; z < SPRITE_SETS.length; ++z)
+						{
+							if (sid in SPRITE_SETS[z])
+							{
+								if (!$.map(SPRITE_SETS[z], function(v,k){ return v.sp3 || []; }).contains(SP3_SETTINGS[x])) return false;
+								if (!$.map(SPRITE_SETS[z], function(v,k){ return v.sp4 || []; }).contains(SP4_SETTINGS[x])) return false;
+							}
+						}
+
+						return true;
+					}
+				});
+
+				if (valid_sprite_sets.length)
+					meta.sprite = random.from(valid_sprite_sets);
+			}
+
+			var remap = {};
+			for (var k = 0; k < sprites.sprites.length; ++k)
+			{
+				var sprite = sprites.sprites[k];
+				if (sprite.id in spritemap)
+				{
+					var orig = spritedata[sprite.id];
+					if (!(orig.id in remap))
+					{
+						var candidates = $.grep(spritemap[sprite.id], function(x)
+						{
+							// sprite needs to match the sp3 settings
+							if (x.sp3 && !x.sp3.contains(meta.sp3)) return false;
+							if (x.sp4 && !x.sp4.contains(meta.sp4)) return false;
+
+							// sprite might need water or tide of some
+							if (x.water == 1 && !(rom[FLAGBASE+sub[j]] & 0x01)) return false;
+							if (x.water == 2 && !meta.tide) return false;
+
+							// if we have changed the item memory and this sprite requires a different one, incompatible
+							if (smem && x.id in SPRITE_MEMORY && SPRITE_MEMORY[x.id] !== smem) return false;
+
+							return true;
+						});
+
+						// store this so that future sprites can use this same sprite
+						if (candidates.length) remap[orig.id] = random.fromWeighted(candidates);
+					}
+
+					if (orig.id in remap)
+					{
+						var newsprite = remap[orig.id];
+						sprite.x += orig.origin[0] - newsprite.origin[0];
+						sprite.y += orig.origin[1] - newsprite.origin[1];
+						sprite.id = newsprite.id;
+
+						if (newsprite.id in SPRITE_MEMORY)
+							smem = SPRITE_MEMORY[newsprite.id];
+					}
+				}
+			}
+
+			// if we require a new sprite memory, set it
+			if (smem)
+			{
+				sprites.header[0] &= 0xC0;
+				sprites.header[0] |= smem;
+			}
+
+			var lastx = -1000; remap = {};
+			for (var k = 0; k < sprites.sprites.length; ++k)
+			{
+				var sprite = sprites.sprites[k];
+				if (sprite.id in SPRITE_MEMORY)
+				{
+					// if the sprite is spaced far enough, no change needed
+					if (sprite.x - lastx > 16 || !(sprite.id in spritemap))
+					{ lastx = sprite.x; continue; }
+
+					// delete the sprite
+					sprites.sprites[k] = null;
+				}
+			}
+
+			// complete the deletion of sprites from the list
+			sprites.sprites = $.grep(sprites.sprites, function(x){ return x; });
+
+			// if we use sprite 0x33 (vertical podaboos), buoyancy MUST be on
+			if (sprites.sprites.some(function(x){ return x.id == 0x33; }))
+			{
+				// get address of sprite table and setup buoyancy default
+				var buoyancy = getLevelMode(sub[j], rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40;
+
+				// if buoyancy was already set, just leave it as it was
+				if (sprites.header[0] & 0xC0) buoyancy = (sprites.header[0] & 0xC0);
+				sprites.header[0] = (sprites.header[0] & 0x3F) | buoyancy;
+			}
+
+			writeSprites(sprites, rom);
+		}
 	}
+}
 
+function randomizeEnemyProperties(mode, stages, random, rom)
+{
 	// hijack for custom shell powerups
 	// ; 16-byte table. If arranged in a square, X coord is Yoshi color, Y coord is shell (ordered GRBY).
 	// ; Powers are bitwise: --fr cjfs
@@ -953,8 +1113,8 @@ function randomizeBackgrounds(random, rom)
 
 		if (layer2 == 0xFFE103 && newlayer2 != 0xFFE103)
 		{
-			var sprites = getSpritesBySublevel(id, rom);
-			deleteSprites([0xE6], sprites, rom);
+			var sprites = getSprites(id, rom);
+			deleteSprites(sprites, function(x){ return x.id == 0xE6; }, rom);
 		}
 	}
 }
@@ -1049,17 +1209,13 @@ function randomizeZeroes(stages, random, rom)
 		var stage = switches[i];
 		for (var j = 0; j < stage.sublevels.length; ++j)
 		{
-			var start = LAYER1_OFFSET + 3 * stage.sublevels[j];
-			var snes = getPointer(start, 3, rom);
-
-			var addr = snesAddressToOffset(snes);
-			var objects = parseObjectList(addr, rom);
-
-			for (var k = 0; k < objects.length; ++k)
+			var layer = parseLayer1(stage.sublevels[j], rom);
+			for (var k = 0; k < layer.objs.length; ++k)
 			{
-				if (objects[k].extended && objects[k].extra == SWITCH_OBJECTS[stage.palace])
-					writeObject(objects[k], rom, {extra: SWITCH_OBJECTS[newswitch[i]]});
+				if (layer.objs[k].extended && layer.objs[k].extra == SWITCH_OBJECTS[stage.palace])
+					layer.objs[k].extra = SWITCH_OBJECTS[newswitch[i]];;
 			}
+			writeLayer(layer, rom);
 		}
 
 		// fix the tile color as well
@@ -1071,94 +1227,9 @@ function randomizeZeroes(stages, random, rom)
 	_fixMessageBoxes(transmap, rom);
 }
 
-/*
-	Object Lists
-	NBBYYYYY bbbbXXXX SSSSSSSS
-
-	N = New screen (advance a screen)
-	BBbbbb = Object id (Object 0 gets extended object id from SSSSSSSS)
-	YYYYY = Minor Axis
-	XXXX = Major Axis
-	SSSSSSSS = Additional bits
-*/
-function parseObjectList(addr, rom)
-{
-	var horiz = LEVEL_MODES[rom[addr+1] & 0x1F].horiz;
-
-	var objs = [], screen = 0;
-	for (addr += 5;; addr += 3)
-	{
-		// 0xFF sentinel represents end of level data
-		if (rom[addr] === 0xFF) break;
-
-		// pattern looks like the start of the screen exits list
-		if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] === 0x00) break;
-
-		var obj = { addr: addr, n: (rom[addr] & 0x80) };
-		obj.id = ((rom[addr] & 0x60) >> 1) | ((rom[addr+1] & 0xF0) >> 4);
-
-		if (obj.n) ++screen;
-
-		obj.screen = screen;
-		obj.major = screen * 16 + (rom[addr+1] & 0x0F);
-		obj.minor = rom[addr] & 0x1F;
-
-		obj.x = horiz ? obj.major : obj.minor;
-		obj.y = horiz ? obj.minor : obj.major;
-
-		obj.extra = rom[addr+2];
-		obj.extended = (obj.id === 0);
-		objs.push(obj);
-
-		// extended object 01 updates screen to YYYYY value
-		if (obj.extended && obj.extra == 0x01)
-			screen = obj.minor;
-	}
-
-	return objs;
-}
-
-function deleteObject(obj, rom)
-{
-	// if last entry in object list, copy 0xFF end-of-list sentinel
-	if (rom[obj.addr+3] == 0xFF)
-	{
-		rom[obj.addr] = 0xFF;
-		return;
-	}
-
-	// copy next entry in the list (remove N bit on next entry)
-	rom.set(rom.slice(obj.addr+3, obj.addr+6), obj.addr);
-	rom[obj.addr+3] &= 0xFF ^ 0x80;
-}
-
-function writeObject(obj, rom, changes)
-{
-	changes = changes || {};
-	for (var k in changes) if (changes.hasOwnProperty(k))
-		obj[k] = changes[k];
-
-	rom.set(
-	[	obj.n | ((obj.id & 0x30) << 1) | obj.minor
-	,	((obj.id & 0x0F) << 4) | (obj.major & 0x0F)
-	,	obj.extra
-	],
-	obj.addr);
-}
-
-function writeObjectList(obj, rom)
-{
-	for (var i = 0; i < obj.length; ++i)
-		writeObject(obj[i], rom);
-}
-
-function combineNibbles(a, b)
-{ return ((a & 0xF) << 4) | (b & 0xF); }
-
 function randomizeSwitchRooms(stages, random, rom)
 {
 	var switches = $.grep(stages, function(x){ return x.palace; });
-
 	var sp4 = random.from($.grep(SP4_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
 	var candidates = $.grep(SP4_SPRITES, function(x){ return [null, sp4].contains(x.sp4); });
 
@@ -1166,48 +1237,48 @@ function randomizeSwitchRooms(stages, random, rom)
 	for (var i = 0; i < switches.length; ++i)
 	{
 		var id = getRelatedSublevels(switches[i].id, rom)[1];
-		var sprites = getSpritesBySublevel(id, rom);
+		var sprites = getSprites(id, rom);
 
-		if (sprites.length !== 1 || sprites[0].spriteid !== 0x6D)
-			console.log('Trying to modify a non-switch room like a switch room.');
+		if (sprites.sprites.length !== 1 || sprites.sprites[0].id !== 0x6D)
+			throw new Error('Trying to modify a non-switch room like a switch room.');
 
-		var oldsprite = sprites[0];
+		var oldsprite = sprites.sprites[0];
 		var newsprite = random.from(candidates);
 		var pos = random.from(newsprite.pos);
 
-		oldsprite.screen = Math.floor(pos[0] / 16);
-		oldsprite.major = pos[0] % 16;
-		oldsprite.minor = pos[1];
-
-		oldsprite.spriteid = newsprite.id;
-		updateSprite(oldsprite, rom);
-
-		// address of the sprite header
-		var addr = snesAddressToOffset(0x070000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+		oldsprite.x = pos[0];
+		oldsprite.y = pos[1];
+		oldsprite.id = newsprite.id;
 
 		// if the new sprite requires water
 		if (newsprite.water)
 		{
 			// setup water (using the hijack found in randomizeFlags)
 			rom[FLAGBASE+id] = (rom[FLAGBASE+id] & 0xF0) | newsprite.water;
+		}
 
+		// water and tide both require buoyancy
+		if (newsprite.water || newsprite.tide)
+		{
 			// get address of sprite table and setup buoyancy default
 			var buoyancy = getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40;
 
 			// if buoyancy was already set, just leave it as it was
-			if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
-			rom[addr] = (rom[addr] & 0x3F) | buoyancy;
+			if (sprites.header[0] & 0xC0) buoyancy = (sprites.header[0] & 0xC0);
+			sprites.header[0] = (sprites.header[0] & 0x3F) | buoyancy;
 		}
 
 		// if the new sprite needs a different sprite memory setting
-		if (newsprite.mem !== null) rom[addr] = (rom[addr] & 0xC0) | newsprite.mem;
+		if (newsprite.id in SPRITE_MEMORY)
+			sprites.header[0] = (sprites.header[0] & 0xC0) | SPRITE_MEMORY[newsprite.id];
+		writeSprites(sprites, rom);
 
 		// setup tide if needed
-		var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
+		var layer = parseLayer1(id, rom);
 		if (newsprite.tide)
 		{
 			// add layer 3 priority to make tide appear over the ground
-			rom[addr+2] = (rom[addr+2] & 0x7F) | 0x80;
+			layer.header[2] = (layer.header[2] & 0x7F) | 0x80;
 
 			// set the tide object to (01 = low tide)
 			rom[HEADER2_OFFSET+id] = (rom[HEADER2_OFFSET+id] & 0x3F) | 0x40;
@@ -1217,15 +1288,13 @@ function randomizeSwitchRooms(stages, random, rom)
 		switch (newsprite.id)
 		{
 			case 0xBB: // Moving Grey Block
-				var objlist = parseObjectList(addr, rom);
-				for (var j = 0; j < objlist.length; ++j)
-					if (objlist[j].id == 0x3D && objlist[j].major == pos[0]-14)
-					{
-						objlist[j].extra -= 7;
-						writeObject(objlist[j], rom);
-					}
+				for (var j = 0; j < layer.objs.length; ++j)
+					if (layer.objs[j].id == 0x3D && layer.objs[j].x == pos[0]-14)
+						layer.objs[j].extra -= 7;
 				break;
 		}
+
+		writeLayer(layer, rom);
 	}
 }
 
@@ -1246,31 +1315,85 @@ function randomizePipeBosses(random, rom)
 	],
 	0x6C5F7);
 
-	var addr, obj;
 	var LEMMY_ROOM = KOOPA_KID_SUBLEVELS[2];
 	var WENDY_ROOM = KOOPA_KID_SUBLEVELS[5];
 
-	var pipes = [];
-	while (pipes.length < 7)
-		pipes.push(random.from(PIPE_DATA));
+	var pipes = [0,0,0,0,0,0,0];
+	for (var x = 0; x < pipes.length * 2; ++x)
+	{
+		var i = random.nextInt(pipes.length);
+		pipes[i] = Math.min(pipes[i] + 1, 3);
+	}
+
+	var highest = Math.max.apply(null, pipes);
+	var position = pipes.indexOf(highest);
+
+	for (var i = 0; i < pipes.length; ++i)
+		pipes[i] = PIPE_DATA[pipes[i]];
 
 	pipes.push(pipes[3]);
 	rom.set($.map(pipes, function(x){ return x.spawn; }),
 		snesAddressToOffset(0x03CC40));
 
-	addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * LEMMY_ROOM, 3, rom));
-	obj = parseObjectList(addr, rom);
-
-	for (var i = 0, a = 0; i < obj.length; ++i)
+	var layer = parseLayer1(LEMMY_ROOM, rom);
+	for (var i = 0, a = 0; i < layer.objs.length; ++i)
 	{
-		if (obj[i].id != 0x34) continue;
+		if (layer.objs[i].id != 0x34) continue;
 
 		var p = pipes[a++];
-		obj[i].extra = p.extra;
-		obj[i].minor = p.minor;
-
-		writeObject(obj[i], rom);
+		layer.objs[i].extra = p.extra;
+		layer.objs[i].minor = p.minor;
 	}
+
+	// add moving lava to the lemmy fight
+	if (random.flipCoin(0.5))
+	{
+		var snes = 0x0780ED;
+		var meta = getSublevelData(LEMMY_ROOM, rom, layer.header);
+
+		meta.l3 = 0x03;
+		meta.lmode = 0x02;
+
+		meta.x = 0x2;
+		meta.y = 0x7;
+
+		// dynamically change the low X value for x-entrance setting 2
+		rom[0x2D752] = (position * 2 + random.from([1,2])) * 0x10;
+
+		// the main object here is just the lava, which will be scrolling
+		// up and down thanks to the layer2 scroll sprite added to the room
+		var layer2objs = [{
+			id: 0x1A,
+			major: 0x01,
+			minor: PIPE_DATA[highest].minor + 1,
+			extra: combineNibbles(highest + 5, 13),
+		}];
+
+		// add spikes to the layer2 ceiling (these are a little bit mean...)
+		if (random.flipCoin(0.25)) layer2objs.push({ id: 0x3E, major: 0x01, minor: 0x09, extra: 13, });
+
+		writeLayer(_decorateLayer(
+		{
+			addr: snesAddressToOffset(snes),
+			header: new Uint8Array(5),
+			objs: $.map(layer2objs, function(x){ return _decorateObject(x, true); }),
+		}), rom);
+
+		rom.set(littleEndianToBytes(snes, 3), LAYER2_OFFSET + 3 * LEMMY_ROOM);
+
+		// remove lava object from the layer1 data
+		layer.objs = $.grep(layer.objs, function(x){ return x.id != 0x1A });
+
+		// add layer2 scroll sprite
+		var sprites = getSprites(LEMMY_ROOM, rom);
+		sprites.sprites[0].id = 0xEA;
+		sprites.sprites[0].x = 0;
+		sprites.sprites[0].y = 0;
+		sprites.sprites[0].extend = 0x02;
+		writeSprites(sprites, rom);
+	}
+
+	writeLayer(layer, rom);
 }
 
 function randomizeStageEffects(stages, random, rom)
@@ -1290,26 +1413,40 @@ function randomizeStageEffects(stages, random, rom)
 	for (var i = 0; c && i < can_vscroll.length; ++i)
 	{
 		var id = can_vscroll[i];
+		if (id == TITLE_DEMO_LEVEL) continue;
+
 		var data = getSublevelData(id, rom);
 		var mode = getLevelMode(id, rom);
+
+		// don't take vertical levels, dummy
+		if (!mode.horiz) continue;
 
 		// bg setting 00 requires 12-tile scroll, which is fucky
 		if (data.bg == 0x3) continue;
 
-		var sprites = getSpritesBySublevel(id, rom);
-		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.spriteid) - prio.indexOf(a.spriteid); })[0];
+		var sprdata = getSprites(id, rom), sprites = sprdata.sprites;
+		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.id) - prio.indexOf(a.id); })[0];
 
-		if (best && REPLACEABLE_SPRITES.contains(best.spriteid)) --c;
+		if (best && REPLACEABLE_SPRITES.contains(best.id)) --c;
 		else continue;
 
-		best.screen = data.mainscreen;
-		best.major = best.minor = 0;
+		best.x = data.mainscreen * 16;
+		best.y = 0;
+		best.id = 0xEA;
+		best.extend = random.from([0x1, 0x2, 0x2, 0x2, 0x3, 0x3]);
+		writeSprites(sprdata, rom);
+	}
 
-		best.spriteid = 0xEA;
-		best.extend = random.from([0x1, 0x2, 0x3]);
+	// random layer3 effects
+	for (var id = 0; id < 0x200; ++id)
+	{
+		var meta = getSublevelData(id, rom);
 
-		updateSprite(best, rom);
-		sortSprites(sprites, rom);
+		// random mist in ghost houses
+		if ([0x5, 0xD].contains(meta.tileset) && random.flipCoin(0.25)) meta.l3 = 0x3;
+
+		// random fish underwater
+		if (meta.tileset == 0x9 && (rom[FLAGBASE+id] & 0x01) && random.flipCoin(0.25)) meta.l3 = 0x3;
 	}
 }
 
@@ -1344,13 +1481,6 @@ function pogyo(stages, random, rom)
 
 	// https://twitter.com/Dotsarecool/status/714639606696771589
 	detuneMusic(rom, random);
-
-	// activate water bowser (assumes bowser in 0x1C7)
-	if (random.flipCoin(0.2))
-	{
-		setSublevelWater(0x1C7, true, rom);
-		rom[0x1A67F] = 0x08; // remove phase 3
-	}
 }
 
 function fixBlockPaths(stages, rom)
@@ -1549,13 +1679,13 @@ function backupStage(stage, rom)
 	// get a list of sublevels
 	stage.sublevels = getRelatedSublevels(stage.id, rom);
 	stage.allexits = Array.prototype.concat.apply([],
-		$.map(stage.sublevels, function(x){ return getScreenExits(x, rom); }));
+		$.map(stage.sublevels, function(x){ return parseExits(x, rom); }));
 
 	// ci2 - need to add the exits from the additional tables
 	if (stage.id === 0x024) for (var j = 0; j < CI2_ALL_OFFSETS.length; ++j)
 	{
 		var addr = 0x060000 | getPointer(CI2_LAYER_OFFSETS.layer1 + CI2_ALL_OFFSETS[j], 2, rom);
-		var exits = getScreenExitsByAddr(addr, rom);
+		var exits = parseLayerByAddr(snesAddressToOffset(addr), rom, 0x024).exits;
 
 		for (var k = 0; k < exits.length; ++k)
 			if (!$.map(stage.allexits, function(x){ return x.addr; }).contains(addr))
@@ -1793,7 +1923,7 @@ function fixAllSecondaryExits(roommap, rom)
 
 	for (var id = 0; id < 0x200; ++id)
 	{
-		var exits = getScreenExits(id, rom);
+		var exits = parseExits(id, rom);
 		for (var k = 0; k < exits.length; ++k)
 			if (exits[k].issecx && exits[k].target in secmap)
 				writeExit(exits[k], rom, {target: secmap[exits[k].target]});
@@ -1977,142 +2107,6 @@ function findOpenSecondaryExit(bank, rom)
 	throw new Error('No free secondary exits in bank ' + bank.toHex(3));
 }
 
-/*
-	Screen exits
-	000PPPPP 0000WUSH 00000000 DDDDDDDD
-
-	PPPPP = screen number
-	W = water entrance (unused)
-	S = is secondary exit
-	if U = 1: HDDDDDDDD = exit target (sublevel id or sec exit id)
-	if U = 0: xDDDDDDDD = exit target (sublevel id or sec exit id)
-	            where x = high bit of source sublevel id
-*/
-
-function getScreenExits(id, rom)
-{
-	var start = LAYER1_OFFSET + 3 * id;
-	var snes = getPointer(start, 3, rom);
-	return getScreenExitsByAddr(snes, rom, id);
-}
-
-function getScreenExitsByAddr(snes, rom, /*optional*/ id)
-{
-	var exits = [];
-	var addr = snesAddressToOffset(snes) + 5;
-	for (;; addr += 3)
-	{
-		// 0xFF sentinel represents end of level data
-		if (rom[addr] === 0xFF) break;
-
-		// pattern looks like the start of the screen exits list
-		if ((rom[addr] & 0x60) === 0x00 && (rom[addr+1] & 0xF0) === 0x00 && rom[addr+2] === 0x00)
-		{
-			for (;; addr += 4)
-			{
-				// 0xFF sentinel represents end of level data
-				if (rom[addr] === 0xFF) break;
-
-				// screen exit info from the four bytes
-				var x = { from: id, addr: addr };
-				x.screen =   (rom[addr  ] & 0x1F);
-				x.water  =   (rom[addr+1] & 0x08);
-				x.issecx =   (rom[addr+1] & 0x02);
-
-				x._u     =   (rom[addr+1] & 0x04);
-				x._h     =   (rom[addr+1] & 0x01);
-				x.target =    rom[addr+3] | (id & 0x100);
-
-				// this is a piece of information that is useful to cache
-				x.sublevel = getSublevelFromExit(x, rom);
-
-				x.data = rom.slice(addr, addr+4);
-				exits.push(x);
-			}
-			break;
-		}
-	}
-
-	return exits;
-}
-
-function writeExit(x, rom, changes)
-{
-	changes = changes || {};
-	for (var k in changes) if (changes.hasOwnProperty(k))
-		x[k] = changes[k];
-
-	// set u/h correctly even though vanilla smw doesn't
-	x._u = 1;
-	x._h = (x.target & 0x100) >> 8;
-
-	x.data[0] = x.screen & 0x1F;
-	x.data[1] = (x.water ? 0x08 : 0x00) | (x._u ? 0x04 : 0x00) | (x.issecx ? 0x02 : 0x00) | (x._h ? 0x01 : 0x00);
-	x.data[2] = 0;
-	x.data[3] = x.target & 0xFF;
-
-	rom.set(x.data, x.addr);
-	return x;
-}
-
-function getExitTargetData(x)
-{
-	return {
-		// do we even use this anymore?
-		water: x.water,
-
-		// this is the important data
-		issecx: x.issecx,
-		target: x.target,
-
-        // this is cached, but useful
-        sublevel: x.sublevel,
-	};
-}
-
-function writeExitList(exits, rom)
-{
-	if (exits.length == 0) return;
-	exits = exits.sort(function(a,b){ return a.screen - b.screen; });
-
-	var addr = exits[0].addr;
-	for (var i = 0; i < exits.length; ++i, addr += 4)
-		writeExit(exits[i], rom, {addr: addr});
-
-	// write end of list sentinel
-	rom[addr] = 0xFF;
-}
-
-function updateExitTarget(x, target, rom, map)
-{
-	map = map || {};
-	if (x.issecx)
-	{
-		var sec = getSecondaryExit(x.target, rom);
-		var previd = sec.id;
-
-		// this secondary exit already got remapped once
-		if (previd in map)
-			x.target = map[previd];
-		else
-		{
-			// change the target and write out (might change sec exit id)
-			x.target = writeSecondaryExit(sec, rom, {target: target});
-
-			// if this changed the sec exit id, record the change
-			if (sec.id != previd) map[previd] = sec.id;
-		}
-	}
-	else x.target = target;
-	writeExit(x, rom);
-}
-
-function getSublevelFromExit(exit, rom)
-{
-	if (!exit.issecx) return exit.target;
-	return getSecondaryExit(exit.target, rom).target;
-}
-
 function getRelatedSublevels(baseid, rom)
 {
 	// probably not a real level we are checking here
@@ -2125,7 +2119,7 @@ function getRelatedSublevels(baseid, rom)
 		if (ids.contains(id)) continue;
 
 		ids.push(id);
-		var exits = getScreenExits(id, rom);
+		var exits = parseExits(id, rom);
 
 		for (var i = 0; i < exits.length; ++i)
 			if (!ids.contains(exits[i].sublevel))
@@ -2133,99 +2127,6 @@ function getRelatedSublevels(baseid, rom)
 	}
 
 	return ids;
-}
-
-/*
-	Sprite header - 1 byte
-	bbMMMMMM
-
-	bb = Sprite buoyancy
-	MMMMMM = Sprite memory
-
-
-	Entries - 2 bytes per sprite
-	YYYYEEsy XXXXSSSS
-
-	yYYYY - minor axis
-	sSSSS - screen number
-	 XXXX - major axis
-*/
-function getSpritesBySublevel(id, rom)
-{
-	var start = SPRITE_OFFSET + 2 * id;
-	var snes = 0x070000 | getPointer(start, 2, rom);
-
-	var addr = snesAddressToOffset(snes);
-	var horiz = getLevelMode(id, rom).horiz;
-	return getSpritesByAddr(addr, horiz, rom, id);
-}
-
-function getSpritesByAddr(addr, horiz, rom, id)
-{
-	var sprites = [];
-	for (addr += 1;; addr += 3)
-	{
-		// 0xFF sentinel represents end of level data
-		if (rom[addr] === 0xFF) break;
-
-		var s = { stage: id, addr: addr };
-		s.spriteid = rom[addr+2];
-
-		s.screen =  (rom[addr+1]       & 0xF) | ((rom[addr] & 0x2) << 3);
-		s.minor  = ((rom[addr  ] >> 4) & 0xF) | ((rom[addr] & 0x1) << 4);
-		s.major  = ((rom[addr+1] >> 4) & 0xF);
-		s.extend = ((rom[addr  ] >> 2) & 0x3);
-
-		s.x = horiz ? s.major : s.minor;
-		s.y = horiz ? s.minor : s.major;
-
-		// stage "x" value (assuming horizontal level)
-		s._major = s.screen * 16 + s.major;
-
-		s.data = rom.slice(addr, addr+3);
-		sprites.push(s);
-	}
-
-	return sprites;
-}
-
-function updateSprite(s, rom, changes)
-{
-	changes = changes || {};
-	for (var k in changes) if (changes.hasOwnProperty(k))
-		s[k] = changes[k];
-
-	// update data values
-	s.data[0] = ((s.minor & 0x0F) << 4) | (s.extend << 2) | ((s.screen & 0x10) >> 3) | ((s.minor & 0x10) >> 4);
-	s.data[1] = ((s.major & 0x0F) << 4) | (s.screen & 0x0F);
-	s.data[2] = s.spriteid;
-
-	s._major = s.screen * 16 + s.major;
-	rom.set(s.data, s.addr);
-}
-
-function deleteSprites(todelete, sprites, rom)
-{
-	if (!sprites.length) return 0;
-
-	var len = sprites.length, base = sprites[0].addr;
-	var left = $.grep(sprites, function(x){ return !todelete.contains(x.spriteid); });
-
-	sortSprites(left, rom, base);
-	return len - left.length;
-}
-
-function sortSprites(sprites, rom, addr)
-{
-	var addr = addr || sprites[0].addr;
-	sprites.sort(function(a,b){ return a._major - b._major; });
-
-	for (var i = 0; i < sprites.length; ++i, addr += 3)
-		rom.set(sprites[i].data, sprites[i].addr = addr);
-
-	// write the end of list sentinel (this allows us to use
-	// this method as a component of deleting sprites as well)
-	rom[addr] = 0xFF;
 }
 
 function randomizeAutoscrollers(random, rom)
@@ -2241,11 +2142,10 @@ function randomizeAutoscrollers(random, rom)
 		var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
 		var addr = snesAddressToOffset(snes);
 
-		var sprites = getSpritesBySublevel(id, rom);
-
 		// fix the v-scroll if we find autoscroller sprites
+		var sprdata = getSprites(id, rom), sprites = sprdata.sprites;
 		for (var i = 0; i < sprites.length; ++i)
-			switch (sprites[i].spriteid)
+			switch (sprites[i].id)
 			{
 				case 0xE8:
 					rom[addr+4] &= 0xCF;
@@ -2260,31 +2160,28 @@ function randomizeAutoscrollers(random, rom)
 
 		// remove the actual autoscroller sprites
 		if (id == 0x009) rewriteDP2(rom);
-		else deleteSprites([0xE8, 0xF3], sprites, rom);
+		else deleteSprites(sprdata, function(x){ return [0xE8, 0xF3].contains(x.id); }, rom);
 	}
 
 	var newauto = AUTOSCROLL_ROOMS.slice(0).shuffle(random);
 	var prio = REPLACEABLE_SPRITES.slice(0).reverse();
 
 	var numAutoscrollers = random.nextIntRange(0,3);
-	for (var i = 0; i < numAutoscrollers; ++i)
+	for (var i = 0; i < numAutoscrollers && i < newauto.length; ++i)
 	{
-		var sprites = getSpritesBySublevel(newauto[i], rom);
-		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.spriteid) - prio.indexOf(a.spriteid); })[0];
+		var sprdata = getSprites(newauto[i], rom), sprites = sprdata.sprites;
+		var best = sprites.slice(0).sort(function(a,b){ return prio.indexOf(b.id) - prio.indexOf(a.id); })[0];
 
-		if (!REPLACEABLE_SPRITES.contains(best.spriteid))
+		if (!best || !REPLACEABLE_SPRITES.contains(best.id))
 			throw new Error('Could not find a sprite in ' + newauto[i].toHex(3) + ' to mutate for autoscroller');
 
 		// speed of the autoscroller is dictated by Y (0 = slow, 1 = medium, 2 = fast)
-		best.screen = 0;
-		best.major = 8;
-		best.minor = random.from([0,1,1,1]);
+		best.x = 8;
+		best.y = random.from([0,1,1,1]);
 
-		best.spriteid = 0xF3;
+		best.id = 0xF3;
 		best.extend = 0;
-
-		updateSprite(best, rom);
-		sortSprites(sprites, rom);
+		writeSprites(sprdata, rom);
 	}
 }
 
@@ -2293,22 +2190,19 @@ function rewriteDP2(rom)
 	return;
 	var id = 0x009;
 
-	var snes = getPointer(LAYER1_OFFSET + 3 * id, 3, rom);
-	var addr = snesAddressToOffset(snes);
-
-	var sprites = getSpritesBySublevel(id, rom);
-	for (var i = 0; i < sprites.length; ++i)
-		if (sprites[i].spriteid === 0xE8)
+	var sprdata = getSprites(id, rom);
+	for (var i = 0; i < sprdata.sprites.length; ++i)
+		if (sprdata.sprites[i].id === 0xE8)
 		{
-			sprites[i].spriteid = 0xEA;
-			sprites[i].extend = 0x03;
-			updateSprite(sprites[i], rom);
+			sprdata.sprites[i].id = 0xEA;
+			sprdata.sprites[i].extend = 0x03;
 		}
+	writeSprites(sprdata, rom);
 
-	var objlist = parseObjectList(addr, rom);
-	objlist[5].extra = combineNibbles(3, 0);
+	var layer = parseLayer1(id, rom);
+	layer.objs[5].extra = combineNibbles(3, 0);
 
-	writeObjectList(objlist, rom);
+	writeLayer(layer, rom);
 }
 
 function bytesToLittleEndian(arr)
@@ -2316,6 +2210,14 @@ function bytesToLittleEndian(arr)
 	for (var i = 0, x = 0; i < arr.length; ++i)
 		x |= (arr[i] << (i*8));
 	return x;
+}
+
+function littleEndianToBytes(x, k)
+{
+	var arr = [];
+	for (var i = 0; i < k; ++i, x >>= 8)
+		arr.push(x & 0xFF);
+	return arr;
 }
 
 // assumes little-endian
@@ -2336,7 +2238,13 @@ function getBigEndian(off, len, rom)
 function snesAddressToOffset(addr)
 {
 	// bank (high byte) * 0x8000 + addr (low 2 bytes) - 0x8000
-	return ((addr & 0xFF0000) >> 16) * 0x8000 + (addr & 0x00FFFF) - 0x8000;
+	return ((addr & 0xFF0000) >> 1) + (addr & 0x00FFFF) - 0x8000;
+}
+
+function offsetToSnesAddress(x)
+{
+	// thank kaizoman for this because i had no idea how to write this
+	return ((x & 0xFF8000) << 1) + (x & 0xFFFF) + ((x & 0x8000) ? 0 : 0x8000);
 }
 
 function shuffleLevelNames(stages, random)
@@ -2408,6 +2316,17 @@ function randomizeBossDifficulty(random, rom)
 	// health of big boo
 	rom[0x181A2] = random.nextIntRange(2,7);
 
+	// update helper sprites in big boo room :^)
+	var spritesE4 = getSprites(0xE4, rom);
+	var newsprites = BIG_BOO_SPRITES.slice(0).shuffle(random);
+	for (var i = 0; i < spritesE4.sprites.length; ++i)
+	{
+		if (spritesE4.sprites[i].id == 0x37)
+			for (var k in newsprites[i]) if (newsprites[i].hasOwnProperty(k))
+				spritesE4.sprites[i][k] = newsprites[i][k];
+	}
+	writeSprites(spritesE4, rom);
+
 	// health of wendy+lemmy
 	var whp = random.nextIntRange(2,6)
 	rom[0x1CE1A] = whp;
@@ -2430,14 +2349,14 @@ function randomizeBossDifficulty(random, rom)
 	rom[0x198C9] = random.nextIntRange(0x01, 0x04);
 }
 
-function isBossRoom(id, rom)
+function getBossType(id, rom)
 {
-	var sprites = getSpritesBySublevel(id, rom);
+	var sprites = getSprites(id, rom).sprites;
 	for (var i = 0; i < sprites.length; ++i)
 	{
-		if (sprites[i].spriteid == 0x29 && sprites[i].x == 12)
+		if (sprites[i].id == 0x29 && sprites[i].x == 12)
 			return ['morton', 'roy', 'ludwig', 'iggy', 'larry', 'lemmy', 'wendy'][sprites[i].y];
-		if (sprites[i].spriteid == 0xA9) return 'reznor';
+		else if (sprites[i].id in BOSSES) return BOSSES[sprites[i].id];
 	}
 	return false;
 }
@@ -2458,15 +2377,11 @@ function randomizeKoopaKids(random, rom)
 
 function hasDoors(id, rom)
 {
-	var start = LAYER1_OFFSET + 3 * id;
-	var snes = getPointer(start, 3, rom);
-
-	var addr = snesAddressToOffset(snes);
-	var objects = parseObjectList(addr, rom);
+	var layer = parseLayer1(id, rom);
 
 	var DOOR_IDS = [0x10, 0x15, 0x47, 0x48, 0x90];
-	for (var i = 0; i < objects.length; ++i)
-		if (objects[i].extended && DOOR_IDS.contains(objects[i].extra)) return true;
+	for (var i = 0; i < layer.objs.length; ++i)
+		if (layer.objs[i].extended && DOOR_IDS.contains(layer.objs[i].extra)) return true;
 	return false;
 }
 
@@ -2474,12 +2389,7 @@ function findWings(rom, stage)
 {
 	for (var i = 0; i < stage.sublevels.length; ++i)
 	{
-		var start = LAYER1_OFFSET + 3 * stage.sublevels[i];
-		var snes = getPointer(start, 3, rom);
-
-		var addr = snesAddressToOffset(snes);
-		var objects = parseObjectList(addr, rom);
-
+		var objects = parseLayer1(stage.sublevels[i], rom).objs;
 		for (var j = 0; j < objects.length; ++j)
 		{
 			if (objects[j].extended && objects[j].extra == 0x35 && objects[j].x % 4 == 1)
@@ -2491,24 +2401,21 @@ function findWings(rom, stage)
 	return null;
 }
 
-function findCandidateWings(rom, stage)
+function findWingsCandidates(rom, stage)
 {
 	var candidates = [];
 	for (var i = 0; i < stage.sublevels.length; ++i)
 	{
-		var start = LAYER1_OFFSET + 3 * stage.sublevels[i];
-		var snes = getPointer(start, 3, rom);
+		var layer = parseLayer1(stage.sublevels[i], rom);
 
 		var hassecx = false;
-		var exits = getScreenExitsByAddr(snes, rom, stage.sublevels[i]);
-		for (var j = 0; j < exits.length; ++j) hassecx |= exits[j].issecx;
+		for (var j = 0; j < layer.exits.length; ++j)
+			hassecx |= layer.exits[j].issecx;
 
 		// wings will break if a sublevel has secondary exits
 		if (hassecx) continue;
 
-		var addr = snesAddressToOffset(snes);
-		var objects = parseObjectList(addr, rom);
-
+		var objects = layer.objs;
 		for (var j = 0; j < objects.length; ++j) if (objects[j].x % 4 == 1)
 		{
 			// any extended-object question mark block
@@ -2540,7 +2447,7 @@ function randomizeYoshiWings(stages, random, rom)
 		else
 		{
 			// otherwise, if wings are not, maybe add them
-			var candidateWings = findCandidateWings(rom, stages[i]);
+			var candidateWings = findWingsCandidates(rom, stages[i]);
 			if (candidateWings.length)
 			{
 				var candidate = random.from(candidateWings);
@@ -2562,25 +2469,20 @@ function findKey(stage, rom)
 function findKeyBySublevel(id, rom)
 {
 	// find key sprite
-	var sprites = getSpritesBySublevel(id, rom);
+	var sprites = getSprites(id, rom).sprites;
 	for (var i = 0; i < sprites.length; ++i)
 	{
 		// just a normal key
-		if (sprites[i].spriteid == 0x80)
+		if (sprites[i].id == 0x80)
 			return { sublevel: id, sprite: sprites[i] };
 
 		// bubble/exploding block with extra bits set (contains key)
-		if ([0x9D, 0x4C].contains(sprites[i].spriteid) && sprites[i].extend)
+		if ([0x9D, 0x4C].contains(sprites[i].id) && sprites[i].extend)
 			return { sublevel: id, sprite: sprites[i] };
 	}
 
 	// ...otherwise, look for key block
-	var start = LAYER1_OFFSET + 3 * id;
-	var snes = getPointer(start, 3, rom);
-
-	var addr = snesAddressToOffset(snes);
-	var objects = parseObjectList(addr, rom);
-
+	var objects = parseLayer1(id, rom).objs;
 	for (var i = 0; i < objects.length; ++i)
 	{
 		if (objects[i].extended && objects[i].extra == 0x35 && objects[i].x % 4 == 0)
@@ -2593,31 +2495,60 @@ function findKeyBySublevel(id, rom)
 
 function findKeyCandidates(stage, random, rom)
 {
-	var candidates = [];
+	// find the keyhole first
+	var keyholesub = null, stagegraph = {};
 	for (var i = 0; i < stage.sublevels.length; ++i)
 	{
+		var sprites = getSprites(stage.sublevels[i], rom).sprites;
+		if (sprites.some(function(x){ return x.id == 0x0E; }))
+			keyholesub = stage.sublevels[i];
+
+		var exits = parseExits(stage.sublevels[i], rom);
+		stagegraph[stage.sublevels[i]] = $.map(exits, function(x){ return x.sublevel; }).uniq();
+	}
+
+	// there's no keyhole???
+	if (!keyholesub) return [];
+
+	var canreachhole = [keyholesub], sz;
+	while (canreachhole.length !== sz)
+	{
+		sz = canreachhole.length;
+		for (var keys = Object.keys(stagegraph), i = 0; i < keys.length; ++i)
+		{
+			var fm = +keys[i], to = stagegraph[keys[i]];
+			for (var j = 0; j < to.length; ++j)
+			{
+				if (canreachhole.indexOf(to[j]) != -1)
+					canreachhole.push(fm);
+			}
+		}
+
+		canreachhole = canreachhole.uniq();
+	}
+
+	var candidates = [];
+	for (var i = 0; i < canreachhole.length; ++i)
+	{
+		var sub = canreachhole[i];
+
 		// sprites
-		var sprites = getSpritesBySublevel(stage.sublevels[i], rom);
+		var sprites = getSprites(sub, rom).sprites;
 		for (var j = 0; j < sprites.length; ++j)
-			if (KEY_CAN_REPLACE.contains(sprites[j].spriteid))
-				candidates.push({ sublevel: stage.sublevels[i], sprite: sprites[j] });
+			if (KEY_CAN_REPLACE.contains(sprites[j].id))
+				candidates.push({ sublevel: sub, sprite: sprites[j] });
 
 		// ...otherwise, look for key block
-		var start = LAYER1_OFFSET + 3 * stage.sublevels[i];
-		var snes = getPointer(start, 3, rom);
-
-		var addr = snesAddressToOffset(snes);
-		var objects = parseObjectList(addr, rom);
-
+		var objects = parseLayer1(sub, rom).objs;
 		for (var j = 0; j < objects.length; ++j) if (objects[j].x % 4 == 0)
 		{
 			// any extended-object question mark block
 			if (objects[j].extended && QUESTION_BLOCK_IDS.contains(objects[j].extra))
-				candidates.push({ sublevel: stage.sublevels[i], block: objects[j] });
+				candidates.push({ sublevel: sub, block: objects[j] });
 
 			// any 1x1 coin block should work as well
 			if (objects[j].id == 0x0A && objects[j].extra == combineNibbles(0, 0))
-				candidates.push({ sublevel: stage.sublevels[i], block: objects[j] });
+				candidates.push({ sublevel: sub, block: objects[j] });
 		}
 	}
 
@@ -2640,7 +2571,7 @@ function randomizeKeyLocations(stages, random, rom)
 			if (!candidates.length) continue;
 
 			// replace the key with a valid replacement
-			if (key.sprite) updateSprite(key.sprite, rom, {spriteid: random.from(KEY_REPLACEMENTS)});
+			if (key.sprite) writeSprite(key.sprite, rom, {id: random.from(KEY_REPLACEMENTS)});
 			else if (key.block) writeObject(key.block, rom, {id: 0x00, extra: 0x34});
 
 			// find a place to put the key
@@ -2649,11 +2580,11 @@ function randomizeKeyLocations(stages, random, rom)
 			if (key.sprite)
 			{
 				// bubbles and exploding blocks only need their extra bits set
-				if ([0x9D, 0x4C].contains(key.sprite.spriteid))
-					updateSprite(key.sprite, rom, {extend: 0x1});
+				if ([0x9D, 0x4C].contains(key.sprite.id))
+					writeSprite(key.sprite, rom, {extend: 0x1});
 
 				// otherwise, rewrite the sprite id
-				else updateSprite(key.sprite, rom, {spriteid: 0x80});
+				else writeSprite(key.sprite, rom, {id: 0x80});
 			}
 			else if (key.block) writeObject(key.block, rom, {id: 0x00, extra: 0x35});
 		}
@@ -2721,21 +2652,21 @@ function providesExits(id, rom)
 	// look for a key
 	if (findKeyBySublevel(id, rom)) exits |= KEY;
 
-	var sprites = getSpritesBySublevel(id, rom);
+	var sprites = getSprites(id, rom).sprites;
 	for (var i = 0; i < sprites.length; ++i)
 	{
 		// orb always provides the normal exit
-		if (sprites[i].spriteid == 0x4A) exits |= NORMAL_EXIT;
+		if (sprites[i].id == 0x4A) exits |= NORMAL_EXIT;
 
 		// big boo boss usually counts as the stage's secret exit in vanilla
 		// SMW, but we use it for normal exit here
-		if ([0xC5, 0x29, 0xA9].contains(sprites[i].spriteid)) exits |= NORMAL_EXIT;
+		if ([0xC5, 0x29, 0xA9].contains(sprites[i].id)) exits |= NORMAL_EXIT;
 
 		// get the extra bits if we find a goal tape
-		if (sprites[i].spriteid == 0x7B)
+		if (sprites[i].id == 0x7B)
 			exits |= (sprites[i].extend ? SECRET_EXIT : NORMAL_EXIT);
 
-		if (sprites[i].spriteid == 0x0E) exits |= KEYHOLE; // found keyhole
+		if (sprites[i].id == 0x0E) exits |= KEYHOLE; // found keyhole
 	}
 
 	// if this room provides both a key and keyhole
@@ -2747,12 +2678,7 @@ function providesExits(id, rom)
 
 function hasStaticWater(id, rom)
 {
-	var start = LAYER1_OFFSET + 3 * id;
-	var snes = getPointer(start, 3, rom);
-
-	var addr = snesAddressToOffset(snes);
-	var objects = parseObjectList(addr, rom);
-
+	var objects = parseLayer1(id, rom).objs;
 	for (var i = 0; i < objects.length; ++i)
 		if ([0x18, 0x19].contains(objects[i].id)) return true;
 }
@@ -2825,7 +2751,7 @@ function randomizeFlags(random, rom)
 				flag = setSublevelWater(id, !(flag & 0x01), rom);
 
 		// force certain stages to not have water
-		if ([0x1, 0x2].contains(meta.l3)) flag &= 0xF0;
+		if (meta.tide) flag &= 0xF0;
 
 		if ($('#slippery').is(':checked'))
 		{
@@ -2836,7 +2762,7 @@ function randomizeFlags(random, rom)
 			if ((flag & 0x80) && random.flipCoin(0.33)) flag ^= 0x90;
 
 			// fix intro if slippery
-			if (id == 0xC7 && (flag & 0xF0)) fixDemo(rom);
+			if (id == TITLE_DEMO_LEVEL && (flag & 0xF0)) fixDemo(rom);
 		}
 
 		rom[FLAGBASE+id] = flag;
@@ -2976,7 +2902,7 @@ function validateROM(stages, rom)
 			if (isSublevelFree(sub[j], rom))
 				errors.push('Sublevel ' + sub[j].toPrintHex(3) + ' of ' + location + ' is empty');
 
-			var exits = getScreenExits(sub[j], rom);
+			var exits = parseExits(sub[j], rom);
 			for (var k = 0; k < exits.length; ++k)
 			{
 				var dest = exits[k].sublevel;
@@ -2988,6 +2914,12 @@ function validateROM(stages, rom)
 			reachable[sub[j]].push(location);
 		}
 	}
+
+	/*for (var i = 0; i < 0x200; ++i)
+	{
+		var boss = getBossType(i, rom);
+		if (boss) console.log(boss, i.toPrintHex(3));
+	}*/
 
 	for (var i = 0; i < 0x200; ++i) if (reachable[i] && reachable[i].length > 1)
 		errors.push('Sublevel ' + i.toPrintHex(3) + ' reachable from ' + reachable[i].length + ' stages: ' + reachable[i].join(', '));
@@ -3146,7 +3078,7 @@ function sameSublevelBucket(rom, a, b)
 function makeSublevelObject(stage, id, random, rom, n)
 {
 	var rdata = { id: id, stage: stage, n: n };
-	rdata.exits = getScreenExits(id, rom).shuffle(random);
+	rdata.exits = parseExits(id, rom).shuffle(random);
 	rdata.links = getUniqueSublevels(rdata.exits);
 
     rdata.entrs = getIncomingSecondaryExits(id, rom, true);
@@ -3160,9 +3092,9 @@ function makeSublevelObject(stage, id, random, rom, n)
 
 	// all this just to get the message boxes and their ids...
 	var trans = getTranslevel(stage.id);
-	var sprites = getSpritesBySublevel(id, rom);
+	var sprites = getSprites(id, rom).sprites;
 	for (var i = 0; i < sprites.length; ++i)
-		if (sprites[i].spriteid == 0xB9)
+		if (sprites[i].id == 0xB9)
 		{
 			var ident = trans | ((sprites[i].x & 1) << 7);
 			for (var j = 0; j < 23; ++j)
@@ -3289,5 +3221,46 @@ function swapSublevels(stages, random, rom)
 				writeExit(newexits[k], rom);
 			}
 		}
+	}
+}
+
+// fix castle doors (cosmetic only)
+function fixCastleDoors(rom)
+{
+	for (var id = 0; id < 0x200; ++id)
+	{
+		// we only care about castle rooms
+		var meta = getSublevelData(id, rom);
+		if (meta.tileset !== 1) continue;
+
+		var layer = parseLayer1(id, rom), bossmap = {};
+		for (var i = 0; i < layer.exits.length; ++i)
+			bossmap[layer.exits[i].screen] = getBossType(layer.exits[i].sublevel, rom);
+
+		for (var i = 0; i < layer.objs.length; ++i)
+		{
+			// all doors are extended objects
+			var obj = layer.objs[i];
+			if (!obj.extended) continue;
+
+			// make a big door for a boss fight
+			if (obj.extra == 0x47 && bossmap[obj.screen])
+			{
+				if (obj.x % 16 > 13)
+					obj.x = (obj.x & 0xFFF0) + 13;
+				obj.y -= 1;
+				obj.extra = 0x90;
+			}
+
+			// make a small door for non boss fights
+			else if (obj.extra == 0x90 && !bossmap[obj.screen])
+			{
+				obj.y += 1;
+				obj.extra = 0x47;
+			}
+		}
+
+		// write all changes
+		writeLayer(layer, rom);
 	}
 }

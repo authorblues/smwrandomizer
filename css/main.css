@@ -29,6 +29,18 @@ p
 .mono { font-family: monospace; font-size: small; }
 .centered { margin: 0 auto; }
 
+#generation-time
+{
+	padding: 10px;
+	font-size: 60%;
+	background: white;
+	z-index: 500;
+
+	position: fixed;
+	top: 0;
+	right: 0;
+}
+
 .btn-full-width
 {
 	width: 100%;

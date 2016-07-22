@@ -41,6 +41,7 @@ function updatePreset(val)
 	$('#enemyprop_default').prop('checked', true);
 	if (preset > 2) $('#enemyprop_normal').prop('checked', true);
 	if (preset > 7) $('#enemyprop_chaos').prop('checked', true);
+	$('#randomize_enemies').prop('checked', preset > 5);
 	$('#customyoshipowers').prop('checked', preset > 3);
 
 	$('#randomize_koopakids').prop('checked', preset > 3);
