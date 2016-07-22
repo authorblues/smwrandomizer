@@ -409,7 +409,7 @@ function canonicalizeBaseRom(stages, rom)
 	for (var id = 0; id < 0x200; ++id)
 	{
 		var meta = getSublevelData(id, rom);
-		if (!LEVEL_MODES[meta.lmode].horiz) meta.fg = 0x0;
+		if (meta.lmode in LEVEL_MODES && !LEVEL_MODES[meta.lmode].horiz) meta.fg = 0x0;
 	}
 
 	var stage109 = parseLayer1(0x109, rom);
@@ -954,7 +954,8 @@ function isDoorEntrance(id, rom)
 function getLevelMode(id, rom)
 {
 	// this code used to be so much more complicated :\
-	return LEVEL_MODES[getSublevelData(id, rom).lmode];
+	var lmode = getSublevelData(id, rom).lmode;
+	return LEVEL_MODES[lmode in LEVEL_MODES ? lmode : 0x00];
 }
 
 function randomizeColorPalettes(stages, random, rom)
