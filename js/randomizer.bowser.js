@@ -1,6 +1,7 @@
 var FRONTDOOR, BACKDOOR;
 
-var bowserentrances = [
+var BOWSER_ENTRANCES =
+[
 	FRONTDOOR = {"name": "frontdoor", "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10D, "cpath": NORTH_CLEAR, "tile": [0x18, 0x23], "out": []},
 	 BACKDOOR = {"name": "backdoor",  "world": 10, "exits": -1, "castle": 8, "palace": 0, "ghost": 0, "water": 0, "id": 0x10E, "cpath": NORTH_CLEAR, "tile": [0x1A, 0x23], "out": []},
 ];
@@ -47,7 +48,7 @@ function randomizeBowser8Doors(random, rom)
 	}
 }
 
-function generateGauntlet(random, len, rom)
+function generateGauntlet(entrances, random, len, rom)
 {
 	if (len > bowser8doors.length) len = bowser8doors.length;
 
@@ -56,8 +57,11 @@ function generateGauntlet(random, len, rom)
 	rooms.push(BOWSER_DARKROOM_ID);
 
 	// copy the first room into both castle entrances
-	for (var i = 0; i < bowserentrances.length; ++i)
-		copySublevel(bowserentrances[i].id, rooms[0], rom);
+	for (var i = 0; i < entrances.length; ++i)
+	{
+		copySublevel(entrances[i].id, rooms[0], rom);
+		getSublevelData(entrances[i].id, rom).time = 0;
+	}
 
 	// chain together all the rooms \("v")/
 	for (var i = 0; i < numrooms; ++i)
@@ -66,8 +70,4 @@ function generateGauntlet(random, len, rom)
 		for (var j = 0; j < exits.length; ++j)
 			rom[exits[j].addr+3] = rooms[i+1] & 0xFF;
 	}
-
-	// i think these might actually be the same(?)
-	getSublevelData(FRONTDOOR.id, rom).time = 0;
-	getSublevelData( BACKDOOR.id, rom).time = 0;
 }

@@ -126,12 +126,7 @@ $('#select-original-rom').click(
 
 $('#original-rom').change(function(e)
 {
-	var file = e.target.files[0];
-	getMD5(file, function(x)
-	{
-		if (!checkRomResult(x in ORIGINAL_MD5, file));
-			console.info('md5', x, file.size.toPrintHex());
-	});
+	checkRomResult(e.target.files.length, e.target.files[0]);
 });
 
 $('form').submit(function(e)
@@ -478,6 +473,36 @@ ROMLogger.prototype.print = function()
 		if (this.rom[i] == this.orig[i]) continue;
 		console.log(i.toHex(6, '0x') + ' - ' + this.orig[i].toHex(2) + '->' + this.rom[i].toHex(2));
 	}
+}
+
+var makeCRCTable = function(){
+    var c;
+    var crcTable = [];
+    for(var n =0; n < 256; n++){
+        c = n;
+        for(var k =0; k < 8; k++){
+            c = ((c&1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        }
+        crcTable[n] = c;
+    }
+    return crcTable;
+}
+
+var CRC_TABLE = [];
+for (var i = 0; i < 256; ++i)
+{
+	var c = i;
+	for (var j = 0; j < 8; ++j)
+		c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+	CRC_TABLE[i] = c;
+}
+
+function crc32(arr)
+{
+    var crc = 0 ^ (-1);
+    for (var i = 0; i < arr.length; ++i)
+        crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ arr[i]) & 0xFF];
+    return (crc ^ (-1)) >>> 0;
 }
 
 $(document).ready(function()

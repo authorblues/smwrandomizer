@@ -2,8 +2,22 @@ var VERSION_STRING = 'v2.2';
 
 function randomizeROM(buffer, seed)
 {
+	var rom = new Uint8Array(buffer);
 	var ext = '.sfc';
-	var stages = deepClone(SMW_STAGES);
+	if (rom.length == 0x80200)
+	{
+		console.log('headered rom?');
+		rom = rom.subarray(0x200);
+		ext = '.smc';
+	}
+
+	var crc32rom = crc32(rom);
+	if (crc32rom != BASE_CHECKSUM)
+		throw new ValidationError(['Base rom incorrect. Expected checksum ' +
+			BASE_CHECKSUM.toPrintHex(8) + ", got " + crc32rom.toPrintHex(8)]);
+
+	var stages = $.map(deepClone(SMW_STAGES), decorateStage.bind(null, rom));
+	var bowserentrances = $.map(deepClone(BOWSER_ENTRANCES), decorateStage.bind(null, rom));
 
 	// if we aren't randomizing the warps, remove them from the stage list
 	if (!$('#randomize_warps').is(':checked'))
@@ -14,13 +28,6 @@ function randomizeROM(buffer, seed)
 
 	$('#custom-seed').val('');
 	$('#used-seed').text(vseed);
-
-	var rom = new Uint8Array(buffer);
-	if (rom.length == 0x80200)
-	{
-		rom = new Uint8Array(rom.buffer, 0x200, 0x80000);
-		ext = '.smc';
-	}
 
 	// patch the rom with necessary patches
 	applyBasePatches(rom);
@@ -96,11 +103,12 @@ function randomizeROM(buffer, seed)
 	}
 
 	// randomize bowser's castle
+	var gauntletlen = 8;
 	switch ($('input[name="bowser"]:checked').val())
 	{
 		case 'random': randomizeBowserEntrances(random, rom); break;
-		case 'gauntlet': generateGauntlet(random, 8, rom); break;
-		case 'minigauntlet': generateGauntlet(random, random.nextIntRange(2,5), rom); break;
+		case 'minigauntlet': gauntletlen = random.nextIntRange(2,5); // intentional fall thru
+		case 'gauntlet': generateGauntlet(bowserentrances, random, gauntletlen, rom); break;
 	}
 
 	// how should powerups be affected
@@ -204,7 +212,7 @@ function randomizeROM(buffer, seed)
 
 	return {
 		// return the modified buffer
-		buffer: rom.buffer,
+		buffer: buffer,
 		type: ext || '.sfc',
 
 		// all of the data needed to recreate (or validate) a ROM
@@ -212,14 +220,6 @@ function randomizeROM(buffer, seed)
 		checksum: checksum,
 		preset: preset,
 	};
-}
-
-// purely for debug purposes
-function forceSwap(stages, a, b)
-{
-	a = getStage(stages, a);
-	b = getStage(stages, b);
-	a.copyfrom = b; b.copyfrom = a;
 }
 
 function isPermanentTile(stage)
@@ -285,7 +285,7 @@ function getSublevelData(id, rom, header)
 
 	// get address for layer 1 header
 	var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
-	var data = getObjectHeaderData(header || new Uint8Array(rom.buffer, addr, 5));
+	var data = getObjectHeaderData(header || rom.subarray(addr, addr+5));
 	Object.defineProperties(data,
 	{
 		l2scroll:   generateSubHeaderProperty(HEADER1_OFFSET, 4, 4), // layer 2 scroll
@@ -473,21 +473,19 @@ function fixSwitchPalaceEventNumbers(stages, rom)
 	var switches = $.grep(stages, function(x){ return x.palace; });
 	for (var z = 0; z < switches.length; ++z)
 	{
-		var stage = switches[z], newevent = 0x70 + stage.palace;
-		var trans = getTranslevel(stage.id);
-
-		var oldevent = rom[TRANSLEVEL_EVENTS + trans];
-		rom[TRANSLEVEL_EVENTS + trans] = newevent;
+		var stage = switches[z];
+		var oldevent = stage.transevent;
+		stage.transevent = 0x70 + stage.palace;
 
 		// fix destruction event table
 		for (var i = 0; i < 16; ++i)
 			if (rom[DESTRUCTION_EVENT_NUMBERS+i] == oldevent)
-				rom[DESTRUCTION_EVENT_NUMBERS+i]  = newevent;
+				rom[DESTRUCTION_EVENT_NUMBERS+i] = stage.transevent;
 
 		// fix no-walk translevel table
 		for (var i = 0; i < 6; ++i)
 			if (rom[0x2106C + i * 2] == oldevent)
-				rom[0x2106C + i * 2]  = newevent;
+				rom[0x2106C + i * 2] = stage.transevent;
 	}
 
 	// update event number max
@@ -507,6 +505,23 @@ function getMapForStage(stage)
 
 	// what madness would have us reach this point?
 	throw new Error("Stage " + stage.name + " doesn't seem to correspond to any map/submap.");
+}
+
+function getTranslevel(id)
+{
+	return id < 0x100 ? id : (id - 0xDC);
+}
+
+function decorateStage(rom, stage)
+{
+	Object.defineProperty(stage, "translevel", { get: function() { return getTranslevel(this.id); }});
+	Object.defineProperty(stage, "transevent",
+	{
+		get: function( ) { return rom[TRANSLEVEL_EVENTS+this.translevel];     },
+		set: function(x) {        rom[TRANSLEVEL_EVENTS+this.translevel] = x; },
+	});
+
+	return stage;
 }
 
 function performCopy(stage, rom)
@@ -1530,7 +1545,7 @@ function fixOverworldEvents(stages, rom)
 {
 	var map = {};
 	for (var i = 0; i < stages.length; ++i)
-		map[rom[TRANSLEVEL_EVENTS+stages[i].copyfrom.translevel]] = stages[i];
+		map[stages[i].copyfrom.transevent] = stages[i];
 
 	// size of the event table needs fixing
 	rom[0x2667A] = 0x0F;
@@ -1541,13 +1556,9 @@ function fixOverworldEvents(stages, rom)
 		if (!stage || !stage.copyfrom) continue;
 
 		// we need to actually just reassign the event number entirely
-		if (stage.exits == 0)
-		{
-			stage.data.transevent = stage.copyfrom.data._transevent;
-			rom[TRANSLEVEL_EVENTS+stage.translevel] = stage.data.transevent;
-		}
+		if (stage.exits == 0) stage.transevent = stage.copyfrom.data._transevent;
 
-		rom[DESTRUCTION_EVENT_NUMBERS+i] = rom[TRANSLEVEL_EVENTS+stage.translevel];
+		rom[DESTRUCTION_EVENT_NUMBERS+i] = stage.transevent;
 		var x = stage.tile[0], y = stage.tile[1] - (stage.copyfrom.castle > 0)
 		var s = rom[DESTRUCTION_EVENT_COORDS+i*2+1] = (y >> 4) * 2 + (x >> 4);
 
@@ -1667,9 +1678,7 @@ function backupStage(stage, rom)
 	}
 
 	// translevel should fit in a single byte
-	stage.translevel = getTranslevel(stage.id);
-	stage.data.transevent = rom[TRANSLEVEL_EVENTS + stage.translevel];
-	stage.data._transevent = stage.data.transevent;
+	stage.data._transevent = stage.transevent;
 
 	for (var j = 0; j < trans_offsets.length; ++j)
 	{
@@ -1737,12 +1746,6 @@ function getRevealedTile(x)
 {
 	var lookup = PERMANENT_TO_INVIS;
 	return x in lookup ? lookup[x] : (x >= 0x66 && x <= 0x6D ? (x + 8) : x);
-}
-
-function getTranslevel(id)
-{
-	if (id < 0x100) return id;
-	else return id - 0xDC;
 }
 
 function makeBuckets(items, func)
@@ -1967,7 +1970,7 @@ function swapExits(stage, rom)
 	stage.out[1] = outa;
 
 	// secret exit triggers event+1
-	var ndxa = rom[TRANSLEVEL_EVENTS + stage.translevel];
+	var ndxa = stage.transevent;
 	var ndxb = ndxa + 1, ndxc = ndxa + 2;
 
 	// swap the exit directions (nnss----)
@@ -2294,7 +2297,7 @@ function randomizeNoYoshi(stages, random, rom)
 	var TABLE_BASE = 0x28E39;
 	for (var i = 0; i < stages.length; ++i)
 	{
-		var stage = stages[i], trans = getTranslevel(stage.id);
+		var stage = stages[i], trans = stage.translevel;
 		var noyoshi = getYoshiEntranceType(stage, random.flipCoin(0.035));
 
 		// set "disable no-yoshi intro" to 0 for hijack
@@ -2511,6 +2514,7 @@ function findKeyCandidates(stage, random, rom)
 	// there's no keyhole???
 	if (!keyholesub) return [];
 
+	// get a list of all sublevels that can reach the keyhole room
 	var canreachhole = [keyholesub], sz;
 	while (canreachhole.length !== sz)
 	{
@@ -2537,7 +2541,13 @@ function findKeyCandidates(stage, random, rom)
 		var sprites = getSprites(sub, rom).sprites;
 		for (var j = 0; j < sprites.length; ++j)
 			if (KEY_CAN_REPLACE.contains(sprites[j].id))
+			{
+				// if this is block/bubble, don't allow it in a vertical level
+				if ([0x9D, 0x4C].contains(sprites[j].id) && !getLevelMode(sub, rom).horiz) continue;
+
+				// add the sprite to the list of candidates otherwise
 				candidates.push({ sublevel: sub, sprite: sprites[j] });
+			}
 
 		// ...otherwise, look for key block
 		var objects = parseLayer1(sub, rom).objs;
@@ -2903,11 +2913,21 @@ function validateROM(stages, rom)
 			if (isSublevelFree(sub[j], rom))
 				errors.push('Sublevel ' + sub[j].toPrintHex(3) + ' of ' + location + ' is empty');
 
+			var meta = getSublevelData(sub[j], rom);
+
 			var exits = parseExits(sub[j], rom);
 			for (var k = 0; k < exits.length; ++k)
 			{
 				var dest = exits[k].sublevel;
 				if (dest & 0xFF == 0) errors.push('Exit in ' + sub[j].toPrintHex(3) + ' of ' + location + ' is ' + dest.toPrintHex(3));
+			}
+
+			var sprites = getSprites(sub[j], rom);
+			var smem = sprites.header[0] & 0x3F;
+			for (var k = 0; k < sprites.sprites.length; ++k)
+			{
+				if (sprites.sprites[k].id in SPRITE_MEMORY && SPRITE_MEMORY[sprites.sprites[k].id] != smem)
+					errors.push('Sprite ' + sprites.sprites[k].id.toPrintHex(2) + ' found with sprite memory ' + smem.toPrintHex(2));
 			}
 
 			if (!reachable[sub[j]])
@@ -2959,7 +2979,7 @@ function fixChecksum(rom)
 
 function remapScreenExits(stages, random, rom)
 {
-	var smap = {};
+	/*var smap = {};
 	for (var i = 0; i < stages.length; ++i)
 		smap[stages[i].name] = stages[i];
 
@@ -3037,16 +3057,19 @@ function remapScreenExits(stages, random, rom)
 		var world = worldentr[newdest.to];
 		for (var k in world.exit) if (world.exit.hasOwnProperty(k))
 			if (!done[k] && !queue.contains(k)) queue.push(k);
-	}
-}
+	}*/
 
-function getUniqueSublevels(exits)
-{
-	var sublevels = [];
-	for (var i = 0; i < exits.length; ++i)
-		if (!sublevels.contains(exits[i].sublevel))
-			sublevels.push(exits[i].sublevel);
-	return sublevels;
+	var conn = {};
+	var submaplinks = deepClone(SUBMAP_LINKS);
+
+	var working = [0x7, 0x8];
+	while (working.length)
+	{
+		working.shuffle(random);
+		var link = working.pop();
+
+
+	}
 }
 
 function sameSublevelBucket(rom, a, b)
@@ -3080,7 +3103,7 @@ function makeSublevelObject(stage, id, random, rom, n)
 {
 	var rdata = { id: id, stage: stage, n: n };
 	rdata.exits = parseExits(id, rom).shuffle(random);
-	rdata.links = getUniqueSublevels(rdata.exits);
+	rdata.links = $.map(rdata.exits, function(x){ return x.sublevel; }).uniq();
 
     rdata.entrs = getIncomingSecondaryExits(id, rom, true);
 	rdata.entrx = 0;
@@ -3092,7 +3115,7 @@ function makeSublevelObject(stage, id, random, rom, n)
 	rdata.msgboxes = [];
 
 	// all this just to get the message boxes and their ids...
-	var trans = getTranslevel(stage.id);
+	var trans = stage.translevel;
 	var sprites = getSprites(id, rom).sprites;
 	for (var i = 0; i < sprites.length; ++i)
 		if (sprites[i].id == 0xB9)
@@ -3184,7 +3207,7 @@ function swapSublevels(stages, random, rom)
 				writeSecondaryExit(b2[j].entrs[k], rom, { target: b1[j].id });
 
 			for (var k = 0; k < b2[j].msgboxes.length; ++k)
-				rom[0x2A590+b2[j].msgboxes[k].msgboxid] = getTranslevel(b1[j].stage.id) | ((b2[j].msgboxes[k].x & 1) << 7);
+				rom[0x2A590+b2[j].msgboxes[k].msgboxid] = b1[j].stage.translevel | ((b2[j].msgboxes[k].x & 1) << 7);
 		}
 	}
 

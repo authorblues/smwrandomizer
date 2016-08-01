@@ -1,10 +1,4 @@
-// this is the md5 of the only rom that we will accept
-var ORIGINAL_MD5 =
-{
-	"cdd3c8c37322978ca8669b34bc89c804": 0x80000,
-	"519284ab26396a84ab0c2db86e50121c": 0x80200,
-	"dbe1f3c8f3a0b2db52b7d59417891117": 0x80200,
-};
+var BASE_CHECKSUM = 0xB19ED489;
 
 var LAYER1_OFFSET;
 var LAYER2_OFFSET;
@@ -199,24 +193,24 @@ var SMW_STAGES =
 
 var PRIMARY_SUBLEVEL_IDS = $.map(SMW_STAGES, function(x){ return x.id });
 
-var SUBMAP_LINKS = [
+var SUBMAP_LINKS = {
 	// pipes
-	{ 'pipe': true,  'from': 'dsh',     'to': 'ds2' },
-	{ 'pipe': true,  'from': 'ds2',     'to': 'dp3' },
-	{ 'pipe': true,  'from': 'vs1',     'to': 'vs2' },
-	{ 'pipe': true,  'from': 'c3',      'to': 'cba' },
-	{ 'pipe': true,  'from': 'ci2',     'to': 'csecret' },
-	{ 'pipe': true,  'from': 'csecret', 'to': 'c6' },
+	0x1: { 'pipe': true,  'from': 'dsh',     'to': 'ds2',     'reach': [0x2] },
+	0x2: { 'pipe': true,  'from': 'ds2',     'to': 'dp3',     'reach': [0x9] },
+	0x3: { 'pipe': true,  'from': 'vs1',     'to': 'vs2',     'reach': [0xA] },
+	0x4: { 'pipe': true,  'from': 'c3',      'to': 'cba',     'reach': [0xA] },
+	0x5: { 'pipe': true,  'from': 'ci2',     'to': 'csecret', 'reach': [0x6] },
+	0x6: { 'pipe': true,  'from': 'csecret', 'to': 'c6',      'reach': [0xD] },
 
 	// screen exits
-	{ 'pipe': false, 'from': 'yi1',     'to': 'yswitch' },
-	{ 'pipe': false, 'from': 'c1',      'to': 'dp1' },
-	{ 'pipe': false, 'from': 'c2',      'to': 'vd1' },
-	{ 'pipe': false, 'from': 'c4',      'to': 'foi1' },
-	{ 'pipe': false, 'from': 'fsecret', 'to': 'ffort' },
-	{ 'pipe': false, 'from': 'foi3',    'to': 'c5' },
-	{ 'pipe': false, 'from': 'sgs',     'to': 'vob1' },
-];
+	0x7: { 'pipe': false, 'from': 'yi1',     'to': 'yswitch', 'reach': [] },
+	0x8: { 'pipe': false, 'from': 'c1',      'to': 'dp1',     'reach': [0x1, 0x9] },
+	0x9: { 'pipe': false, 'from': 'c2',      'to': 'vd1',     'reach': [0x3, 0x4] },
+	0xA: { 'pipe': false, 'from': 'c4',      'to': 'foi1',    'reach': [0xB, 0xC] },
+	0xB: { 'pipe': false, 'from': 'fsecret', 'to': 'ffort',   'reach': [] },
+	0xC: { 'pipe': false, 'from': 'foi3',    'to': 'c5',      'reach': [0x5, 0xD] },
+	0xD: { 'pipe': false, 'from': 'sgs',     'to': 'vob1',    'reach': [] },
+};
 
 var OFFSCREEN_EVENT_NUMBERS = 0x268E4;
 var OFFSCREEN_LOCATIONS     = 0x2693C;
@@ -494,7 +488,7 @@ var SP4_SPRITES =
 var SPRITE_MEMORY =
 {
 	0x5F: 0x01,
-	0x64: 0x01,
+//	0x64: 0x01,
 	0x54: 0x02,
 	0x5E: 0x03,
 	0x60: 0x04,
@@ -551,24 +545,26 @@ var SPRITE_SETS =
 		0x31: { origin: [0,0], sp3: [0x12], sp4: [0x03], weight: 2, },
 		0x32: { origin: [0,0], sp3: [0x12], weight: 3, },
 		0x3D: { origin: [0,0], sp4: [0x06], weight: 2, },
-		0x46: { origin: [0,0], sp3: [0x13], sp4: [0x05], weight: 3, },
 		0x51: { origin: [0,0], sp4: [0x0E], weight: 3, },
 		0x6E: { origin: [0,0], sp4: [0x23], weight: 2, },
 		0x6F: { origin: [0,0], sp4: [0x23], weight: 2, },
 		0x70: { origin: [0,4], sp4: [0x09], weight: 2, },
 		0x73: { origin: [0,0], sp4: [0x09], weight: 2, },
 		0x86: { origin: [0,0], sp4: [0x02], weight: 3, },
+		0x99: { origin: [0,0], sp4: [0x09, 0x0E], weight: 2, },
+		0x9A: { origin: [0,0], sp4: [0x09], },
+		0xA2: { origin: [0,0], sp3: [0x24], weight: 4, },
+		0xAB: { origin: [0,0], sp4: [0x20], weight: 4, },
+		0xBC: { origin: [0,0], sp3: [0x12], weight: 4, },
+	},
+	{ // chucks
+		0x46: { origin: [0,0], sp3: [0x13], sp4: [0x05], },
 		0x91: { origin: [0,0], sp3: [0x13], weight: 3, },
 		0x92: { origin: [0,0], sp3: [0x13], },
 		0x93: { origin: [0,0], sp3: [0x13], weight: 2, },
 		0x94: { origin: [0,0], sp3: [0x13], sp4: [0x06, 0x09], },
 		0x97: { origin: [0,0], sp3: [0x13], sp4: [0x04, 0x0E], },
 		0x98: { origin: [0,0], sp3: [0x13], sp4: [0x09, 0x0E], },
-		0x99: { origin: [0,0], sp4: [0x09, 0x0E], weight: 2, },
-		0x9A: { origin: [0,0], sp4: [0x09], },
-		0xA2: { origin: [0,0], sp3: [0x24], weight: 4, },
-		0xAB: { origin: [0,0], sp4: [0x20], weight: 4, },
-		0xBC: { origin: [0,0], sp3: [0x12], weight: 4, },
 	},
 	{ // flying/swimming infinitely left
 		0x08: { origin: [0,0], },
