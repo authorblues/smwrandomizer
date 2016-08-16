@@ -182,7 +182,7 @@ function randomizeROM(buffer, seed)
 
 	// validate the rom before we spit it out
 	var errors = validateROM([].concat(stages, [FRONTDOOR]), rom);
-	if (errors.length) throw new ValidationError(errors);
+	if (errors.length) throw new ValidationError(errors, rom);
 
 	// write version number and the randomizer seed to the rom
 	var checksum = getChecksum(rom).toHex(4);
@@ -777,7 +777,7 @@ function randomizeEnemies(stages, random, rom)
 				{
 					for (var k = 0; k < usprites.length; ++k)
 					{
-						var sid = usprites[k];
+						var sid = usprites[k].id;
 						for (var z = 0; z < SPRITE_SETS.length; ++z)
 						{
 							if (sid in SPRITE_SETS[z])
@@ -837,13 +837,6 @@ function randomizeEnemies(stages, random, rom)
 				}
 			}
 
-			// if we require a new sprite memory, set it
-			if (smem)
-			{
-				sprites.header[0] &= 0xC0;
-				sprites.header[0] |= smem;
-			}
-
 			var lastx = -1000; remap = {};
 			for (var k = 0; k < sprites.sprites.length; ++k)
 			{
@@ -862,6 +855,30 @@ function randomizeEnemies(stages, random, rom)
 			// complete the deletion of sprites from the list
 			sprites.sprites = $.grep(sprites.sprites, function(x){ return x; });
 
+			// try adding a lakitu?
+			if (LEVEL_MODES[meta.lmode].horiz && random.flipCoin(0.25))
+			{
+				// pick a lakitu (or fishin boo)
+				var lakiut, lakid = null;
+				     if (meta.sp3 == 0x06 && meta.sp4 == 0x11) lakid = 0xAE;
+				else if (meta.sp3 == 0x13 && meta.sp4 == 0x02) lakid = 0x1E;
+				else continue;
+
+				// make sure sprite memory settings are ready for this new sprite
+				if (SPRITE_MEMORY[lakid] && smem != SPRITE_MEMORY[lakid]) continue;
+
+				// give up if there is already a lakitu (we only need one lakitu, dummy!)
+				if (sprites.sprites.some(function(x){ return [0xAE, 0x1E].contains(x.id); })) continue;
+
+				// find a sprite to replace with the lakitu
+				if (lakitu = random.from(sprites.sprites.filter(function(x){ return x.id in spritemap; })))
+				{
+					lakitu.id = lakid;
+					lakitu.y = Y_ENTRANCES[meta.y] - random.nextIntRange(8, 11);
+					lakitu.x %= 64;
+				}
+			}
+
 			// if we use sprite 0x33 (vertical podaboos), buoyancy MUST be on
 			if (sprites.sprites.some(function(x){ return x.id == 0x33; }))
 			{
@@ -873,9 +890,19 @@ function randomizeEnemies(stages, random, rom)
 				sprites.header[0] = (sprites.header[0] & 0x3F) | buoyancy;
 			}
 
+			// if we require a new sprite memory, set it
+			if (smem)
+			{
+				sprites.header[0] &= 0xC0;
+				sprites.header[0] |= smem;
+			}
+
 			writeSprites(sprites, rom);
 		}
 	}
+
+	// randomize sprite thrown by lakitus -- http://twitter.com/Aetyate/status/764974787974213632
+	rom[0x0EA32] = random.from([0x14, 0x15, 0x91, 0x92, 0x93, 0x0D, 0x1D, 0x3F, 0x40, 0x09, 0x0C, 0x10, 0x74]);
 }
 
 function randomizeEnemyProperties(mode, stages, random, rom)
@@ -2691,7 +2718,7 @@ function hasStaticWater(id, rom)
 {
 	var objects = parseLayer1(id, rom).objs;
 	for (var i = 0; i < objects.length; ++i)
-		if ([0x18, 0x19].contains(objects[i].id)) return true;
+		if (STATIC_WATER_TILES.contains(objects[i].id)) return true;
 }
 
 // end the demo after 10 inputs. this is a safe place to stop both for
@@ -2713,6 +2740,14 @@ function setSublevelWater(id, val, rom)
 	// get address of sprite table and setup buoyancy default
 	var addr = snesAddressToOffset(0x70000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
 	var buoyancy = val ? (getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40) : 0x00;
+
+	// if full-stage water is being added, remove static water tiles
+	if (val)
+	{
+		var layer1 = parseLayer1(id, rom);
+		layer1.objs = layer1.objs.filter(function(x){ return !STATIC_WATER_TILES.contains(x.id); });
+		writeLayer(layer1, rom);
+	}
 
 	// if buoyancy was already set, just leave it as it was
 	if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
@@ -2875,13 +2910,14 @@ function cheatOptions(rom)
 	}
 }
 
-function ValidationError(errors)
+function ValidationError(errors, rom)
 {
 	this.name = 'ValidationError';
 	this.message = 'Randomized ROM did not pass validation.';
 	this.stack = (new Error()).stack;
 
 	this.errors = errors;
+	this.data = rom;
 }
 
 ValidationError.prototype = new Error();
@@ -2920,14 +2956,6 @@ function validateROM(stages, rom)
 			{
 				var dest = exits[k].sublevel;
 				if (dest & 0xFF == 0) errors.push('Exit in ' + sub[j].toPrintHex(3) + ' of ' + location + ' is ' + dest.toPrintHex(3));
-			}
-
-			var sprites = getSprites(sub[j], rom);
-			var smem = sprites.header[0] & 0x3F;
-			for (var k = 0; k < sprites.sprites.length; ++k)
-			{
-				if (sprites.sprites[k].id in SPRITE_MEMORY && SPRITE_MEMORY[sprites.sprites[k].id] != smem)
-					errors.push('Sprite ' + sprites.sprites[k].id.toPrintHex(2) + ' found with sprite memory ' + smem.toPrintHex(2));
 			}
 
 			if (!reachable[sub[j]])
@@ -2975,101 +3003,6 @@ function fixChecksum(rom)
 	// checksum
 	rom.writeBytes(2, 0x7FDE, checksum);
 	rom.writeBytes(2, 0x7FDC, checksum ^ 0xFFFF);
-}
-
-function remapScreenExits(stages, random, rom)
-{
-	/*var smap = {};
-	for (var i = 0; i < stages.length; ++i)
-		smap[stages[i].name] = stages[i];
-
-	var exits = deepClone(SUBMAP_LINKS), xmap = {};
-	for (var i = 0; i < exits.length; ++i)
-		xmap[exits[i].from] = exits[i];
-
-	var worlds = [], xworld = {};
-	for (var i = 0; i < exits.length; ++i)
-	{
-		var queue = [exits[i].to], done = {}, wexits = {};
-		while (queue.length)
-		{
-			var x = queue.shift(), node = smap[x];
-			if (!node || !node.out || done[x]) continue;
-			done[x] = true;
-
-			// this is a world exit, so save it in the list
-			if (xmap.hasOwnProperty(x)) wexits[x] = xmap[x];
-
-			// don't consider star world in reachability
-			if (node.world >= 8) continue;
-
-			for (var j = 0; j < node.out.length; ++j)
-			{
-				var out = node.out[j];
-				if (out in done) continue;
-
-				// if this spans an exit, just skip it
-				if (xmap[x] && xmap[x].to == out) continue;
-				queue.push(out);
-			}
-		}
-
-		var world = null;
-		for (var k in wexits) if (wexits.hasOwnProperty(k))
-			if (xworld[k]) world = xworld[k];
-
-		if (!world) worlds.push(world = { entr: {}, exit: {} });
-		world.entr[exits[i].from] = exits[i];
-
-		for (var k in wexits) if (wexits.hasOwnProperty(k))
-		{ world.exit[k] = wexits[k]; xworld[k] = world; }
-	}
-
-	var worldentr = {};
-	for (var i = 0; i < worlds.length; ++i)
-		for (var k in worlds[i].entr) if (worlds[i].entr.hasOwnProperty(k))
-			worldentr[worlds[i].entr[k].to] = worlds[i];
-
-	var unused = { true: [], false: [] };
-	for (var i = 0; i < exits.length; ++i)
-		unused[exits[i].pipe].push(exits[i]);
-
-	var queue = ['c1', 'yi1'], done = {};
-	while (queue.length)
-	{
-		var which = random.draw(queue), xwhich = xmap[which];
-		var candidates = $.grep(unused[xwhich.pipe], function(x)
-		{
-			var worldexits = Object.keys(worldentr[x.to].exit);
-			return (worldexits.length || queue.length);
-		});
-
-		console.log('screen exit from', xwhich.from, 'to', xwhich.to);
-
-		var newdest = candidates.length ? random.from(candidates) : unused[xwhich.pipe][0];
-		if (!newdest) throw new Error('Cannot find an outgoing path for screen exit: ' + which);
-
-		console.log('exit will now go to', newdest.to);
-
-		xwhich.newto = newdest.to; done[which] = { pipe: xwhich.pipe };
-		unused[xwhich.pipe] = $.grep(unused[xwhich.pipe], function(x){ return x.to != newdest.to; });
-
-		var world = worldentr[newdest.to];
-		for (var k in world.exit) if (world.exit.hasOwnProperty(k))
-			if (!done[k] && !queue.contains(k)) queue.push(k);
-	}*/
-
-	var conn = {};
-	var submaplinks = deepClone(SUBMAP_LINKS);
-
-	var working = [0x7, 0x8];
-	while (working.length)
-	{
-		working.shuffle(random);
-		var link = working.pop();
-
-
-	}
 }
 
 function sameSublevelBucket(rom, a, b)

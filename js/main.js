@@ -8,6 +8,7 @@ var DEVMODE = window.location.href.indexOf('localhost') != -1;
 
 function doRandomize(buffer, seed)
 {
+	var prefix = 'smw-' + VERSION_STRING;
 	try
 	{
 		var __start = +new Date();
@@ -17,7 +18,6 @@ function doRandomize(buffer, seed)
 		var url = BASEURL + '#!/' + result.seed + '/' + result.preset;
 
 		var category = result.category || "No Starworld";
-		var prefix = 'smw-' + VERSION_STRING;
 
 		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' ' + category + ' - ' + url);
 		saveAs(new Blob([result.buffer], {type: "octet/stream"}), prefix + '-' + result.seed + result.type);
@@ -34,8 +34,11 @@ function doRandomize(buffer, seed)
 		$('#modal-error-win #modal-error-list').empty();
 
 		if (e instanceof ValidationError)
+		{
 			for (var i = 0; i < e.errors.length; ++i)
 				$('#modal-error-win #modal-error-list').append($('<li>').text(e.errors[i]).addClass('mono'));
+			if (DEVMODE) saveAs(new Blob([e.data], {type: "octet/stream"}), prefix + '-broken' + ['.sfc', '.smc'][+(e.data.length > 0x80000)]);
+		}
 
 		$('#modal-error-win').modal('show');
 		throw e;
@@ -126,7 +129,8 @@ $('#select-original-rom').click(
 
 $('#original-rom').change(function(e)
 {
-	checkRomResult(e.target.files.length, e.target.files[0]);
+	var isvalid = e.target.files.length && e.target.files[0].size >= 0x80000;
+	checkRomResult(isvalid, e.target.files[0]);
 });
 
 $('form').submit(function(e)
@@ -419,7 +423,7 @@ Array.prototype.shuffle = function(random)
 	if (!random) random = new Random();
 	for (var t, i = 1, j; i < this.length; ++i)
 	{
-		j = random.nextInt(i);
+		j = random.nextInt(i+1);
 		t = this[j]; this[j] = this[i]; this[i] = t;
 	}
 
