@@ -8,7 +8,7 @@ var BOWSER_ENTRANCES =
 
 var BOWSER_DARKROOM_ID = 0x1BD;
 
-function randomizeBowserEntrances(random, rom)
+function randomizeBowserEntrances(bowserentrances, random, rom)
 {
 	backupData(bowserentrances, rom);
 	shuffle(bowserentrances, random);

@@ -50,6 +50,9 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_autoscrollers').is(':checked'))
 		randomizeAutoscrollers(random, rom);
 
+	if ($('#randomize_enemies').is(':checked'))
+		randomizeEnemies(stages, random, rom);
+
 	// (☆^O^☆)
 	// (☆^O^☆) (☆^O^☆)
 	// (☆^O^☆) (☆^O^☆) (☆^O^☆)
@@ -92,9 +95,6 @@ function randomizeROM(buffer, seed)
 	if ($('#randomize_bowserdoors').is(':checked'))
 		randomizeBowser8Doors(random, rom);
 
-	if ($('#randomize_enemies').is(':checked'))
-		randomizeEnemies(stages, random, rom);
-
 	if ($('#randomize_levelexits').is(':checked'))
 	{
 		randomizeYoshiWings(stages, random, rom);
@@ -106,9 +106,10 @@ function randomizeROM(buffer, seed)
 	var gauntletlen = 8;
 	switch ($('input[name="bowser"]:checked').val())
 	{
-		case 'random': randomizeBowserEntrances(random, rom); break;
+		case 'random': randomizeBowserEntrances(bowserentrances, random, rom); break;
 		case 'minigauntlet': gauntletlen = random.nextIntRange(2,5); // intentional fall thru
 		case 'gauntlet': generateGauntlet(bowserentrances, random, gauntletlen, rom); break;
+		default: break;
 	}
 
 	// how should powerups be affected
@@ -180,9 +181,12 @@ function randomizeROM(buffer, seed)
 	// add all of the cheat options (if any)
 	cheatOptions(rom);
 
+	var preset = +$('#preset').val();
+	if (!preset) preset = 'x' + getRandomizerSettings();
+
 	// validate the rom before we spit it out
 	var errors = validateROM([].concat(stages, [FRONTDOOR]), rom);
-	if (errors.length) throw new ValidationError(errors, rom);
+	if (errors.length) throw new ValidationError(errors, vseed, preset, rom);
 
 	// write version number and the randomizer seed to the rom
 	var checksum = getChecksum(rom).toHex(4);
@@ -205,10 +209,6 @@ function randomizeROM(buffer, seed)
 
 	// fix the checksum (not necessary, but good to do!)
 	fixChecksum(rom);
-
-	// update the location.hash
-	var preset = +$('#preset').val();
-	if (!preset) preset = 'x' + getRandomizerSettings();
 
 	return {
 		// return the modified buffer
@@ -759,6 +759,9 @@ function randomizeEnemies(stages, random, rom)
 		{
 			var sprites = getSprites(sub[j], rom);
 			var meta = getSublevelData(sub[j], rom);
+
+			// if this is a switch palace room, leave it alone
+			if (sprites.sprites.length == 1 && sprites.sprites[0].id == 0x6D) continue;
 
 			// if this is a boss room, leave it alone
 			if (sprites.sprites.some(function(s){ return s.id in BOSSES; })) continue;
@@ -2635,12 +2638,13 @@ function randomizeKeyLocations(stages, random, rom)
 		0xA8, 0xCA, 0x67, 0x24, 0xEC, // Tile (1)
 		0xAA, 0xCC, 0x69, 0x24, 0xEC, // Tile (2)
 
-		0xBD, 0xD4, 0x14, 0x29, 0x0C, 0xF0, 0x04, 0xA0,
-		0x04, 0x80, 0x09, 0xB5, 0xE4, 0x4A, 0x4A, 0x4A,
-		0x4A, 0x29, 0x03, 0xA8, 0xBD, 0xD4, 0x14, 0x29,
-		0x01, 0x9D, 0xD4, 0x14, 0x6B, 0xC9, 0x80, 0xD0,
-		0x05, 0xA9, 0x09, 0x9D, 0xC8, 0x14, 0x22, 0xD2,
-		0xF7, 0x07, 0x6B,
+		0xA5, 0x5B, 0x4A, 0xB0, 0x12, 0xBD, 0xD4, 0x14,
+		0x29, 0x0C, 0xF0, 0x0B, 0xBD, 0xD4, 0x14, 0x29,
+		0x01, 0x9D, 0xD4, 0x14, 0xA0, 0x04, 0x6B, 0xB5,
+		0xE4, 0x4A, 0x4A, 0x4A, 0x4A, 0x29, 0x03, 0xA8,
+		0x6B, 0xC9, 0x80, 0xD0, 0x05, 0xA9, 0x09, 0x9D,
+		0xC8, 0x14, 0x22, 0xD2, 0xF7, 0x07, 0x6B, 0xB5,
+		0xE4, 0x85, 0x00, 0xBD, 0xE0, 0x14,
 	],
 	0x14BFE);
 
@@ -2910,11 +2914,14 @@ function cheatOptions(rom)
 	}
 }
 
-function ValidationError(errors, rom)
+function ValidationError(errors, vseed, preset, rom)
 {
 	this.name = 'ValidationError';
 	this.message = 'Randomized ROM did not pass validation.';
 	this.stack = (new Error()).stack;
+
+	this.seed = vseed;
+	this.preset = preset;
 
 	this.errors = errors;
 	this.data = rom;

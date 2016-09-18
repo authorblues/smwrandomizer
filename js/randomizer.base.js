@@ -572,8 +572,8 @@ var SPRITE_SETS =
 	{ // flying/swimming infinitely left
 		0x08: { origin: [0,0], },
 		0x1C: { origin: [0,1], },
-		0x38: { origin: [0,0], sp3: [0x06], sp4: [0x11], weight: 3, },
-		0x39: { origin: [0,0], sp3: [0x06], sp4: [0x11], weight: 3, },
+		0x38: { origin: [0,0], sp3: [0x06], sp4: [0x11] },
+		0x39: { origin: [0,0], sp3: [0x06], sp4: [0x11] },
 		0x9F: { origin: [1,1], sp4: [0x20], },
 		0xAA: { origin: [0,0], sp4: [0x03], weight: 3, },
 		0xB3: { origin: [0,0], sp3: [0x12], },

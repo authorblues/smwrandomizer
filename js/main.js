@@ -88,7 +88,18 @@ function _validateRandomizer(buffer, maxiter, iter, errors)
 	{
 		var copy = new ArrayBuffer(buffer.byteLength);
 		new Uint8Array(copy).set(new Uint8Array(buffer));
-		try { randomizeROM(copy); } catch (e) { ++errors; }
+
+		try
+		{
+			shuffleOptions();
+			randomizeROM(copy);
+		}
+		catch (e)
+		{
+			++errors;
+			console.log(BASEURL + '#!/' + e.seed + '/' + e.preset);
+			console.log(e.errors.join("\n"));
+		}
 	}
 
 	if (iter)
@@ -147,10 +158,8 @@ if (!__SMWC)
 	{
 		checkRomResult(true, true);
 		$('#select-original-rom').prop('disabled', true);
+		$('#cheatmenu').removeClass('hidden');
 	});
-
-	// i don't care if people find these, but they shouldn't be readily accessible
-	if (DEVMODE) $('#cheatmenu').removeClass('hidden');
 }
 
 $('#view-changelog').click(function(e)

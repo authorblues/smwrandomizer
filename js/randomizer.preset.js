@@ -98,3 +98,20 @@ function setRandomizerSettings(set)
 		$(RANDOMIZER_SETTINGS[i]).prop('checked', x);
 	}
 }
+
+function shuffleOptions()
+{
+	$('input:checkbox:enabled.presetoption').each(function()
+	{ $(this).prop('checked', Math.random() > 0.5); });
+
+	var radiogroups = {};
+	$('input:radio:enabled.presetoption').each(function()
+	{ radiogroups[$(this).attr('name')] = true; });
+
+	for (var k in radiogroups)
+	{
+		var group = $('input:radio:enabled[name="' + k + '"]');
+		var n = Math.floor(Math.random() * group.length);
+		group.eq(n).prop('checked', true);
+	}
+}
