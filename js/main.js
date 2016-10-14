@@ -5,43 +5,41 @@ var EN_US = false;
 var __SMWC = true;
 
 var DEVMODE = window.location.href.indexOf('localhost') != -1;
+var DEEPVALIDATION = window.location.href.indexOf('localhost') != -1;
 
 function doRandomize(buffer, seed)
 {
+	var __start = +new Date();
+	if (console.clear) console.clear();
+
 	var prefix = 'smw-' + VERSION_STRING;
-	try
+	var result = randomizeROM(buffer, seed);
+
+	//saveAs = function(){};
+	if (result.errors.length == 0)
 	{
-		var __start = +new Date();
-		if (console.clear) console.clear();
-
-		var result = randomizeROM(buffer, seed);
 		var url = BASEURL + '#!/' + result.seed + '/' + result.preset;
-
 		var category = result.category || "No Starworld";
 
 		$('#setgoal-text').val('.setgoal Randomizer ' + VERSION_STRING + ' ' + category + ' - ' + url);
 		saveAs(new Blob([result.buffer], {type: "octet/stream"}), prefix + '-' + result.seed + result.type);
 
-        $('#generation-time').remove();
-        $('body').append($('<div id="generation-time">').html('&Delta;' + (+new Date() - __start) + "ms"));
+		$('#generation-time').remove();
+		$('body').append($('<div id="generation-time">').html('&Delta;' + (+new Date() - __start) + "ms"));
 
 		var issuebody = encodeURIComponent('ROM: ' + url + ' (' + result.checksum + ')');
 		$('#bugreport').attr('href', 'http://github.com/authorblues/smwrandomizer/issues/new?body=' + issuebody);
 	}
-	catch (e)
+	else
 	{
-		$('#modal-error-win #modal-error-text').text(e.name + ': ' + e.message);
+		$('#modal-error-win #modal-error-text').text("Randomized ROM did not pass validation");
 		$('#modal-error-win #modal-error-list').empty();
 
-		if (e instanceof ValidationError)
-		{
-			for (var i = 0; i < e.errors.length; ++i)
-				$('#modal-error-win #modal-error-list').append($('<li>').text(e.errors[i]).addClass('mono'));
-			if (DEVMODE) saveAs(new Blob([e.data], {type: "octet/stream"}), prefix + '-broken' + ['.sfc', '.smc'][+(e.data.length > 0x80000)]);
-		}
+		for (var i = 0; i < result.errors.length; ++i)
+			$('#modal-error-win #modal-error-list').append($('<li>').text(result.errors[i]).addClass('mono'));
+		if (DEVMODE) saveAs(new Blob([result.buffer], {type: "octet/stream"}), prefix + '-broken' + ['.sfc', '.smc'][+(result.buffer.length > 0x80000)]);
 
 		$('#modal-error-win').modal('show');
-		throw e;
 	}
 }
 
@@ -84,28 +82,25 @@ $('#generate-param-rom').click(function(e)
 
 function _validateRandomizer(buffer, maxiter, iter, errors)
 {
-	for (var i = 0; i < 100 && iter > 0; ++i, --iter)
-	{
-		var copy = new ArrayBuffer(buffer.byteLength);
-		new Uint8Array(copy).set(new Uint8Array(buffer));
+	var copy = new ArrayBuffer(buffer.byteLength);
+	new Uint8Array(copy).set(new Uint8Array(buffer));
 
-		try
-		{
-			shuffleOptions();
-			randomizeROM(copy);
-		}
-		catch (e)
-		{
-			++errors;
-			console.log(BASEURL + '#!/' + e.seed + '/' + e.preset);
-			console.log(e.errors.join("\n"));
-		}
+	try
+	{
+		shuffleOptions();
+		randomizeROM(copy);
+	}
+	catch (e)
+	{
+		++errors;
+		console.log(BASEURL + '#!/' + e.seed + '/' + e.preset);
+		console.log(e.errors.join("\n"));
 	}
 
-	if (iter)
+	if (--iter)
 	{
 		console.log(Math.floor(100 * (maxiter - iter) / maxiter) + '%... ' + errors + ' (' + Math.round(errors*100/(maxiter-iter)) + '%)');
-		setTimeout(_validateRandomizer.bind(this, buffer, maxiter, iter, errors), 100);
+		setTimeout(_validateRandomizer.bind(this, buffer, maxiter, iter, errors), 1);
 	}
 	else console.log('Validation complete: ' + errors + ' errors (' + Math.round(errors*100/maxiter) + '%)'); // FIXME
 }
@@ -114,6 +109,7 @@ function validateRandomizer(iter)
 {
 	// turn on error reporting
 	DEVMODE = false;
+	DEEPVALIDATION = true;
 
 	var xhr = new XMLHttpRequest();
 	xhr.open('GET', 'smw.sfc', true);
