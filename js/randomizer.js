@@ -347,6 +347,7 @@ function getObjectHeaderData(header, rom)
 		// pure getters for some properties
 		seconds: { get: function(){ return [0, 200, 300, 400][this.time]; } },
 		vscroll: { get: function(){ return ['no-v', 'always', 'locked', 'no-v/h'][this._vscroll]; } },
+		canvscroll: { get: function(){ return this._vscroll == 0 || this._vscroll == 3; } },
 
 		// pure getters for sprite page metadata
 		sp3: { get: function(){ return rom[0x028C3 + this.sprite*4 + 2]; } },
@@ -832,19 +833,11 @@ function randomizeEnemies(stages, random, rom)
 							var x = remap[orig.id] = random.fromWeighted(candidates);
 
 							// sprite might need water or tide of some
-							switch (x.water)
+							if (x.water && isSublevelWater(sub[j], rom))
 							{
-								case 1: // full water
-									rom[FLAGBASE+sub[j]] |= 0x01;
-									break;
-
-								case 2: // tide
-									if (meta.screens <= 0x10)
-									{
-										meta.l3 = random.from([0x1, 0x1, 0x2]);
-										rom[FLAGBASE+sub[j]] &= ~0x01;
-									}
-									break;
+								var mode = getLevelMode(sub[j], rom);
+								if (mode.horiz && !meta.canvscroll && meta.screens <= 0x10)
+									setSublevelTide(sub[j], random.from([0x1, 0x1, 0x2]), rom);
 							}
 						}
 						else remap[orig.id] = orig;
@@ -1513,7 +1506,7 @@ function randomizeStageEffects(stages, random, rom)
 		if ([0x5, 0xD].contains(meta.tileset) && random.flipCoin(0.25)) meta.l3 = 0x3;
 
 		// random fish underwater
-		if (meta.tileset == 0x9 && (rom[FLAGBASE+id] & 0x01) && random.flipCoin(0.25)) meta.l3 = 0x3;
+		if (meta.tileset == 0x9 && isSublevelWater(id, rom) && random.flipCoin(0.25)) meta.l3 = 0x3;
 	}
 }
 
@@ -2767,12 +2760,31 @@ function setSublevelWater(id, val, rom)
 	var buoyancy = val ? (getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40) : 0x00;
 
 	// if full-stage water is being added, remove static water tiles
-	if (val)
+	/*if (val)
 	{
 		var layer1 = parseLayer1(id, rom);
 		layer1.objs = layer1.objs.filter(function(x){ return !STATIC_WATER_TILES.contains(x.id); });
 		writeLayer(layer1, rom);
-	}
+	}*/
+
+	// if buoyancy was already set, just leave it as it was
+	if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);
+	rom[addr] = (rom[addr] & 0x3F) | buoyancy;
+
+	return rom[FLAGBASE+id];
+}
+
+function isSublevelWater(id, rom)
+{ return !!(rom[FLAGBASE+id] & 0x01); }
+
+function setSublevelTide(id, val, rom)
+{
+	// set tide value
+	getSublevelData(id, rom).l3 = val;
+
+	// get address of sprite table and setup buoyancy default
+	var addr = snesAddressToOffset(0x70000 | getPointer(SPRITE_OFFSET + 2 * id, 2, rom));
+	var buoyancy = val ? (getLevelMode(id, rom).layer2 == LAYER2_INTERACT ? 0x80 : 0x40) : 0x00;
 
 	// if buoyancy was already set, just leave it as it was
 	if (rom[addr] & 0xC0) buoyancy = (rom[addr] & 0xC0);

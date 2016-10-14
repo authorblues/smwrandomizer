@@ -580,7 +580,7 @@ var SPRITE_SETS =
 		0x0B: { origin: [0,1], },
 		0x15: { origin: [0,0], sp3: [0x13], water: 1, weight: 2, },
 		0x16: { origin: [0,0], sp3: [0x13], water: 1, weight: 2, },
-		0x18: { origin: [0,0], sp3: [0x13], water: 2, },
+		0x18: { origin: [0,0], sp3: [0x13], water: 1, },
 		0x28: { origin: [1,1], sp4: [0x11], weight: 3, },
 		0x33: { origin: [0,2], sp4: [0x03, 0x04, 0x0E, 0x22], },
 		0x37: { origin: [0,0], sp4: [0x11], weight: 3, },
