@@ -840,7 +840,10 @@ function randomizeEnemies(stages, random, rom)
 
 								case 2: // tide
 									if (meta.screens <= 0x10)
+									{
 										meta.l3 = random.from([0x1, 0x1, 0x2]);
+										rom[FLAGBASE+sub[j]] &= ~0x01;
+									}
 									break;
 							}
 						}
@@ -2814,7 +2817,7 @@ function randomizeFlags(random, rom)
 		var flag = (meta.entrance == 5 ? 0x80 : 0) | (meta.entrance == 7 ? 0x01 : 0);
 
 		// base water on how many screens the stage has
-		if (random.nextFloat(Math.max(meta.screens*1.8, 8)) < 1.0 && !NO_WATER_STAGES.contains(id)
+		if (random.nextFloat() * Math.max(meta.screens*1.8, 8) < 1.0 && !NO_WATER_STAGES.contains(id)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked'))
 				flag = setSublevelWater(id, !(flag & 0x01), rom);
 
