@@ -278,43 +278,39 @@ var LAYER2_NONE = 0,
 
 var LEVEL_MODES =
 {
-	0x00: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND },
-	0x01: { maxscreens: 0x10, horiz: 1, layer2: LAYER2_NONE },
-	0x02: { maxscreens: 0x10, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x03: { maxscreens: 0x0D, horiz: 0, layer2: LAYER2_INTERACT },
-//	0x04: { maxscreens: 0x0D, horiz: 0, layer2: LAYER2_INTERACT },
-//	0x05: { maxscreens: 0x0E, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x06: { maxscreens: 0x0E, horiz: 1, layer2: LAYER2_INTERACT },
-	0x07: { maxscreens: 0x0E, horiz: 0, layer2: LAYER2_NONE },
-	0x08: { maxscreens: 0x0E, horiz: 0, layer2: LAYER2_INTERACT },
-	0x09: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_BACKGROUND },
-	0x0A: { maxscreens: 0x1C, horiz: 0, layer2: LAYER2_BACKGROUND },
-	0x0B: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_BACKGROUND },
-	0x0C: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND },
-	0x0D: { maxscreens: 0x1C, horiz: 0, layer2: LAYER2_BACKGROUND }, // dark bg vert
-	0x0E: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND }, // dark bg horiz
-	0x0F: { maxscreens: 0x10, horiz: 1, layer2: LAYER2_NONE },
-	0x10: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_BACKGROUND },
-	0x11: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND }, // "weird" horiz
-//	0x12: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x13: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x14: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x15: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x16: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x17: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x18: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x19: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x1A: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x1B: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x1C: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-//	0x1D: { maxscreens: 0x00, horiz: 1, layer2: LAYER2_INTERACT },
-	0x1E: { maxscreens: 0x20, horiz: 1, layer2: LAYER2_BACKGROUND }, // trans (layer1) horiz
-	0x1F: { maxscreens: 0x10, horiz: 1, layer2: LAYER2_NONE }, // trans (layer2) horiz
+	0x00: { maxscreens: 0x20, boss: 0, horiz: 1, layer2: LAYER2_BACKGROUND },
+	0x01: { maxscreens: 0x10, boss: 0, horiz: 1, layer2: LAYER2_NONE },
+	0x02: { maxscreens: 0x10, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x03: { maxscreens: 0x0D, boss: 0, horiz: 0, layer2: LAYER2_INTERACT },
+//	0x04: { maxscreens: 0x0D, boss: 0, horiz: 0, layer2: LAYER2_INTERACT },
+//	0x05: { maxscreens: 0x0E, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x06: { maxscreens: 0x0E, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+	0x07: { maxscreens: 0x0E, boss: 0, horiz: 0, layer2: LAYER2_NONE },
+	0x08: { maxscreens: 0x0E, boss: 0, horiz: 0, layer2: LAYER2_INTERACT },
+	0x09: { maxscreens: 0x00, boss: 1, horiz: 1, layer2: LAYER2_BACKGROUND },
+	0x0A: { maxscreens: 0x1C, boss: 0, horiz: 0, layer2: LAYER2_BACKGROUND },
+	0x0B: { maxscreens: 0x00, boss: 1, horiz: 1, layer2: LAYER2_BACKGROUND },
+	0x0C: { maxscreens: 0x20, boss: 0, horiz: 1, layer2: LAYER2_BACKGROUND },
+	0x0D: { maxscreens: 0x1C, boss: 0, horiz: 0, layer2: LAYER2_BACKGROUND }, // dark bg vert
+	0x0E: { maxscreens: 0x20, boss: 0, horiz: 1, layer2: LAYER2_BACKGROUND }, // dark bg horiz
+	0x0F: { maxscreens: 0x10, boss: 0, horiz: 1, layer2: LAYER2_NONE },
+	0x10: { maxscreens: 0x00, boss: 1, horiz: 1, layer2: LAYER2_BACKGROUND },
+	0x11: { maxscreens: 0x20, boss: 0, horiz: 1, layer2: LAYER2_BACKGROUND }, // "weird" horiz
+//	0x12: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x13: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x14: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x15: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x16: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x17: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x18: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x19: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x1A: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x1B: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x1C: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+//	0x1D: { maxscreens: 0x00, boss: 0, horiz: 1, layer2: LAYER2_INTERACT },
+	0x1E: { maxscreens: 0x20, boss: 0, horiz: 1, layer2: LAYER2_BACKGROUND }, // trans (layer1) horiz
+	0x1F: { maxscreens: 0x10, boss: 0, horiz: 1, layer2: LAYER2_NONE }, // trans (layer2) horiz
 };
-
-// sprite page settings indexed by sprite tileset value
-var SP3_SETTINGS = [0x13, 0x12, 0x13, 0x13, 0x13, 0x13, 0x13, 0x06, 0x13, 0x13, 0x13, 0x0D, 0x24, 0x0A, 0x13, 0x13];
-var SP4_SETTINGS = [0x02, 0x03, 0x05, 0x04, 0x06, 0x09, 0x04, 0x11, 0x20, 0x0F, 0x23, 0x14, 0x0E, 0x22, 0x0E, 0x14];
 
 var Y_ENTRANCES = [0x00, 0x03, 0x06, 0x08, 0x0A, 0x0B, 0x0C, 0x0E, 0x11, 0x13, 0x15, 0x16, 0x17, 0x19, 0x10, 0x10];
 var X_ENTRANCES = [0x01, 0x08, 0x00, 0x0E, 0x01, 0x07, 0x00];
@@ -537,9 +533,9 @@ var SPRITE_SETS =
 		0x07: { origin: [0,0], },
 		0x09: { origin: [0,0], },
 		0x0C: { origin: [0,0], },
+		0x0D: { origin: [0,0], sp4: [0x02], },
 		0x0F: { origin: [0,0], },
 		0x10: { origin: [0,0], },
-		0x0D: { origin: [0,0], sp4: [0x02], },
 		0x11: { origin: [0,0], sp4: [0x04], },
 		0x13: { origin: [0,0], sp4: [0x02], },
 		0x1D: { origin: [0,0], sp4: [0x02], weight: 2, },
@@ -586,7 +582,7 @@ var SPRITE_SETS =
 		0x16: { origin: [0,0], sp3: [0x13], water: 1, weight: 2, },
 		0x18: { origin: [0,0], sp3: [0x13], water: 2, },
 		0x28: { origin: [1,1], sp4: [0x11], weight: 3, },
-		0x33: { origin: [0,2], sp4: [0x03], },
+		0x33: { origin: [0,2], sp4: [0x03, 0x04, 0x0E, 0x22], },
 		0x37: { origin: [0,0], sp4: [0x11], weight: 3, },
 	//	0x3A: { origin: [0,0], sp4: [0x06], },
 	//	0x3B: { origin: [0,0], sp4: [0x06], },
@@ -599,7 +595,7 @@ var SPRITE_SETS =
 	//	0x9D: { origin: [0,0], sp3: [0x13], sp4: [0x02], weight: 3, },
 		0xAF: { origin: [0,0], sp4: [0x11], weight: 2, },
 		0xB0: { origin: [0,0], sp4: [0x11], weight: 3, },
-		0xB6: { origin: [0,0], sp4: [0x03], weight: 2, },
+		0xB6: { origin: [0,0], sp4: [0x03, 0x22], weight: 2, },
 	},
 	{ // from a pipe
 		0x4B: { origin: [0,0], sp4: [0x02], weight: 3, },
