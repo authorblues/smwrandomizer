@@ -371,7 +371,8 @@ var ENDGAME_TEXTS =
 	],
 	[
 		"You can't speedrun a",
-		"randomizer.",
+		"randomizer. Shoutouts to",
+		"         Simpleflips.",
 	],
 ];
 
