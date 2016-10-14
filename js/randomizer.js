@@ -13,8 +13,8 @@ function randomizeROM(buffer, seed)
 
 	var crc32rom = crc32(rom);
 	if (crc32rom != BASE_CHECKSUM)
-		throw new ValidationError(['Base rom incorrect. Expected checksum ' +
-			BASE_CHECKSUM.toPrintHex(8) + ", got " + crc32rom.toPrintHex(8)]);
+		throw new Error('Base rom incorrect. Expected checksum ' +
+			BASE_CHECKSUM.toPrintHex(8) + ", got " + crc32rom.toPrintHex(8));
 
 	var stages = $.map(deepClone(SMW_STAGES), decorateStage.bind(null, rom));
 	var bowserentrances = $.map(deepClone(BOWSER_ENTRANCES), decorateStage.bind(null, rom));
@@ -42,6 +42,9 @@ function randomizeROM(buffer, seed)
 
 	// update sublevels and exits to canonical representation
 	canonicalizeBaseRom([].concat(stages, bowserentrances), rom);
+
+	// randomize sp4 for switch palace sprite tileset
+	rom[0x028F2] = random.from($.grep(SP4_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
 
 	// randomize all of the slippery/water flags
 	randomizeFlags(random, rom);
@@ -186,7 +189,6 @@ function randomizeROM(buffer, seed)
 
 	// validate the rom before we spit it out
 	var errors = validateROM([].concat(stages, [FRONTDOOR]), rom);
-	if (errors.length) throw new ValidationError(errors, vseed, preset, rom);
 
 	// write version number and the randomizer seed to the rom
 	var checksum = getChecksum(rom).toHex(4);
@@ -219,6 +221,9 @@ function randomizeROM(buffer, seed)
 		seed: vseed,
 		checksum: checksum,
 		preset: preset,
+
+		// errors
+		errors: errors,
 	};
 }
 
@@ -285,7 +290,7 @@ function getSublevelData(id, rom, header)
 
 	// get address for layer 1 header
 	var addr = snesAddressToOffset(getPointer(LAYER1_OFFSET + 3 * id, 3, rom));
-	var data = getObjectHeaderData(header || rom.subarray(addr, addr+5));
+	var data = getObjectHeaderData(header || rom.subarray(addr, addr+5), rom);
 	Object.defineProperties(data,
 	{
 		l2scroll:   generateSubHeaderProperty(HEADER1_OFFSET, 4, 4), // layer 2 scroll
@@ -310,7 +315,7 @@ function getSublevelData(id, rom, header)
 	return data;
 }
 
-function getObjectHeaderData(header)
+function getObjectHeaderData(header, rom)
 {
 	function generateHeaderProperty(byte, start, size)
 	{
@@ -344,8 +349,8 @@ function getObjectHeaderData(header)
 		vscroll: { get: function(){ return ['no-v', 'always', 'locked', 'no-v/h'][this._vscroll]; } },
 
 		// pure getters for sprite page metadata
-		sp3: { get: function(){ return SP3_SETTINGS[this.sprite]; } },
-		sp4: { get: function(){ return SP4_SETTINGS[this.sprite]; } },
+		sp3: { get: function(){ return rom[0x028C3 + this.sprite*4 + 2]; } },
+		sp4: { get: function(){ return rom[0x028C3 + this.sprite*4 + 3]; } },
 	});
 
 	return data;
@@ -780,18 +785,20 @@ function randomizeEnemies(stages, random, rom)
 				{
 					for (var k = 0; k < usprites.length; ++k)
 					{
-						var sid = usprites[k].id;
+						var sid = usprites[k];
 						for (var z = 0; z < SPRITE_SETS.length; ++z)
 						{
-							if (sid in SPRITE_SETS[z])
-							{
-								if (!$.map(SPRITE_SETS[z], function(v,k){ return v.sp3 || []; }).contains(SP3_SETTINGS[x])) return false;
-								if (!$.map(SPRITE_SETS[z], function(v,k){ return v.sp4 || []; }).contains(SP4_SETTINGS[x])) return false;
-							}
-						}
+							if (!(sid in SPRITE_SETS[z])) continue;
 
-						return true;
+							var sp3o = $.map(SPRITE_SETS[z], function(v,k){ return v.sp3 || []; });
+							if (!sp3o.contains(rom[0x028C3 + x*4 + 2])) return false;
+
+							var sp4o = $.map(SPRITE_SETS[z], function(v,k){ return v.sp4 || []; });
+							if (!sp4o.contains(rom[0x028C3 + x*4 + 3])) return false;
+						}
 					}
+
+					return true;
 				});
 
 				if (valid_sprite_sets.length)
@@ -813,18 +820,31 @@ function randomizeEnemies(stages, random, rom)
 							if (x.sp3 && !x.sp3.contains(meta.sp3)) return false;
 							if (x.sp4 && !x.sp4.contains(meta.sp4)) return false;
 
-							// sprite might need water or tide of some
-							if (x.water == 1 && !(rom[FLAGBASE+sub[j]] & 0x01)) return false;
-							if (x.water == 2 && !meta.tide) return false;
-
 							// if we have changed the item memory and this sprite requires a different one, incompatible
 							if (smem && x.id in SPRITE_MEMORY && SPRITE_MEMORY[x.id] !== smem) return false;
 
 							return true;
 						});
 
-						// store this so that future sprites can use this same sprite
-						if (candidates.length) remap[orig.id] = random.fromWeighted(candidates);
+						if (candidates.length)
+						{
+							// store this so that future sprites can use this same sprite
+							var x = remap[orig.id] = random.fromWeighted(candidates);
+
+							// sprite might need water or tide of some
+							switch (x.water)
+							{
+								case 1: // full water
+									rom[FLAGBASE+sub[j]] |= 0x01;
+									break;
+
+								case 2: // tide
+									if (meta.screens <= 0x10)
+										meta.l3 = random.from([0x1, 0x1, 0x2]);
+									break;
+							}
+						}
+						else remap[orig.id] = orig;
 					}
 
 					if (orig.id in remap)
@@ -865,16 +885,16 @@ function randomizeEnemies(stages, random, rom)
 				var lakiut, lakid = null;
 				     if (meta.sp3 == 0x06 && meta.sp4 == 0x11) lakid = 0xAE;
 				else if (meta.sp3 == 0x13 && meta.sp4 == 0x02) lakid = 0x1E;
-				else continue;
+				else lakid = null;
 
 				// make sure sprite memory settings are ready for this new sprite
-				if (SPRITE_MEMORY[lakid] && smem != SPRITE_MEMORY[lakid]) continue;
+				if (SPRITE_MEMORY[lakid] && smem != SPRITE_MEMORY[lakid]) lakid = null;
 
 				// give up if there is already a lakitu (we only need one lakitu, dummy!)
-				if (sprites.sprites.some(function(x){ return [0xAE, 0x1E].contains(x.id); })) continue;
+				if (sprites.sprites.some(function(x){ return [0xAE, 0x1E].contains(x.id); })) lakid = null;
 
 				// find a sprite to replace with the lakitu
-				if (lakitu = random.from(sprites.sprites.filter(function(x){ return x.id in spritemap; })))
+				if (lakid && (lakitu = random.from(sprites.sprites.filter(function(x){ return x.id in spritemap; }))))
 				{
 					lakitu.id = lakid;
 					lakitu.y = Y_ENTRANCES[meta.y] - random.nextIntRange(8, 11);
@@ -1276,10 +1296,8 @@ function randomizeZeroes(stages, random, rom)
 function randomizeSwitchRooms(stages, random, rom)
 {
 	var switches = $.grep(stages, function(x){ return x.palace; });
-	var sp4 = random.from($.grep(SP4_SPRITES, function(x){ return x.sp4 !== null; })).sp4;
-	var candidates = $.grep(SP4_SPRITES, function(x){ return [null, sp4].contains(x.sp4); });
+	var candidates = $.grep(SP4_SPRITES, function(x){ return [null, rom[0x028F2]].contains(x.sp4); });
 
-	rom[0x028F2] = sp4;
 	for (var i = 0; i < switches.length; ++i)
 	{
 		var id = getRelatedSublevels(switches[i].id, rom)[1];
@@ -2796,7 +2814,7 @@ function randomizeFlags(random, rom)
 		var flag = (meta.entrance == 5 ? 0x80 : 0) | (meta.entrance == 7 ? 0x01 : 0);
 
 		// base water on how many screens the stage has
-		if (0 == random.nextInt(Math.max(meta.screens*1.5, 8)|0) && !NO_WATER_STAGES.contains(id)
+		if (random.nextFloat(Math.max(meta.screens*1.8, 8)) < 1.0 && !NO_WATER_STAGES.contains(id)
 			&& $((flag & 0x01) ? '#delwater' : '#addwater').is(':checked'))
 				flag = setSublevelWater(id, !(flag & 0x01), rom);
 
@@ -2914,21 +2932,6 @@ function cheatOptions(rom)
 	}
 }
 
-function ValidationError(errors, vseed, preset, rom)
-{
-	this.name = 'ValidationError';
-	this.message = 'Randomized ROM did not pass validation.';
-	this.stack = (new Error()).stack;
-
-	this.seed = vseed;
-	this.preset = preset;
-
-	this.errors = errors;
-	this.data = rom;
-}
-
-ValidationError.prototype = new Error();
-
 function validateROM(stages, rom)
 {
 	var errors = [];
@@ -2971,11 +2974,41 @@ function validateROM(stages, rom)
 		}
 	}
 
-	/*for (var i = 0; i < 0x200; ++i)
+	if (DEEPVALIDATION)
 	{
-		var boss = getBossType(i, rom);
-		if (boss) console.log(boss, i.toPrintHex(3));
-	}*/
+		var spritemap = {}, spritedata = {};
+		for (var i = 0; i < SPRITE_SETS.length; ++i)
+		{
+			var set = [];
+			for (var k in SPRITE_SETS[i])
+			{
+				spritemap[+k] = set;
+				set.push(spritedata[+k] = SPRITE_SETS[i][k])
+				SPRITE_SETS[i][k].id = +k;
+			}
+		}
+
+		for (var id = 0; id < 0x200; ++id)
+		{
+			var mode = getLevelMode(id, rom);
+			var sprites = getSprites(id, rom);
+			var meta = getSublevelData(id, rom);
+
+			for (var i = 0; i < sprites.sprites.length; ++i)
+			{
+				var sprite = spritedata[sprites.sprites[i].id];
+				if (!sprite) continue;
+
+				if (mode.boss && [0x33].contains(sprite.id)) continue;
+				$(['sp3', 'sp4']).each(function(_,x)
+				{
+					if (sprite[x] && !sprite[x].contains(meta[x]))
+						errors.push('Sublevel ' + id.toPrintHex(3) + ' has wrong ' + x +
+							' setting for sprite ' + sprite.id.toPrintHex(2) + ': ' + meta[x].toPrintHex(1));
+				});
+			}
+		}
+	}
 
 	for (var i = 0; i < 0x200; ++i) if (reachable[i] && reachable[i].length > 1)
 		errors.push('Sublevel ' + i.toPrintHex(3) + ' reachable from ' + reachable[i].length + ' stages: ' + reachable[i].join(', '));
