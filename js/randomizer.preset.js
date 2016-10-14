@@ -6,9 +6,9 @@ function updatePreset(val)
 	if (preset == 0) return;
 
 	$('#randomize_stages').prop('checked', true);
-	$('#randomize_sublevels').prop('checked', preset > 4);
+	$('#randomize_sublevels').prop('checked', preset > 3);
 	$('#randomize_exits').prop('checked', preset > 2);
-	$('#randomize_warps').prop('checked', preset > 3);
+	$('#randomize_warps').prop('checked', preset > 4);
 
 	$('#randomize_sameworld').prop('checked', preset < 2);
 	$('#randomize_sametype').prop('checked', preset < 2);
@@ -23,7 +23,7 @@ function updatePreset(val)
 
 	$('#bowser_default').prop('checked', true);
 	if (preset > 1) $('#bowser_swapdoors').prop('checked', true);
-	if (preset > 4) $('#bowser_minigauntlet').prop('checked', true);
+	if (preset > 3) $('#bowser_minigauntlet').prop('checked', true);
 	if (preset > 7) $('#bowser_gauntlet').prop('checked', true);
 	$('#randomize_bowserdoors').prop('checked', preset > 3);
 
