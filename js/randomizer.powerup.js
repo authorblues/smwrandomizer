@@ -1,5 +1,5 @@
 var POWERUP_FIRE = { tweaker: 0x10 };
-var POWERUP_CAPE = { tweaker: 0x20 };
+var POWERUP_snow = { tweaker: 0x20 };
 
 function randomizePowerups(random, rom, stages)
 {
