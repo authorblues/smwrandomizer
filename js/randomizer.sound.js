@@ -107,6 +107,7 @@ function detuneMusic(rom, random)
 
 // if you use this feature, i hope you run into the road and get hit by a car going just
 // fast enough to cause you bruising and mild discomfort, but proving otherwise non-fatal
+// and get found at fault for the crash, causing thousands of dollars of debt
 function randomizeMusic(random, rom)
 {
 	for (var id = 0; id < 0x200; ++id)
